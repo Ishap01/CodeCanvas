@@ -12,7 +12,7 @@ import com.codecanvas.userservice.dto.response.AuthResponse;
 import com.codecanvas.userservice.service.AuthService;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class AuthController {
 
     private final AuthService authService;
