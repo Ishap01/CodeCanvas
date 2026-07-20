@@ -3,6 +3,7 @@ package com.codecanvas.userservice.service.impl;
 
 import java.time.LocalDateTime;
 
+import com.codecanvas.userservice.entity.Role;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -52,6 +53,15 @@ public class AuthServiceImpl implements AuthService {
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
         user.setUsername(request.getUsername());
+        user.setMobileNumber(request.getMobileNumber());
+
+        user.setRole(Role.USER);
+
+        user.setBio("");
+        user.setProfileImage("");
+
+        user.setCreatedAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now());
 
         // Password ko BCrypt hash me convert karke database me save karega
         user.setPassword(
