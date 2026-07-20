@@ -19,7 +19,7 @@ export default function Login() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    username: "",
+    email: "",
     password: "",
   });
 
@@ -43,8 +43,8 @@ export default function Login() {
 
     setMessage("");
 
-    if (!formData.username.trim() || !formData.password.trim()) {
-      setMessage("Username and password are required");
+    if (!formData.email.trim() || !formData.password.trim()) {
+      setMessage("Email and password are required");
       return;
     }
 
@@ -77,7 +77,7 @@ export default function Login() {
         // Login success ke baad dashboard
         navigate("/dashboard");
       } else {
-        setMessage(data.message || "Invalid username or password");
+        setMessage(data.message || "Invalid email or password");
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -129,10 +129,10 @@ export default function Login() {
             <FaUser />
 
             <input
-              type="text"
-              name="username"
-              placeholder="Username"
-              value={formData.username}
+              type="email"
+              name="email"
+              placeholder="Enter Email"
+              value={formData.email}
               onChange={handleChange}
             />
           </div>
