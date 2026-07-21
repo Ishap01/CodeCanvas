@@ -2,11 +2,6 @@ package com.codecanvas.userservice.config;
 
 import java.util.List;
 
-import com.codecanvas.userservice.config.JwtAuthenticationFilter;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,49 +11,52 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
-@RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http) throws Exception {
 
         http
-                .csrf(csrf -> csrf.disable())
+            .csrf(csrf -> csrf.disable())
 
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .cors(cors -> cors.configurationSource(
+                    corsConfigurationSource()
+            ))
 
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+            .authorizeHttpRequests(auth -> auth
 
-                .authorizeHttpRequests(auth -> auth
+                    // Register, login, forgot-password public rahenge
+                    .requestMatchers("/api/auth/**")
+                    .permitAll()
 
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .anyRequest().permitAll()
+                    // Abhi testing ke liye saare user APIs public
+                    .requestMatchers("/api/users/**")
+                    .permitAll()
 
-                        
+                    // Baaki saari requests authentication maangengi
+                    .anyRequest()
+                    .authenticated()
+            )
 
-                )
+            .httpBasic(httpBasic ->
+                    httpBasic.disable()
+            )
 
-                .httpBasic(httpBasic -> httpBasic.disable())
-
-                .formLogin(form -> form.disable())
-
-                .addFilterBefore(
-                        jwtAuthenticationFilter,
-                        UsernamePasswordAuthenticationFilter.class
-                );
+            .formLogin(formLogin ->
+                    formLogin.disable()
+            );
 
         return http.build();
     }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration configuration =
                 new CorsConfiguration();
 
+        // React frontend
         configuration.setAllowedOrigins(
                 List.of("http://localhost:5173")
         );
@@ -75,6 +73,10 @@ public class SecurityConfig {
 
         configuration.setAllowedHeaders(
                 List.of("*")
+        );
+
+        configuration.setExposedHeaders(
+                List.of("Authorization")
         );
 
         configuration.setAllowCredentials(true);
