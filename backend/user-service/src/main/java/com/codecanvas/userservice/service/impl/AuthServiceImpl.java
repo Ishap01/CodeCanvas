@@ -1,10 +1,12 @@
 package com.codecanvas.userservice.service.impl;
+import com.codecanvas.userservice.service.JwtService;
 
 
 import java.time.LocalDateTime;
 
 import com.codecanvas.userservice.entity.Role;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
 import org.springframework.stereotype.Service;
 
 import com.codecanvas.userservice.dto.request.ForgotPasswordRequest;
@@ -21,13 +23,16 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public AuthServiceImpl(
             UserRepository userRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService) {
 
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     @Override
@@ -42,6 +47,13 @@ public class AuthServiceImpl implements AuthService {
                     .success(false)
                     .message("Email already exists")
                     .build();
+        }
+
+        if (userRepository.existsByMobileNumber(request.getMobileNumber())) {
+            return new ApiResponse(
+                    false,
+                    "Mobile number already exists"
+            );
         }
 
         if (!request.getPassword().equals(request.getConfirmPassword())) {
@@ -79,8 +91,11 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse login(LoginRequest request) {
 
-        User user = userRepository.findByUsername(request.getUsername())
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElse(null);
+
+        System.out.println("User found: " + user);
+
 
         if (user == null) {
             return new AuthResponse(
@@ -96,6 +111,8 @@ public class AuthServiceImpl implements AuthService {
                         user.getPassword()
                 );
 
+        System.out.println("Password match: " + isPasswordCorrect);
+
         if (!isPasswordCorrect) {
             return new AuthResponse(
                     false,
@@ -107,10 +124,12 @@ public class AuthServiceImpl implements AuthService {
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
 
+        String token = jwtService.generateToken(user);
+
         return new AuthResponse(
                 true,
                 "Login Successful",
-                null
+                token
         );
     }
 

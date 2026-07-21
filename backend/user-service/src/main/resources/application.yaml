@@ -8,7 +8,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/codecanvas
     username: postgres
-    password: root
+    password: root123
 
   jpa:
     hibernate:
@@ -26,5 +26,9 @@ eureka:
       defaultZone: http://localhost:8761/eureka
 
 logging:
-    level:
-      org.springframework.security: TRACE
+  level:
+    org.springframework.security: TRACE
+
+jwt:
+  secret: 4v7x9Q2LmN8PqR5TsY1ZwE6UfJ3KaH8BcD0XeLr
+  expiration: 3600000
