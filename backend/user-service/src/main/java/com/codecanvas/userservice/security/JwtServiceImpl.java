@@ -1,4 +1,4 @@
-package com.codecanvas.userservice.service.impl;
+package com.codecanvas.userservice.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import java.util.function.Function;
@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 import com.codecanvas.userservice.entity.User;
-import com.codecanvas.userservice.service.JwtService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 

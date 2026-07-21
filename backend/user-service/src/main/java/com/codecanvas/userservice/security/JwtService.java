@@ -1,4 +1,4 @@
-package com.codecanvas.userservice.service;
+package com.codecanvas.userservice.security;
 
 import com.codecanvas.userservice.entity.User;
 import org.springframework.security.core.userdetails.UserDetails;

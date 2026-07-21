@@ -1,14 +1,10 @@
 package com.codecanvas.userservice.service.impl;
-import com.codecanvas.userservice.service.JwtService;
 
-
+import com.codecanvas.userservice.security.JwtService;
 import java.time.LocalDateTime;
-
 import com.codecanvas.userservice.entity.Role;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
 import org.springframework.stereotype.Service;
-
 import com.codecanvas.userservice.dto.request.ForgotPasswordRequest;
 import com.codecanvas.userservice.dto.request.LoginRequest;
 import com.codecanvas.userservice.dto.request.RegisterRequest;

@@ -1,4 +1,4 @@
-package com.codecanvas.userservice.config;
+package com.codecanvas.userservice.security;
 
 import java.io.IOException;
 
@@ -9,8 +9,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import com.codecanvas.userservice.service.JwtService;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

@@ -2,7 +2,7 @@ package com.codecanvas.userservice.config;
 
 import java.util.List;
 
-import com.codecanvas.userservice.config.JwtAuthenticationFilter;
+import com.codecanvas.userservice.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;

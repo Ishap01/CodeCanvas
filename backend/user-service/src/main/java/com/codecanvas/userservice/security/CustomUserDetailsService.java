@@ -1,4 +1,4 @@
-package com.codecanvas.userservice.service.impl;
+package com.codecanvas.userservice.security;
 
 import java.util.List;
 
