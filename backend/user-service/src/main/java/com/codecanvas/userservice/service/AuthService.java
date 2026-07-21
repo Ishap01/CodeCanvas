@@ -21,5 +21,8 @@ public interface AuthService {
 
     String resetPassword(ResetPasswordRequest request);
 
-    String changePassword(ChangePasswordRequest request);
+    String changePassword(
+            String email,
+            ChangePasswordRequest request
+    );
 }

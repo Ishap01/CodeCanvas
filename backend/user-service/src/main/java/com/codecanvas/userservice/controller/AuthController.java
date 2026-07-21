@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
 
 import com.codecanvas.userservice.dto.request.ForgotPasswordRequest;
 import com.codecanvas.userservice.dto.request.VerifyOtpRequest;
@@ -63,9 +64,15 @@ public class AuthController {
     }
 
     @PostMapping("/change-password")
-    public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest request) {
+    public ResponseEntity<String> changePassword(
+            @RequestBody ChangePasswordRequest request,
+            Authentication authentication) {
 
-        return ResponseEntity.ok(authService.changePassword(request));
+        String email = authentication.getName();
+
+        return ResponseEntity.ok(
+                authService.changePassword(email, request)
+        );
     }
 
 }
