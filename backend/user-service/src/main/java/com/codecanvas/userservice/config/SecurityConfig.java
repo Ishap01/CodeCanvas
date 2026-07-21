@@ -26,15 +26,17 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
-                    // Register, login, forgot-password public rahenge
+                    
                     .requestMatchers("/api/auth/**")
                     .permitAll()
 
-                    // Abhi testing ke liye saare user APIs public
+                    
                     .requestMatchers("/api/users/**")
                     .permitAll()
+                    
+                    .requestMatchers("/api/statistics/**").permitAll()
 
-                    // Baaki saari requests authentication maangengi
+                  
                     .anyRequest()
                     .authenticated()
             )
