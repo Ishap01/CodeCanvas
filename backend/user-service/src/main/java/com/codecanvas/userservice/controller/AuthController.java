@@ -11,6 +11,14 @@ import com.codecanvas.userservice.dto.response.ApiResponse;
 import com.codecanvas.userservice.dto.response.AuthResponse;
 import com.codecanvas.userservice.service.AuthService;
 
+import com.codecanvas.userservice.dto.request.ForgotPasswordRequest;
+import com.codecanvas.userservice.dto.request.VerifyOtpRequest;
+import com.codecanvas.userservice.dto.request.ResetPasswordRequest;
+import com.codecanvas.userservice.dto.request.ChangePasswordRequest;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -29,4 +37,34 @@ public class AuthController {
     public AuthResponse login(@RequestBody LoginRequest request) {
         return authService.login(request);
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request) {
+
+        authService.forgotPassword(request);
+
+        return ResponseEntity.ok(
+                "OTP sent successfully to your email.");
+
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<String> verifyOtp(@RequestBody VerifyOtpRequest request) {
+
+        return ResponseEntity.ok(authService.verifyOtp(request));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
+
+        return ResponseEntity.ok(authService.resetPassword(request));
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest request) {
+
+        return ResponseEntity.ok(authService.changePassword(request));
+    }
+
 }

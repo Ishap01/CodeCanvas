@@ -5,6 +5,22 @@ spring:
   application:
     name: user-service
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: codecanvas.team05@gmail.com
+    password: sjgesvcvzhvzecin
+
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
   datasource:
     url: jdbc:postgresql://localhost:5432/codecanvas
     username: postgres
@@ -26,5 +42,5 @@ eureka:
       defaultZone: http://localhost:8761/eureka
 
 logging:
-    level:
-      org.springframework.security: TRACE
+  level:
+    org.springframework.security: INFO
