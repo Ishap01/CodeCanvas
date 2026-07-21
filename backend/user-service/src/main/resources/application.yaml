@@ -4,7 +4,6 @@ server:
 spring:
   application:
     name: user-service
-
   mail:
     host: smtp.gmail.com
     port: 587
@@ -42,5 +41,10 @@ eureka:
       defaultZone: http://localhost:8761/eureka
 
 logging:
-  level:
-    org.springframework.security: INFO
+    level:
+      org.springframework.security: INFO
+
+
+jwt:
+  secret: 4v7x9Q2LmN8PqR5TsY1ZwE6UfJ3KaH8BcD0XeLr
+  expiration: 3600000

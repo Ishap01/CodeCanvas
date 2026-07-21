@@ -6,10 +6,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/users")
-public class UserController {
+public class TestController {
 
-    @GetMapping("/profile")
-    public String profile() {
-        return "User Profile";
+    @GetMapping("/test")
+    public String test() {
+        return "JWT Authentication Successful";
     }
 }

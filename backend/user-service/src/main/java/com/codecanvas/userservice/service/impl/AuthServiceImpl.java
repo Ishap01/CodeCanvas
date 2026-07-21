@@ -1,32 +1,23 @@
 package com.codecanvas.userservice.service.impl;
 
-import java.time.LocalDateTime;
-
-import com.codecanvas.userservice.exception.OtpExpiredException;
-import com.codecanvas.userservice.exception.InvalidOtpException;
-import com.codecanvas.userservice.exception.SamePasswordException;
-import com.codecanvas.userservice.exception.UserNotFoundException;
-import com.codecanvas.userservice.exception.InvalidPasswordException;
-import com.codecanvas.userservice.exception.PasswordMismatchException;
-import com.codecanvas.userservice.dto.request.VerifyOtpRequest;
-import com.codecanvas.userservice.dto.request.ChangePasswordRequest;
-import com.codecanvas.userservice.dto.request.ResetPasswordRequest;
-import com.codecanvas.userservice.dto.request.ForgotPasswordRequest;
-import com.codecanvas.userservice.dto.request.LoginRequest;
-import com.codecanvas.userservice.dto.request.RegisterRequest;
+import com.codecanvas.userservice.dto.request.*;
 import com.codecanvas.userservice.dto.response.ApiResponse;
 import com.codecanvas.userservice.dto.response.AuthResponse;
 import com.codecanvas.userservice.entity.PasswordResetOtp;
 import com.codecanvas.userservice.entity.Role;
 import com.codecanvas.userservice.entity.User;
+import com.codecanvas.userservice.exception.*;
 import com.codecanvas.userservice.repository.PasswordResetOtpRepository;
 import com.codecanvas.userservice.repository.UserRepository;
 import com.codecanvas.userservice.service.AuthService;
 import com.codecanvas.userservice.service.EmailService;
+import com.codecanvas.userservice.service.JwtService;
 import com.codecanvas.userservice.util.OtpGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +27,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordResetOtpRepository otpRepository;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     @Override
     public ApiResponse register(RegisterRequest request) {
@@ -49,6 +41,13 @@ public class AuthServiceImpl implements AuthService {
                     .success(false)
                     .message("Email already exists")
                     .build();
+        }
+
+        if (userRepository.existsByMobileNumber(request.getMobileNumber())) {
+            return new ApiResponse(
+                    false,
+                    "Mobile number already exists"
+            );
         }
 
         if (!request.getPassword().equals(request.getConfirmPassword())) {
@@ -78,31 +77,45 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse login(LoginRequest request) {
 
-        User user = userRepository.findByUsername(request.getUsername())
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElse(null);
 
+        System.out.println("User found: " + user);
+
+
         if (user == null) {
-            return new AuthResponse(false,
+            return new AuthResponse(
+                    false,
                     "Invalid Username or Password",
-                    null);
+                    null
+            );
         }
 
-        if (!passwordEncoder.matches(
-                request.getPassword(),
-                user.getPassword())) {
+        boolean isPasswordCorrect =
+                passwordEncoder.matches(
+                        request.getPassword(),
+                        user.getPassword()
+                );
 
-            return new AuthResponse(false,
+        System.out.println("Password match: " + isPasswordCorrect);
+
+        if (!isPasswordCorrect) {
+            return new AuthResponse(
+                    false,
                     "Invalid Username or Password",
-                    null);
+                    null
+            );
         }
 
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
 
+        String token = jwtService.generateToken(user);
+
         return new AuthResponse(
                 true,
                 "Login Successful",
-                null
+                token
         );
     }
 
