@@ -2,6 +2,7 @@ package com.codecanvas.userservice.service.impl;
 
 import java.util.UUID;
 
+import com.codecanvas.userservice.service.UserStatisticsService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ public class FollowServiceImpl implements FollowService {
 
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
+    private final UserStatisticsService userStatisticsService;
 
     @Override
     public ApiResponse followUser(UUID followingUserId) {
@@ -57,6 +59,12 @@ public class FollowServiceImpl implements FollowService {
 
         followRepository.save(follow);
 
+        // Increase follower count of the user being followed
+        userStatisticsService.increaseFollowers(following.getUserId());
+
+        // Increase following count of the logged-in user
+        userStatisticsService.increaseFollowing(follower.getUserId());
+
         return new ApiResponse(true, "User followed successfully.");
     }
 
@@ -87,6 +95,12 @@ public class FollowServiceImpl implements FollowService {
         System.out.println("Follow Record Found: " + follow.getFollowId());
 
         followRepository.delete(follow);
+
+        // Decrease follower count of the user being unfollowed
+        userStatisticsService.decreaseFollowers(following.getUserId());
+
+        // Decrease following count of the logged-in user
+        userStatisticsService.decreaseFollowing(follower.getUserId());
 
         System.out.println("Delete executed");
 

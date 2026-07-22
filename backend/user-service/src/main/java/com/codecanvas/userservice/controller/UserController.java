@@ -42,22 +42,24 @@ public class UserController {
         return userService.getUserById(userId);
     }
 
-    // UPDATE USER BY ID
-    // PUT http://localhost:8081/api/users/{userId}
-    @PutMapping("/{userId}")
-    public ApiResponse updateUser(
-            @PathVariable UUID userId,
-            @RequestBody UserUpdateRequest request) {
-
-        return userService.updateUser(userId, request);
+    @GetMapping("/profile")
+    public UserResponse getProfile() {
+        return userService.getProfile();
     }
 
-    // DELETE USER BY ID
-    // DELETE http://localhost:8081/api/users/{userId}
-    @DeleteMapping("/{userId}")
-    public ApiResponse deleteUser(
-            @PathVariable UUID userId) {
+    // UPDATE USER
+    // PUT http://localhost:8081/api/users/profile
+    @PutMapping("/profile")
+    public ApiResponse updateProfile(
+            @RequestBody UserUpdateRequest request) {
 
-        return userService.deleteUser(userId);
+        return userService.updateProfile(request);
+    }
+
+    // DELETE USER
+    // DELETE http://localhost:8081/api/users/profile
+    @DeleteMapping("/profile")
+    public ApiResponse deleteProfile() {
+        return userService.deleteProfile();
     }
 }

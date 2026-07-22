@@ -3,7 +3,8 @@ package com.codecanvas.userservice.service.impl;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,12 +50,35 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
-    public ApiResponse updateUser(
-            UUID userId,
-            UserUpdateRequest request) {
+    public UserResponse getProfile() {
 
-        User user = userRepository.findById(userId)
+        Authentication authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "User not found"
+                        ));
+
+        return convertToUserResponse(user);
+    }
+
+    @Override
+    @Transactional
+    public ApiResponse updateProfile(UserUpdateRequest request) {
+
+        Authentication authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
                 .orElse(null);
 
         if (user == null) {
@@ -91,8 +115,8 @@ public class UserServiceImpl implements UserService {
 
         if (request.getMobileNumber() == null
                 || !request.getMobileNumber()
-                        .trim()
-                        .matches("\\d{10}")) {
+                .trim()
+                .matches("\\d{10}")) {
 
             return new ApiResponse(
                     false,
@@ -100,24 +124,17 @@ public class UserServiceImpl implements UserService {
             );
         }
 
-        String fullName =
-                request.getFullName().trim();
-
-        String username =
-                request.getUsername()
-                        .trim()
-                        .toLowerCase();
-
-        String mobileNumber =
-                request.getMobileNumber().trim();
+        String fullName = request.getFullName().trim();
+        String username = request.getUsername().trim().toLowerCase();
+        String mobileNumber = request.getMobileNumber().trim();
 
         Optional<User> sameUsername =
                 userRepository.findByUsername(username);
 
         if (sameUsername.isPresent()
                 && !sameUsername.get()
-                        .getUserId()
-                        .equals(userId)) {
+                .getUserId()
+                .equals(user.getUserId())) {
 
             return new ApiResponse(
                     false,
@@ -130,8 +147,8 @@ public class UserServiceImpl implements UserService {
 
         if (sameMobile.isPresent()
                 && !sameMobile.get()
-                        .getUserId()
-                        .equals(userId)) {
+                .getUserId()
+                .equals(user.getUserId())) {
 
             return new ApiResponse(
                     false,
@@ -147,15 +164,21 @@ public class UserServiceImpl implements UserService {
 
         return new ApiResponse(
                 true,
-                "User updated successfully"
+                "Profile updated successfully"
         );
     }
 
     @Override
     @Transactional
-    public ApiResponse deleteUser(UUID userId) {
+    public ApiResponse deleteProfile() {
 
-        User user = userRepository.findById(userId)
+        Authentication authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
                 .orElse(null);
 
         if (user == null) {
@@ -169,7 +192,7 @@ public class UserServiceImpl implements UserService {
 
         return new ApiResponse(
                 true,
-                "User deleted successfully"
+                "Profile deleted successfully"
         );
     }
 
