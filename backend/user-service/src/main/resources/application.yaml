@@ -7,8 +7,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: codecanvas.team05@gmail.com
-    password: sjgesvcvzhvzecin
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
 
     properties:
       mail:
@@ -21,9 +21,10 @@ spring:
           writetimeout: 5000
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/codecanvas
-    username: postgres
-    password: root
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
 
   jpa:
     hibernate:
@@ -46,5 +47,5 @@ logging:
 
 
 jwt:
-  secret: 4v7x9Q2LmN8PqR5TsY1ZwE6UfJ3KaH8BcD0XeLr
-  expiration: 3600000
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:3600000}

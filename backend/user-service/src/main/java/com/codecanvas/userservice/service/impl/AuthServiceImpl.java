@@ -11,7 +11,7 @@ import com.codecanvas.userservice.repository.PasswordResetOtpRepository;
 import com.codecanvas.userservice.repository.UserRepository;
 import com.codecanvas.userservice.service.AuthService;
 import com.codecanvas.userservice.service.EmailService;
-import com.codecanvas.userservice.service.JwtService;
+import com.codecanvas.userservice.security.JwtService;
 import com.codecanvas.userservice.util.OtpGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
