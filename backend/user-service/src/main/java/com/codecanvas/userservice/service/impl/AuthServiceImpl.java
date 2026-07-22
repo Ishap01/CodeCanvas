@@ -7,33 +7,48 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.codecanvas.userservice.dto.request.ChangePasswordRequest;
 import com.codecanvas.userservice.dto.request.ForgotPasswordRequest;
 import com.codecanvas.userservice.dto.request.LoginRequest;
 import com.codecanvas.userservice.dto.request.RegisterRequest;
+import com.codecanvas.userservice.dto.request.ResetPasswordRequest;
+import com.codecanvas.userservice.dto.request.VerifyOtpRequest;
 import com.codecanvas.userservice.dto.response.ApiResponse;
 import com.codecanvas.userservice.dto.response.AuthResponse;
+import com.codecanvas.userservice.entity.PasswordResetOtp;
 import com.codecanvas.userservice.entity.Role;
 import com.codecanvas.userservice.entity.User;
+import com.codecanvas.userservice.entity.UserStatistics;
+import com.codecanvas.userservice.exception.InvalidOtpException;
+import com.codecanvas.userservice.exception.InvalidPasswordException;
+import com.codecanvas.userservice.exception.OtpExpiredException;
+import com.codecanvas.userservice.exception.PasswordMismatchException;
+import com.codecanvas.userservice.exception.SamePasswordException;
+import com.codecanvas.userservice.exception.UserNotFoundException;
+import com.codecanvas.userservice.repository.PasswordResetOtpRepository;
 import com.codecanvas.userservice.repository.UserRepository;
+import com.codecanvas.userservice.repository.UserStatisticsRepository;
 import com.codecanvas.userservice.service.AuthService;
+import com.codecanvas.userservice.service.EmailService;
 import com.codecanvas.userservice.service.JwtService;
+import com.codecanvas.userservice.util.OtpGenerator;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
+    private final UserStatisticsRepository userStatisticsRepository;
+    private final PasswordResetOtpRepository otpRepository;
+    private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
-    public AuthServiceImpl(
-            UserRepository userRepository,
-            PasswordEncoder passwordEncoder,
-            JwtService jwtService) {
-
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtService = jwtService;
-    }
+    // =========================================================
+    // REGISTER
+    // =========================================================
 
     @Override
     @Transactional
@@ -75,8 +90,8 @@ public class AuthServiceImpl implements AuthService {
 
         if (request.getMobileNumber() == null
                 || !request.getMobileNumber()
-                        .trim()
-                        .matches("\\d{10}")) {
+                .trim()
+                .matches("\\d{10}")) {
 
             return new ApiResponse(
                     false,
@@ -102,7 +117,7 @@ public class AuthServiceImpl implements AuthService {
 
         if (request.getConfirmPassword() == null
                 || !request.getPassword()
-                        .equals(request.getConfirmPassword())) {
+                .equals(request.getConfirmPassword())) {
 
             return new ApiResponse(
                     false,
@@ -166,7 +181,25 @@ public class AuthServiceImpl implements AuthService {
             user.setBio("");
             user.setProfileImage("");
 
-            userRepository.save(user);
+            user.setCreatedAt(LocalDateTime.now());
+            user.setUpdatedAt(LocalDateTime.now());
+
+            // User ko database me save kiya
+            User savedUser = userRepository.save(user);
+
+            // Register hote hi statistics row automatically create hogi
+            UserStatistics statistics = new UserStatistics();
+
+            statistics.setUser(savedUser);
+            statistics.setTotalProjects(0);
+            statistics.setTotalSnippets(0);
+            statistics.setTotalViews(0);
+            statistics.setTotalLikes(0);
+            statistics.setTotalFavorites(0);
+            statistics.setFollowers(0);
+            statistics.setFollowing(0);
+
+            userStatisticsRepository.save(statistics);
 
             return new ApiResponse(
                     true,
@@ -191,6 +224,10 @@ public class AuthServiceImpl implements AuthService {
             );
         }
     }
+
+    // =========================================================
+    // LOGIN
+    // =========================================================
 
     @Override
     @Transactional
@@ -253,13 +290,210 @@ public class AuthServiceImpl implements AuthService {
         );
     }
 
-    @Override
-    public ApiResponse forgotPassword(
-            ForgotPasswordRequest request) {
+    // =========================================================
+    // FORGOT PASSWORD
+    // =========================================================
 
-        return new ApiResponse(
-                false,
-                "Forgot password functionality is not implemented yet"
+    @Override
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequest request) {
+
+        User user = userRepository
+                .findByEmail(
+                        request.getEmail()
+                                .trim()
+                                .toLowerCase()
+                )
+                .orElseThrow(() ->
+                        new UserNotFoundException(
+                                "User not found"
+                        )
+                );
+
+        // Purana OTP delete
+        otpRepository.deleteByEmail(user.getEmail());
+
+        String otp = OtpGenerator.generateOtp();
+
+        PasswordResetOtp passwordResetOtp =
+                PasswordResetOtp.builder()
+                        .email(user.getEmail())
+                        .otp(otp)
+                        .expiryTime(
+                                LocalDateTime.now()
+                                        .plusMinutes(5)
+                        )
+                        .verified(false)
+                        .build();
+
+        otpRepository.save(passwordResetOtp);
+
+        emailService.sendOtpEmail(
+                user.getEmail(),
+                otp
         );
+    }
+
+    // =========================================================
+    // VERIFY OTP
+    // =========================================================
+
+    @Override
+    @Transactional
+    public String verifyOtp(VerifyOtpRequest request) {
+
+        PasswordResetOtp otpEntity =
+                otpRepository
+                        .findByEmail(
+                                request.getEmail()
+                                        .trim()
+                                        .toLowerCase()
+                        )
+                        .orElseThrow(() ->
+                                new InvalidOtpException(
+                                        "Invalid OTP"
+                                )
+                        );
+
+        if (otpEntity.getExpiryTime()
+                .isBefore(LocalDateTime.now())) {
+
+            throw new OtpExpiredException(
+                    "OTP has expired"
+            );
+        }
+
+        if (!otpEntity.getOtp()
+                .equals(request.getOtp())) {
+
+            throw new InvalidOtpException(
+                    "Invalid OTP"
+            );
+        }
+
+        otpEntity.setVerified(true);
+        otpRepository.save(otpEntity);
+
+        return "OTP verified successfully";
+    }
+
+    // =========================================================
+    // RESET PASSWORD
+    // =========================================================
+
+    @Override
+    @Transactional
+    public String resetPassword(
+            ResetPasswordRequest request) {
+
+        String email =
+                request.getEmail()
+                        .trim()
+                        .toLowerCase();
+
+        PasswordResetOtp otpEntity =
+                otpRepository
+                        .findByEmail(email)
+                        .orElseThrow(() ->
+                                new InvalidOtpException(
+                                        "Please verify OTP first"
+                                )
+                        );
+
+        if (!otpEntity.isVerified()) {
+            throw new InvalidOtpException(
+                    "OTP is not verified"
+            );
+        }
+
+        if (otpEntity.getExpiryTime()
+                .isBefore(LocalDateTime.now())) {
+
+            throw new OtpExpiredException(
+                    "OTP has expired"
+            );
+        }
+
+        User user = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new UserNotFoundException(
+                                "User not found"
+                        )
+                );
+
+        user.setPassword(
+                passwordEncoder.encode(
+                        request.getNewPassword()
+                )
+        );
+
+        user.setUpdatedAt(LocalDateTime.now());
+
+        userRepository.save(user);
+
+        // Password reset ke baad OTP delete
+        otpRepository.delete(otpEntity);
+
+        return "Password reset successfully";
+    }
+
+    // =========================================================
+    // CHANGE PASSWORD
+    // =========================================================
+
+    @Override
+    @Transactional
+    public String changePassword(
+            String email,
+            ChangePasswordRequest request) {
+
+        User user = userRepository
+                .findByEmail(
+                        email.trim().toLowerCase()
+                )
+                .orElseThrow(() ->
+                        new UserNotFoundException(
+                                "User not found"
+                        )
+                );
+
+        if (!passwordEncoder.matches(
+                request.getCurrentPassword(),
+                user.getPassword())) {
+
+            throw new InvalidPasswordException(
+                    "Current password is incorrect"
+            );
+        }
+
+        if (!request.getNewPassword()
+                .equals(request.getConfirmPassword())) {
+
+            throw new PasswordMismatchException(
+                    "New password and confirm password do not match"
+            );
+        }
+
+        if (passwordEncoder.matches(
+                request.getNewPassword(),
+                user.getPassword())) {
+
+            throw new SamePasswordException(
+                    "New password must be different from current password"
+            );
+        }
+
+        user.setPassword(
+                passwordEncoder.encode(
+                        request.getNewPassword()
+                )
+        );
+
+        user.setUpdatedAt(LocalDateTime.now());
+
+        userRepository.save(user);
+
+        return "Password changed successfully";
     }
 }

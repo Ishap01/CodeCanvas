@@ -52,7 +52,7 @@ export default function Login() {
       setLoading(true);
 
       const response = await fetch(
-        "http://localhost:8081/auth/login",
+        "http://localhost:8081/api/auth/login",
         {
           method: "POST",
 
