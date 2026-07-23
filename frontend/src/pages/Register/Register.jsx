@@ -20,9 +20,8 @@ function Register() {
 
   const [formData, setFormData] = useState({
     fullName: "",
-    email: "",
-    username: "",
     mobileNumber: "",
+    username: "",
     password: "",
     confirmPassword: "",
   });
@@ -52,9 +51,8 @@ function Register() {
 
     if (
       !formData.fullName.trim() ||
-      !formData.email.trim() ||
-      !formData.username.trim() ||
       !formData.mobileNumber.trim() ||
+      !formData.username.trim() ||
       !formData.password.trim() ||
       !formData.confirmPassword.trim()
     ) {
@@ -76,7 +74,7 @@ function Register() {
       setLoading(true);
 
       const response = await fetch(
-        "http://localhost:8081/api/auth/register",
+        "http://localhost:8082/api/auth/register",
         {
           method: "POST",
 
@@ -152,19 +150,6 @@ function Register() {
               onChange={handleChange}
             />
           </div>
-
-          <div className="inputBox">
-            <FaUser />
-
-            <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={handleChange}
-            />
-        </div>
-
 
           {/* USERNAME */}
 

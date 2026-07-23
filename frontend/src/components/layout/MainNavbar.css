@@ -1,0 +1,262 @@
+/* =====================================
+   TOP NAVBAR
+===================================== */
+
+.globalTopNavbar {
+  width: 100%;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+
+  padding: 0 16px;
+
+  background: #111111;
+  border-bottom: 1px solid #242424;
+
+  font-family: "Courier New", Courier, monospace;
+}
+
+.globalBrand {
+  min-width: 125px;
+
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  color: #f4f4f4;
+  text-decoration: none;
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.globalBrandDot {
+  width: 6px;
+  height: 6px;
+
+  background: #8a8a8a;
+  border-radius: 50%;
+}
+
+.globalTopLinks {
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 29px;
+
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.globalTopLinks::-webkit-scrollbar {
+  display: none;
+}
+
+.globalTopLinks a {
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+
+  position: relative;
+
+  color: #5c5c5c;
+  text-decoration: none;
+
+  font-size: 9px;
+  white-space: nowrap;
+
+  transition: color 0.2s ease;
+}
+
+.globalTopLinks a:hover {
+  color: #eeeeee;
+}
+
+.globalTopLinks a.active {
+  color: #eeeeee;
+}
+
+.globalTopLinks a.active::after {
+  content: "";
+
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  height: 2px;
+
+  background: #eeeeee;
+}
+
+/* =====================================
+   MAIN NAVBAR
+===================================== */
+
+.globalMainNavbar {
+  width: 100%;
+  height: 58px;
+
+  display: grid;
+  grid-template-columns: 110px minmax(250px, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+
+  padding: 0 16px;
+
+  background: #0b0b0b;
+  border-bottom: 1px solid #242424;
+
+  font-family: "Courier New", Courier, monospace;
+}
+
+.globalLogo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  color: #eeeeee;
+  text-decoration: none;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.globalLogoBox {
+  width: 30px;
+  height: 30px;
+
+  display: grid;
+  place-items: center;
+
+  background: #eeeeee;
+  color: #111111;
+
+  font-size: 14px;
+}
+
+.globalSearch {
+  width: 100%;
+  max-width: 310px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 0 13px;
+
+  background: #1b1b1b;
+  border: 1px solid #343434;
+}
+
+.globalSearch svg {
+  color: #686868;
+  font-size: 12px;
+}
+
+.globalSearch input {
+  width: 100%;
+
+  background: transparent;
+  border: none;
+  outline: none;
+
+  color: #dddddd;
+  font-family: inherit;
+  font-size: 10px;
+}
+
+.globalSearch input::placeholder {
+  color: #666666;
+}
+
+.globalNavbarActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.globalNavbarActions button,
+.globalProfileButton {
+  width: 28px;
+  height: 28px;
+
+  display: grid;
+  place-items: center;
+
+  background: transparent;
+  border: none;
+
+  color: #666666;
+  text-decoration: none;
+
+  cursor: pointer;
+
+  transition: color 0.2s ease;
+}
+
+.globalNavbarActions button:hover,
+.globalProfileButton:hover {
+  color: #eeeeee;
+}
+
+/* =====================================
+   RESPONSIVE
+===================================== */
+
+@media (max-width: 900px) {
+  .globalTopNavbar {
+    overflow-x: auto;
+  }
+
+  .globalBrand {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+
+    background: #111111;
+  }
+
+  .globalTopLinks {
+    min-width: 780px;
+  }
+
+  .globalMainNavbar {
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .globalLogo span:last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .globalTopNavbar {
+    padding: 0 10px;
+  }
+
+  .globalMainNavbar {
+    height: auto;
+
+    grid-template-columns: auto 1fr auto;
+
+    padding: 10px 12px;
+  }
+
+  .globalSearch {
+    max-width: none;
+  }
+
+  .globalNavbarActions {
+    gap: 5px;
+  }
+
+  .globalNavbarActions button:nth-child(2) {
+    display: none;
+  }
+}
