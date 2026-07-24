@@ -6,7 +6,7 @@ spring:
     name: snippet-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/codecanvas
+    url: jdbc:postgresql://localhost:8080/codecanvas
     username: postgres
     password: root
 
