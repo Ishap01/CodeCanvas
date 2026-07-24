@@ -1,4 +1,4 @@
-package com.codecanvas.snippetservice.entity;
+package com.codecanvas.snippetservice.enums;
 
 public enum Visibility {
     PUBLIC,
