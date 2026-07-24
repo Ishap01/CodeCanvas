@@ -5,20 +5,22 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.codecanvas.snippetservice.dto.request.CreateSnippetRequest;
 import com.codecanvas.snippetservice.dto.request.UpdateSnippetRequest;
 import com.codecanvas.snippetservice.dto.response.ApiResponse;
 import com.codecanvas.snippetservice.dto.response.SnippetResponse;
+import com.codecanvas.snippetservice.security.AuthenticatedUser;
 import com.codecanvas.snippetservice.service.SnippetService;
 
 import jakarta.validation.Valid;
@@ -29,20 +31,27 @@ public class SnippetController {
 
     private final SnippetService snippetService;
 
-    public SnippetController(SnippetService snippetService) {
+    public SnippetController(
+            SnippetService snippetService) {
+
         this.snippetService = snippetService;
     }
 
     @PostMapping
-    public ResponseEntity<SnippetResponse> createSnippet(
-            @RequestHeader("X-User-Id") UUID userId,
-            @Valid @RequestBody CreateSnippetRequest request) {
+    public ResponseEntity<SnippetResponse>
+            createSnippet(
+                    Authentication authentication,
+                    @Valid
+                    @RequestBody
+                    CreateSnippetRequest request,
+                    @RequestParam(
+                            name = "previewImageUrl",
+                            required = false
+                    )
+                    String previewImageUrl) {
 
-        /*
-         * Cloudinary abhi implement nahi kiya hai.
-         * Isliye previewImageUrl filhaal null bhej rahe hain.
-         */
-        String previewImageUrl = null;
+        UUID userId =
+                extractUserId(authentication);
 
         SnippetResponse response =
                 snippetService.createSnippet(
@@ -57,12 +66,16 @@ public class SnippetController {
     }
 
     @GetMapping("/{snippetId}")
-    public ResponseEntity<SnippetResponse> getSnippetById(
-            @PathVariable UUID snippetId,
-            @RequestHeader(
-                    value = "X-User-Id",
-                    required = false
-            ) UUID currentUserId) {
+    public ResponseEntity<SnippetResponse>
+            getSnippetById(
+                    @PathVariable
+                    UUID snippetId,
+                    Authentication authentication) {
+
+        UUID currentUserId =
+                extractOptionalUserId(
+                        authentication
+                );
 
         SnippetResponse response =
                 snippetService.getSnippetById(
@@ -77,34 +90,45 @@ public class SnippetController {
     public ResponseEntity<List<SnippetResponse>>
             getPublicSnippets() {
 
-        List<SnippetResponse> responses =
+        List<SnippetResponse> response =
                 snippetService.getPublicSnippets();
 
-        return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/user/{userId}")
+    @GetMapping("/user/me")
     public ResponseEntity<List<SnippetResponse>>
-            getSnippetsByUserId(
-                    @PathVariable UUID userId) {
+            getMySnippets(
+                    Authentication authentication) {
 
-        List<SnippetResponse> responses =
-                snippetService.getSnippetsByUserId(userId);
+        UUID userId =
+                extractUserId(authentication);
 
-        return ResponseEntity.ok(responses);
+        List<SnippetResponse> response =
+                snippetService.getSnippetsByUserId(
+                        userId
+                );
+
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{snippetId}")
-    public ResponseEntity<SnippetResponse> updateSnippet(
-            @PathVariable UUID snippetId,
-            @RequestHeader("X-User-Id") UUID userId,
-            @Valid @RequestBody UpdateSnippetRequest request) {
+    public ResponseEntity<SnippetResponse>
+            updateSnippet(
+                    @PathVariable
+                    UUID snippetId,
+                    Authentication authentication,
+                    @Valid
+                    @RequestBody
+                    UpdateSnippetRequest request,
+                    @RequestParam(
+                            name = "previewImageUrl",
+                            required = false
+                    )
+                    String previewImageUrl) {
 
-        /*
-         * New preview image abhi available nahi hai.
-         * null ka matlab old image preserve hogi.
-         */
-        String previewImageUrl = null;
+        UUID userId =
+                extractUserId(authentication);
 
         SnippetResponse response =
                 snippetService.updateSnippet(
@@ -118,9 +142,14 @@ public class SnippetController {
     }
 
     @DeleteMapping("/{snippetId}")
-    public ResponseEntity<ApiResponse> deleteSnippet(
-            @PathVariable UUID snippetId,
-            @RequestHeader("X-User-Id") UUID userId) {
+    public ResponseEntity<ApiResponse>
+            deleteSnippet(
+                    @PathVariable
+                    UUID snippetId,
+                    Authentication authentication) {
+
+        UUID userId =
+                extractUserId(authentication);
 
         ApiResponse response =
                 snippetService.deleteSnippet(
@@ -129,5 +158,63 @@ public class SnippetController {
                 );
 
         return ResponseEntity.ok(response);
+    }
+
+    private UUID extractUserId(
+            Authentication authentication) {
+
+        if (authentication == null
+                || !authentication.isAuthenticated()) {
+
+            throw new IllegalStateException(
+                    "Authenticated user is required"
+            );
+        }
+
+        Object principal =
+                authentication.getPrincipal();
+
+        if (!(principal
+                instanceof AuthenticatedUser)) {
+
+            throw new IllegalStateException(
+                    "Invalid authenticated user"
+            );
+        }
+
+        AuthenticatedUser authenticatedUser =
+                (AuthenticatedUser) principal;
+
+        if (authenticatedUser.getUserId() == null) {
+            throw new IllegalStateException(
+                    "User id is missing from authentication"
+            );
+        }
+
+        return authenticatedUser.getUserId();
+    }
+
+    private UUID extractOptionalUserId(
+            Authentication authentication) {
+
+        if (authentication == null
+                || !authentication.isAuthenticated()) {
+
+            return null;
+        }
+
+        Object principal =
+                authentication.getPrincipal();
+
+        if (!(principal
+                instanceof AuthenticatedUser)) {
+
+            return null;
+        }
+
+        AuthenticatedUser authenticatedUser =
+                (AuthenticatedUser) principal;
+
+        return authenticatedUser.getUserId();
     }
 }

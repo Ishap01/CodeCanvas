@@ -2,6 +2,7 @@ package com.codecanvas.snippetservice.service.impl;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -16,6 +17,7 @@ import com.codecanvas.snippetservice.dto.response.ApiResponse;
 import com.codecanvas.snippetservice.dto.response.SnippetResponse;
 import com.codecanvas.snippetservice.entity.Category;
 import com.codecanvas.snippetservice.entity.Snippet;
+import com.codecanvas.snippetservice.entity.SnippetTag;
 import com.codecanvas.snippetservice.entity.Tag;
 import com.codecanvas.snippetservice.enums.Status;
 import com.codecanvas.snippetservice.enums.Visibility;
@@ -93,19 +95,10 @@ public class SnippetServiceImpl implements SnippetService {
         );
 
         /*
-         * Sirf parent Snippet save hoga.
+         * Snippet parent entity hai.
          *
-         * Snippet entity mein:
-         *
-         * @OneToMany(
-         *     mappedBy = "snippet",
-         *     cascade = CascadeType.ALL,
-         *     orphanRemoval = true
-         * )
-         *
-         * hona chahiye.
-         *
-         * Cascade ki wajah se SnippetTag automatically save honge.
+         * Snippet.java mein CascadeType.ALL hone ki wajah se
+         * associated SnippetTag objects automatically save honge.
          */
         Snippet savedSnippet =
                 snippetRepository.save(snippet);
@@ -119,7 +112,8 @@ public class SnippetServiceImpl implements SnippetService {
             UUID snippetId,
             UUID currentUserId) {
 
-        Snippet snippet = findActiveSnippetById(snippetId);
+        Snippet snippet =
+                findActiveSnippetById(snippetId);
 
         boolean owner =
                 currentUserId != null
@@ -132,7 +126,6 @@ public class SnippetServiceImpl implements SnippetService {
                         == Visibility.PUBLIC;
 
         if (!owner && !publiclyVisible) {
-
             throw new UnauthorizedActionException(
                     "You are not allowed to view this private snippet"
             );
@@ -197,6 +190,10 @@ public class SnippetServiceImpl implements SnippetService {
                         request.getCategory()
                 );
 
+        /*
+         * Title, description, code, language,
+         * framework, visibility aur category update karega.
+         */
         snippetMapper.updateEntity(
                 snippet,
                 request,
@@ -204,15 +201,11 @@ public class SnippetServiceImpl implements SnippetService {
         );
 
         String normalizedImageUrl =
-                normalizeOptionalText(
-                        previewImageUrl
-                );
+                normalizeOptionalText(previewImageUrl);
 
         /*
-         * Null ka matlab:
-         * frontend ne new preview image nahi bheji.
-         *
-         * Isliye old image preserve hogi.
+         * New image URL mila tabhi old image replace hogi.
+         * Null hone par existing URL preserve rahegi.
          */
         if (normalizedImageUrl != null) {
             snippet.setPreviewImageUrl(
@@ -221,14 +214,14 @@ public class SnippetServiceImpl implements SnippetService {
         }
 
         /*
-         * Purane SnippetTag relation remove honge.
+         * Purane tags ko clear karke immediately dobara add nahi
+         * karenge, kyunki usse unique constraint conflict aata tha.
          *
-         * orphanRemoval = true ki wajah se old
-         * snippet_tags rows database se remove hongi.
+         * Existing tags keep honge.
+         * Removed tags delete honge.
+         * New tags insert honge.
          */
-        snippet.clearTags();
-
-        addTagsToSnippet(
+        synchronizeTags(
                 snippet,
                 request.getTags()
         );
@@ -236,7 +229,9 @@ public class SnippetServiceImpl implements SnippetService {
         Snippet updatedSnippet =
                 snippetRepository.save(snippet);
 
-        return snippetMapper.toResponse(updatedSnippet);
+        return snippetMapper.toResponse(
+                updatedSnippet
+        );
     }
 
     @Override
@@ -251,9 +246,7 @@ public class SnippetServiceImpl implements SnippetService {
 
         /*
          * Soft delete:
-         *
-         * Row physically delete nahi hogi.
-         * Sirf status DELETED ho jayega.
+         * database row delete nahi hogi.
          */
         snippet.setStatus(Status.DELETED);
 
@@ -284,7 +277,6 @@ public class SnippetServiceImpl implements SnippetService {
                 );
 
         if (snippet.getStatus() == Status.DELETED) {
-
             throw new ResourceNotFoundException(
                     "Snippet not found with id: "
                             + snippetId
@@ -342,8 +334,9 @@ public class SnippetServiceImpl implements SnippetService {
                             normalizedCategoryName
                     );
 
-                    return categoryRepository
-                            .save(category);
+                    return categoryRepository.save(
+                            category
+                    );
                 });
     }
 
@@ -372,7 +365,6 @@ public class SnippetServiceImpl implements SnippetService {
 
             if (tagName == null
                     || tagName.isBlank()) {
-
                 continue;
             }
 
@@ -385,57 +377,223 @@ public class SnippetServiceImpl implements SnippetService {
                     );
 
             /*
-             * React, react, REACT ko duplicate
-             * treat karenge.
+             * React, react aur REACT ko duplicate
+             * request tag maana jayega.
              */
             if (!processedTagNames.add(
                     lowercaseTagName)) {
-
                 continue;
             }
 
-            Tag tag = tagRepository
-                    .findByNameIgnoreCase(
-                            normalizedTagName
-                    )
-                    .orElseGet(() -> {
-
-                        Tag newTag = new Tag();
-
-                        newTag.setName(
-                                normalizedTagName
-                        );
-
-                        return tagRepository
-                                .save(newTag);
-                    });
+            Tag tag = findOrCreateTag(
+                    normalizedTagName
+            );
 
             /*
-             * Important:
-             *
-             * snippet.addTag(tag) ke andar:
-             *
-             * SnippetTag snippetTag = new SnippetTag();
-             * snippetTag.setSnippet(this);
-             * snippetTag.setTag(tag);
-             * snippetTags.add(snippetTag);
-             *
-             * hona chahiye.
-             *
-             * SnippetTagRepository.save() manually
-             * call nahi karna.
+             * addTag() child SnippetTag mein
+             * snippet aur tag dono set karega.
              */
             snippet.addTag(tag);
         }
 
         if (snippet.getSnippetTags() == null
-                || snippet.getSnippetTags()
-                        .isEmpty()) {
+                || snippet.getSnippetTags().isEmpty()) {
 
             throw new IllegalArgumentException(
                     "At least one valid tag is required"
             );
         }
+    }
+
+    private void synchronizeTags(
+            Snippet snippet,
+            List<String> requestedTagNames) {
+
+        if (snippet == null) {
+            throw new IllegalArgumentException(
+                    "Snippet is required"
+            );
+        }
+
+        if (requestedTagNames == null
+                || requestedTagNames.isEmpty()) {
+
+            throw new IllegalArgumentException(
+                    "At least one tag is required"
+            );
+        }
+
+        /*
+         * Request ke valid aur unique tag names.
+         */
+        Set<String> requestedNormalizedNames =
+                new HashSet<>();
+
+        for (String tagName : requestedTagNames) {
+
+            if (tagName == null
+                    || tagName.isBlank()) {
+                continue;
+            }
+
+            requestedNormalizedNames.add(
+                    tagName.trim()
+                            .toLowerCase(Locale.ROOT)
+            );
+        }
+
+        if (requestedNormalizedNames.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "At least one valid tag is required"
+            );
+        }
+
+        if (snippet.getSnippetTags() == null) {
+            throw new IllegalStateException(
+                    "Snippet tag collection is not initialized"
+            );
+        }
+
+        /*
+         * Jo existing tags updated request mein nahi hain,
+         * unke SnippetTag relationships remove karenge.
+         *
+         * Snippet.java mein orphanRemoval = true hona chahiye.
+         */
+        Iterator<SnippetTag> iterator =
+                snippet.getSnippetTags().iterator();
+
+        while (iterator.hasNext()) {
+
+            SnippetTag snippetTag =
+                    iterator.next();
+
+            if (snippetTag == null
+                    || snippetTag.getTag() == null
+                    || snippetTag.getTag()
+                            .getName() == null) {
+
+                iterator.remove();
+                continue;
+            }
+
+            String existingTagName =
+                    snippetTag.getTag()
+                            .getName()
+                            .trim()
+                            .toLowerCase(Locale.ROOT);
+
+            if (!requestedNormalizedNames.contains(
+                    existingTagName)) {
+
+                iterator.remove();
+
+                /*
+                 * Bidirectional relationship clean-up.
+                 */
+                snippetTag.setSnippet(null);
+            }
+        }
+
+        /*
+         * Removal ke baad jo tags already associated hain,
+         * unke normalized names collect karenge.
+         */
+        Set<String> existingNormalizedNames =
+                new HashSet<>();
+
+        for (SnippetTag snippetTag
+                : snippet.getSnippetTags()) {
+
+            if (snippetTag == null
+                    || snippetTag.getTag() == null
+                    || snippetTag.getTag()
+                            .getName() == null) {
+                continue;
+            }
+
+            existingNormalizedNames.add(
+                    snippetTag.getTag()
+                            .getName()
+                            .trim()
+                            .toLowerCase(Locale.ROOT)
+            );
+        }
+
+        /*
+         * Sirf genuinely new tags add honge.
+         * Existing same tag dobara insert nahi hoga.
+         */
+        Set<String> processedRequestTags =
+                new HashSet<>();
+
+        for (String requestedTagName
+                : requestedTagNames) {
+
+            if (requestedTagName == null
+                    || requestedTagName.isBlank()) {
+                continue;
+            }
+
+            String normalizedTagName =
+                    requestedTagName.trim();
+
+            String lowercaseTagName =
+                    normalizedTagName.toLowerCase(
+                            Locale.ROOT
+                    );
+
+            if (!processedRequestTags.add(
+                    lowercaseTagName)) {
+                continue;
+            }
+
+            if (existingNormalizedNames.contains(
+                    lowercaseTagName)) {
+                continue;
+            }
+
+            Tag tag = findOrCreateTag(
+                    normalizedTagName
+            );
+
+            snippet.addTag(tag);
+
+            existingNormalizedNames.add(
+                    lowercaseTagName
+            );
+        }
+
+        if (snippet.getSnippetTags().isEmpty()) {
+            throw new IllegalArgumentException(
+                    "At least one valid tag is required"
+            );
+        }
+    }
+
+    private Tag findOrCreateTag(
+            String tagName) {
+
+        String normalizedTagName =
+                normalizeRequiredText(
+                        tagName,
+                        "Tag name is required"
+                );
+
+        return tagRepository
+                .findByNameIgnoreCase(
+                        normalizedTagName
+                )
+                .orElseGet(() -> {
+
+                    Tag tag = new Tag();
+
+                    tag.setName(
+                            normalizedTagName
+                    );
+
+                    return tagRepository.save(tag);
+                });
     }
 
     private List<SnippetResponse>
@@ -447,7 +605,6 @@ public class SnippetServiceImpl implements SnippetService {
 
         if (snippets == null
                 || snippets.isEmpty()) {
-
             return responses;
         }
 
@@ -458,9 +615,7 @@ public class SnippetServiceImpl implements SnippetService {
             }
 
             responses.add(
-                    snippetMapper.toResponse(
-                            snippet
-                    )
+                    snippetMapper.toResponse(snippet)
             );
         }
 
@@ -487,7 +642,6 @@ public class SnippetServiceImpl implements SnippetService {
 
         if (value == null
                 || value.isBlank()) {
-
             return null;
         }
 
