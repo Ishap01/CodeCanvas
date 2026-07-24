@@ -74,21 +74,4 @@ public class UserStatisticsController {
         );
     }
 
-    @PutMapping("/{userId}/followers")
-    public ResponseEntity<UserStatisticsResponse> incrementFollowers(
-            @PathVariable UUID userId) {
-
-        return ResponseEntity.ok(
-                statisticsService.incrementFollowers(userId)
-        );
-    }
-
-    @PutMapping("/{userId}/following")
-    public ResponseEntity<UserStatisticsResponse> incrementFollowing(
-            @PathVariable UUID userId) {
-
-        return ResponseEntity.ok(
-                statisticsService.incrementFollowing(userId)
-        );
-    }
 }

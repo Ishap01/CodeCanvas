@@ -18,7 +18,11 @@ public interface UserStatisticsService {
 
     UserStatisticsResponse incrementFavorites(UUID userId);
 
-    UserStatisticsResponse incrementFollowers(UUID userId);
+    void increaseFollowers(UUID userId);
 
-    UserStatisticsResponse incrementFollowing(UUID userId);
+    void decreaseFollowers(UUID userId);
+
+    void increaseFollowing(UUID userId);
+
+    void decreaseFollowing(UUID userId);
 }

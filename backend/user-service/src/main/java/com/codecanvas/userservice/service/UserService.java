@@ -6,6 +6,7 @@ import java.util.UUID;
 import com.codecanvas.userservice.dto.request.UserUpdateRequest;
 import com.codecanvas.userservice.dto.response.ApiResponse;
 import com.codecanvas.userservice.dto.response.UserResponse;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface UserService {
 
@@ -13,10 +14,14 @@ public interface UserService {
 
     UserResponse getUserById(UUID userId);
 
-    ApiResponse updateUser(
-            UUID userId,
-            UserUpdateRequest request
-    );
+    UserResponse getProfile();
 
-    ApiResponse deleteUser(UUID userId);
+    ApiResponse updateProfile(
+            UserUpdateRequest request);
+
+    ApiResponse deleteProfile();
+
+    UserResponse uploadProfileImage(MultipartFile file);
+
+
 }

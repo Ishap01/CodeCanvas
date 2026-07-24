@@ -110,37 +110,6 @@ public class UserStatisticsServiceImpl
         return convertToResponse(savedStatistics);
     }
 
-    @Override
-    @Transactional
-    public UserStatisticsResponse incrementFollowers(UUID userId) {
-
-        UserStatistics statistics = getStatistics(userId);
-
-        statistics.setFollowers(
-                statistics.getFollowers() + 1
-        );
-
-        UserStatistics savedStatistics =
-                statisticsRepository.save(statistics);
-
-        return convertToResponse(savedStatistics);
-    }
-
-    @Override
-    @Transactional
-    public UserStatisticsResponse incrementFollowing(UUID userId) {
-
-        UserStatistics statistics = getStatistics(userId);
-
-        statistics.setFollowing(
-                statistics.getFollowing() + 1
-        );
-
-        UserStatistics savedStatistics =
-                statisticsRepository.save(statistics);
-
-        return convertToResponse(savedStatistics);
-    }
 
     private UserStatistics getStatistics(UUID userId) {
 
@@ -151,6 +120,54 @@ public class UserStatisticsServiceImpl
                                         + userId
                         )
                 );
+    }
+
+    @Override
+    @Transactional
+    public void increaseFollowers(UUID userId) {
+
+        UserStatistics statistics = getStatistics(userId);
+
+        statistics.setFollowers(statistics.getFollowers() + 1);
+
+        statisticsRepository.save(statistics);
+    }
+
+    @Override
+    @Transactional
+    public void decreaseFollowers(UUID userId) {
+
+        UserStatistics statistics = getStatistics(userId);
+
+        if (statistics.getFollowers() > 0) {
+            statistics.setFollowers(statistics.getFollowers() - 1);
+        }
+
+        statisticsRepository.save(statistics);
+    }
+
+    @Override
+    @Transactional
+    public void increaseFollowing(UUID userId) {
+
+        UserStatistics statistics = getStatistics(userId);
+
+        statistics.setFollowing(statistics.getFollowing() + 1);
+
+        statisticsRepository.save(statistics);
+    }
+
+    @Override
+    @Transactional
+    public void decreaseFollowing(UUID userId) {
+
+        UserStatistics statistics = getStatistics(userId);
+
+        if (statistics.getFollowing() > 0) {
+            statistics.setFollowing(statistics.getFollowing() - 1);
+        }
+
+        statisticsRepository.save(statistics);
     }
 
     private UserStatisticsResponse convertToResponse(
