@@ -1,0 +1,414 @@
+.userDashboardPage {
+  width: 100%;
+  min-height: calc(100vh - 96px);
+
+  display: grid;
+  grid-template-columns: 170px 1fr;
+
+  background: #090909;
+  color: #eeeeee;
+
+  font-family: "Courier New", Courier, monospace;
+}
+
+/* =====================================
+   SIDEBAR
+===================================== */
+
+.userSidebar {
+  min-height: calc(100vh - 96px);
+
+  padding: 22px 10px;
+
+  background: #0b0b0b;
+  border-right: 1px solid #222222;
+}
+
+.sidebarHeading {
+  margin-bottom: 16px;
+
+  color: #555b64;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.sidebarNavigation {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.sidebarNavigation a {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+
+  color: #626262;
+  text-decoration: none;
+
+  font-size: 9px;
+
+  transition: color 0.2s ease;
+}
+
+.sidebarNavigation a svg {
+  width: 12px;
+}
+
+.sidebarNavigation a:hover {
+  color: #eeeeee;
+}
+
+.sidebarDivider {
+  height: 1px;
+
+  margin: 27px 0;
+
+  background: #222222;
+}
+
+/* =====================================
+   MAIN CONTENT
+===================================== */
+
+.userDashboardContent {
+  min-width: 0;
+
+  padding: 24px 22px 80px;
+
+  overflow: hidden;
+}
+
+/* =====================================
+   FILTERS
+===================================== */
+
+.dashboardFilters {
+  margin-bottom: 21px;
+}
+
+.filterRow {
+  min-height: 40px;
+
+  display: flex;
+  align-items: center;
+  gap: 17px;
+}
+
+.filterLabel {
+  width: 70px;
+
+  color: #626873;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.filterOptions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filterOptions button {
+  height: 26px;
+
+  padding: 0 13px;
+
+  background: #0f0f0f;
+  border: 1px solid #292929;
+
+  color: #626262;
+  font-family: inherit;
+  font-size: 9px;
+
+  cursor: pointer;
+}
+
+.filterOptions button:hover,
+.filterOptions .activeFilter {
+  color: #eeeeee;
+  border-color: #5a5a5a;
+}
+
+/* =====================================
+   WELCOME BANNER
+===================================== */
+
+.userWelcomeBanner {
+  width: 100%;
+  min-height: 98px;
+
+  position: relative;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+
+  margin-bottom: 19px;
+  padding: 20px;
+
+  background: #202020;
+  border: 1px solid #343434;
+}
+
+.welcomeGradient {
+  position: absolute;
+  inset: 0;
+
+  background:
+    radial-gradient(
+      circle at 12% 50%,
+      rgba(255, 255, 255, 0.12),
+      transparent 25%
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 70px,
+      rgba(255, 255, 255, 0.025) 71px,
+      transparent 72px
+    );
+
+  opacity: 0.75;
+}
+
+.welcomeUser,
+.welcomeStats {
+  position: relative;
+  z-index: 2;
+}
+
+.welcomeUser {
+  min-width: 145px;
+}
+
+.welcomeUser span {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: #676767;
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+
+.welcomeUser h1 {
+  margin: 0;
+
+  color: #f1f1f1;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.welcomeStats {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  color: #626262;
+  font-size: 9px;
+}
+
+.welcomeStats strong {
+  color: #eeeeee;
+  font-weight: 400;
+}
+
+/* =====================================
+   SNIPPET GRID
+===================================== */
+
+.userSnippetGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  gap: 15px;
+}
+
+.userSnippetCard {
+  min-width: 0;
+
+  padding: 15px;
+
+  background: #1c1c1c;
+  border: 1px solid #343434;
+
+  transition: border-color 0.2s ease;
+}
+
+.userSnippetCard:hover {
+  border-color: #555555;
+}
+
+.userSnippetHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  margin-bottom: 12px;
+}
+
+.userSnippetHeader h2 {
+  margin: 0 0 6px;
+
+  color: #eeeeee;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.userLanguageBadge {
+  display: inline-flex;
+
+  padding: 3px 9px;
+
+  background: #252525;
+  border: 1px solid #373737;
+
+  color: #666666;
+  font-size: 8px;
+}
+
+.dashboardStarButton {
+  width: 31px;
+  height: 26px;
+
+  display: grid;
+  place-items: center;
+
+  background: #292929;
+  border: 1px solid #3a3a3a;
+
+  color: #e2bf3b;
+
+  cursor: pointer;
+}
+
+.userCodePreview {
+  min-height: 55px;
+
+  padding: 11px;
+
+  background: #222222;
+  border: 1px solid #343434;
+
+  overflow: hidden;
+  white-space: pre-wrap;
+}
+
+.userCodePreview code {
+  padding: 0;
+
+  background: transparent;
+  color: #505050;
+
+  font-family: inherit;
+  font-size: 8px;
+  line-height: 1.55;
+}
+
+.userSnippetFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-top: 12px;
+}
+
+.userSnippetStats {
+  display: flex;
+  gap: 13px;
+}
+
+.userSnippetStats span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  color: #656565;
+  font-size: 8px;
+}
+
+.userBookmarkButton {
+  border: none;
+  background: transparent;
+
+  color: #666666;
+
+  cursor: pointer;
+}
+
+/* =====================================
+   RESPONSIVE
+===================================== */
+
+@media (max-width: 1100px) {
+  .userSnippetGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 800px) {
+  .userDashboardPage {
+    grid-template-columns: 1fr;
+  }
+
+  .userSidebar {
+    min-height: auto;
+
+    padding: 12px;
+
+    border-right: none;
+    border-bottom: 1px solid #222222;
+  }
+
+  .sidebarHeading,
+  .sidebarDivider {
+    display: none;
+  }
+
+  .sidebarNavigation {
+    flex-direction: row;
+    overflow-x: auto;
+
+    scrollbar-width: none;
+  }
+
+  .sidebarNavigation::-webkit-scrollbar {
+    display: none;
+  }
+
+  .userSidebar .sidebarNavigation:nth-of-type(2) {
+    display: none;
+  }
+
+  .userDashboardContent {
+    padding: 20px 15px 60px;
+  }
+}
+
+@media (max-width: 600px) {
+  .filterRow {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+
+    margin-bottom: 15px;
+  }
+
+  .filterLabel {
+    width: auto;
+  }
+
+  .userWelcomeBanner {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .userSnippetGrid {
+    grid-template-columns: 1fr;
+  }
+}

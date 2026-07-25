@@ -10,6 +10,9 @@ public class UserResponse {
     private String mobileNumber;
     private String username;
     private String profileImage;
+
+    // New fields
+    private String bio;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime lastLogin;
@@ -23,6 +26,7 @@ public class UserResponse {
             String mobileNumber,
             String username,
             String profileImage,
+            String bio,
             LocalDateTime createdAt,
             LocalDateTime updatedAt,
             LocalDateTime lastLogin) {
@@ -32,6 +36,7 @@ public class UserResponse {
         this.mobileNumber = mobileNumber;
         this.username = username;
         this.profileImage = profileImage;
+        this.bio = bio;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.lastLogin = lastLogin;
@@ -75,6 +80,14 @@ public class UserResponse {
 
     public void setProfileImage(String profileImage) {
         this.profileImage = profileImage;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
     }
 
     public LocalDateTime getCreatedAt() {
