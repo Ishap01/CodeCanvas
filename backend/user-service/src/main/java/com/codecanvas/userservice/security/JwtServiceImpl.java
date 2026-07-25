@@ -1,19 +1,20 @@
 package com.codecanvas.userservice.security;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import java.util.function.Function;
 
-
-import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
-
-import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.function.Function;
 
-import com.codecanvas.userservice.entity.User;
+import javax.crypto.SecretKey;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+
+import com.codecanvas.userservice.entity.User;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 
 @Service
 public class JwtServiceImpl implements JwtService {
@@ -25,31 +26,86 @@ public class JwtServiceImpl implements JwtService {
     private long expiration;
 
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+
+        return Keys.hmacShaKeyFor(
+                secret.getBytes(StandardCharsets.UTF_8)
+        );
     }
 
     @Override
     public String generateToken(User user) {
 
+        if (user == null) {
+            throw new IllegalArgumentException(
+                    "User is required for token generation"
+            );
+        }
+
+        if (user.getUserId() == null) {
+            throw new IllegalArgumentException(
+                    "User id is required for token generation"
+            );
+        }
+
+        if (user.getEmail() == null
+                || user.getEmail().isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "User email is required for token generation"
+            );
+        }
+
         return Jwts.builder()
+
+                /*
+                 * Snippet Service isi claim se UUID nikalegi.
+                 */
+                .claim(
+                        "userId",
+                        user.getUserId().toString()
+                )
+
+                /*
+                 * Subject email rahega.
+                 */
                 .subject(user.getEmail())
+
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+
+                .expiration(
+                        new Date(
+                                System.currentTimeMillis()
+                                        + expiration
+                        )
+                )
+
                 .signWith(getSigningKey())
+
                 .compact();
     }
 
     @Override
     public String extractEmail(String token) {
-        return extractClaim(token, Claims::getSubject);
+
+        return extractClaim(
+                token,
+                Claims::getSubject
+        );
     }
 
-    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
+    private <T> T extractClaim(
+            String token,
+            Function<Claims, T> claimsResolver) {
+
+        Claims claims =
+                extractAllClaims(token);
+
         return claimsResolver.apply(claims);
     }
 
-    private Claims extractAllClaims(String token) {
+    private Claims extractAllClaims(
+            String token) {
+
         return Jwts.parser()
                 .verifyWith(getSigningKey())
                 .build()
@@ -58,22 +114,32 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public boolean isTokenValid(String token, UserDetails userDetails) {
+    public boolean isTokenValid(
+            String token,
+            UserDetails userDetails) {
 
-        final String email = extractEmail(token);
+        String email =
+                extractEmail(token);
 
-        return email.equals(userDetails.getUsername())
+        return email.equals(
+                userDetails.getUsername()
+        )
                 && !isTokenExpired(token);
     }
 
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
+    private Date extractExpiration(
+            String token) {
+
+        return extractClaim(
+                token,
+                Claims::getExpiration
+        );
     }
 
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+    private boolean isTokenExpired(
+            String token) {
+
+        return extractExpiration(token)
+                .before(new Date());
     }
 }
-
-
-
