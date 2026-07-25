@@ -1,4 +1,4 @@
-import axiosInstance from "./axios";
+import axiosInstance from "../api/axios";
 
 // Get statistics of a user
 export const getUserStatistics = async (userId) => {

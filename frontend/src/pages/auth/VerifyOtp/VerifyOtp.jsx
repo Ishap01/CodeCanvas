@@ -12,7 +12,7 @@ import {
 
 import bg from "../../assets/login-bg.jpg";
 
-import { verifyOtp } from "../../services/authService";
+import { verifyOtp } from "../../../services/authService";
 
 export default function VerifyOtp() {
 

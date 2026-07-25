@@ -15,7 +15,7 @@ import {
 
 import bg from "../../assets/login-bg.jpg";
 
-import { registerUser } from "../../services/authService";
+import { registerUser } from "../../../services/authService";
 
 function Register() {
   const navigate = useNavigate();

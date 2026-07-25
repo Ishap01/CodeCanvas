@@ -14,7 +14,7 @@ import {
 
 import bg from "../../assets/login-bg.jpg";
 
-import { changePassword } from "../../services/authService";
+import { changePassword } from "../../../services/authService";
 
 export default function ChangePassword() {
   const [formData, setFormData] = useState({

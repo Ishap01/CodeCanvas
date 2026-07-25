@@ -8,7 +8,7 @@ import {
     getProfile,
     updateProfile,
     uploadProfileImage,
-} from "../../services/userService";
+} from "../../../services/userService";
 
 export default function EditProfile() {
 

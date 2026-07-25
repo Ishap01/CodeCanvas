@@ -16,11 +16,11 @@ import {
 
 import {
   getProfile,
-} from "../../services/userService";
+} from "../../../services/userService";
 
 import {
   getUserStatistics,
-} from "../../services/statisticsService";
+} from "../../../services/statisticsService";
 
 
 const mockSnippets = [

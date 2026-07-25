@@ -13,7 +13,7 @@ import {
 
 import bg from "../../assets/login-bg.jpg";
 
-import { forgotPassword } from "../../services/authService";
+import { forgotPassword } from "../../../services/authService";
 
 export default function ForgotPassword() {
   const [formData, setFormData] = useState({

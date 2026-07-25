@@ -17,11 +17,11 @@ import { useNavigate } from "react-router-dom";
 
 import {
     getProfile,
-} from "../../services/userService";
+} from "../../../services/userService";
 
 import {
     getUserStatistics,
-} from "../../services/statisticsService";
+} from "../../../services/statisticsService";
 
 
 const tabs = [

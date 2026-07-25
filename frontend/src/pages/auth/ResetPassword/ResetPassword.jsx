@@ -18,7 +18,7 @@ import {
 
 import bg from "../../assets/login-bg.jpg";
 
-import { resetPassword } from "../../services/authService";
+import { resetPassword } from "../../../services/authService";
 
 export default function ResetPassword() {
   const navigate = useNavigate();

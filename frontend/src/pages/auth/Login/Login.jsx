@@ -15,8 +15,8 @@ import {
 
 import bg from "../../assets/login-bg.jpg";
 
-import { loginUser } from "../../services/authService";
-import { useAuth } from "../../context/AuthContext";
+import { loginUser } from "../../../services/authService";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function Login() {
 
