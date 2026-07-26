@@ -1,6 +1,5 @@
 package com.codecanvas.searchservice.repository;
 
-import com.codecanvas.searchservice.dto.response.SearchHistoryResponse;
 import com.codecanvas.searchservice.entity.SearchHistory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

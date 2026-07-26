@@ -1,16 +1,5 @@
 package com.codecanvas.userservice.dto.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class RegisterRequest {
 
     private String fullName;
@@ -19,4 +8,71 @@ public class RegisterRequest {
     private String mobileNumber;
     private String password;
     private String confirmPassword;
+
+    public RegisterRequest() {
+    }
+
+    public RegisterRequest(
+            String fullName,
+            String email,
+            String username,
+            String mobileNumber,
+            String password,
+            String confirmPassword) {
+
+        this.fullName = fullName;
+        this.email = email;
+        this.username = username;
+        this.mobileNumber = mobileNumber;
+        this.password = password;
+        this.confirmPassword = confirmPassword;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getMobileNumber() {
+        return mobileNumber;
+    }
+
+    public void setMobileNumber(String mobileNumber) {
+        this.mobileNumber = mobileNumber;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getConfirmPassword() {
+        return confirmPassword;
+    }
+
+    public void setConfirmPassword(String confirmPassword) {
+        this.confirmPassword = confirmPassword;
+    }
 }

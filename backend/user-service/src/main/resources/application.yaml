@@ -4,11 +4,27 @@ server:
 spring:
   application:
     name: user-service
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/codecanvas
-    username: postgres
-    password: root123
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
 
   jpa:
     hibernate:
@@ -26,9 +42,15 @@ eureka:
       defaultZone: http://localhost:8761/eureka
 
 logging:
-  level:
-    org.springframework.security: TRACE
+    level:
+      org.springframework.security: INFO
+
 
 jwt:
-  secret: 4v7x9Q2LmN8PqR5TsY1ZwE6UfJ3KaH8BcD0XeLr
-  expiration: 3600000
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:3600000}
+
+cloudinary:
+  cloud-name: wqxaugxx
+  api-key: 916333465954846
+  api-secret: O3wWyyinEI4MWawHlxuj3mrJtaY

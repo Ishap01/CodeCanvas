@@ -1,9 +1,5 @@
 package com.codecanvas.snippetservice.repository;
 
-import com.codecanvas.snippetservice.entity.Bookmark;
-import org.springframework.data.jpa.repository.JpaRepository;
+public class BookmarkRepository {
 
-import java.util.UUID;
-
-public interface BookmarkRepository extends JpaRepository<Bookmark, UUID> {
 }

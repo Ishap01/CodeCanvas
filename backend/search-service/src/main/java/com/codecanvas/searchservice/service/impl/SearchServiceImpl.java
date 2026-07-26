@@ -4,16 +4,12 @@ import com.codecanvas.searchservice.document.SearchDocument;
 import com.codecanvas.searchservice.dto.request.SearchRequest;
 import com.codecanvas.searchservice.dto.response.*;
 import com.codecanvas.searchservice.entity.SearchHistory;
-import com.codecanvas.searchservice.exception.ResourceNotFoundException;
-import com.codecanvas.searchservice.repository.SearchDocumentRepository;
 import com.codecanvas.searchservice.repository.SearchHistoryRepository;
 import com.codecanvas.searchservice.service.SearchService;
 import com.codecanvas.searchservice.service.search.ElasticSearchQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import com.codecanvas.searchservice.document.SearchDocument;
 import com.codecanvas.searchservice.service.search.SearchPage;
-import com.codecanvas.searchservice.service.search.ElasticSearchQueryService;
 
 import java.util.List;
 import java.util.UUID;
