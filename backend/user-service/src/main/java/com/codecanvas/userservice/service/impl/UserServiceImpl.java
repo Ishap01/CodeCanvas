@@ -164,6 +164,7 @@ public class UserServiceImpl implements UserService {
         user.setFullName(fullName);
         user.setUsername(username);
         user.setMobileNumber(mobileNumber);
+        user.setBio(request.getBio());
 
         userRepository.save(user);
 
@@ -209,6 +210,7 @@ public class UserServiceImpl implements UserService {
                 user.getMobileNumber(),
                 user.getUsername(),
                 user.getProfileImage(),
+                user.getBio(),
                 user.getCreatedAt(),
                 user.getUpdatedAt(),
                 user.getLastLogin()
