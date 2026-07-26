@@ -1,5 +1,6 @@
 package com.codecanvas.aiservice.entity;
 
+import com.codecanvas.aiservice.entity.enums.AIOperation;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,8 +30,9 @@ public class AIHistory {
     @Column(columnDefinition = "TEXT")
     private String response;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 50)
-    private String operation;
+    private AIOperation operation;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
