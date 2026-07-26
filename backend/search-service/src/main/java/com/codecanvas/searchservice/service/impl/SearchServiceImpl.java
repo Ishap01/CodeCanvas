@@ -5,7 +5,7 @@ import com.codecanvas.searchservice.dto.request.SearchRequest;
 import com.codecanvas.searchservice.dto.response.*;
 import com.codecanvas.searchservice.entity.SearchHistory;
 import com.codecanvas.searchservice.repository.SearchHistoryRepository;
-import com.codecanvas.searchservice.service.SearchService;
+import com.codecanvas.searchservice.service.search.SearchService;
 import com.codecanvas.searchservice.service.search.ElasticSearchQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -2,7 +2,7 @@ package com.codecanvas.searchservice.controller;
 
 import com.codecanvas.searchservice.dto.request.SearchRequest;
 import com.codecanvas.searchservice.dto.response.*;
-import com.codecanvas.searchservice.service.SearchService;
+import com.codecanvas.searchservice.service.search.SearchService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
