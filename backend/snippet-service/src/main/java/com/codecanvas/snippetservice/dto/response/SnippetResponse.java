@@ -15,7 +15,23 @@ public class SnippetResponse {
     private String code;
     private String language;
     private String framework;
+
+    /*
+     * URL sent to frontend for displaying
+     * the preview image.
+     */
     private String previewImageUrl;
+
+    /*
+     * Cloudinary public ID.
+     *
+     * This is generally not required by
+     * frontend, but we are keeping it in
+     * response for now because your backend
+     * may need it during testing.
+     */
+    private String previewImagePublicId;
+
     private Visibility visibility;
     private Status status;
     private UUID userId;
@@ -41,6 +57,7 @@ public class SnippetResponse {
             String language,
             String framework,
             String previewImageUrl,
+            String previewImagePublicId,
             Visibility visibility,
             Status status,
             UUID userId,
@@ -61,7 +78,10 @@ public class SnippetResponse {
         this.code = code;
         this.language = language;
         this.framework = framework;
-        this.previewImageUrl = previewImageUrl;
+        this.previewImageUrl =
+                previewImageUrl;
+        this.previewImagePublicId =
+                previewImagePublicId;
         this.visibility = visibility;
         this.status = status;
         this.userId = userId;
@@ -70,9 +90,11 @@ public class SnippetResponse {
         this.tags = tags;
         this.viewCount = viewCount;
         this.likeCount = likeCount;
-        this.bookmarkCount = bookmarkCount;
+        this.bookmarkCount =
+                bookmarkCount;
         this.forkCount = forkCount;
-        this.parentSnippetId = parentSnippetId;
+        this.parentSnippetId =
+                parentSnippetId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -81,7 +103,9 @@ public class SnippetResponse {
         return snippetId;
     }
 
-    public void setSnippetId(UUID snippetId) {
+    public void setSnippetId(
+            UUID snippetId) {
+
         this.snippetId = snippetId;
     }
 
@@ -89,7 +113,9 @@ public class SnippetResponse {
         return title;
     }
 
-    public void setTitle(String title) {
+    public void setTitle(
+            String title) {
+
         this.title = title;
     }
 
@@ -97,7 +123,9 @@ public class SnippetResponse {
         return description;
     }
 
-    public void setDescription(String description) {
+    public void setDescription(
+            String description) {
+
         this.description = description;
     }
 
@@ -105,7 +133,9 @@ public class SnippetResponse {
         return code;
     }
 
-    public void setCode(String code) {
+    public void setCode(
+            String code) {
+
         this.code = code;
     }
 
@@ -113,7 +143,9 @@ public class SnippetResponse {
         return language;
     }
 
-    public void setLanguage(String language) {
+    public void setLanguage(
+            String language) {
+
         this.language = language;
     }
 
@@ -121,7 +153,9 @@ public class SnippetResponse {
         return framework;
     }
 
-    public void setFramework(String framework) {
+    public void setFramework(
+            String framework) {
+
         this.framework = framework;
     }
 
@@ -129,15 +163,31 @@ public class SnippetResponse {
         return previewImageUrl;
     }
 
-    public void setPreviewImageUrl(String previewImageUrl) {
-        this.previewImageUrl = previewImageUrl;
+    public void setPreviewImageUrl(
+            String previewImageUrl) {
+
+        this.previewImageUrl =
+                previewImageUrl;
+    }
+
+    public String getPreviewImagePublicId() {
+        return previewImagePublicId;
+    }
+
+    public void setPreviewImagePublicId(
+            String previewImagePublicId) {
+
+        this.previewImagePublicId =
+                previewImagePublicId;
     }
 
     public Visibility getVisibility() {
         return visibility;
     }
 
-    public void setVisibility(Visibility visibility) {
+    public void setVisibility(
+            Visibility visibility) {
+
         this.visibility = visibility;
     }
 
@@ -145,7 +195,9 @@ public class SnippetResponse {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(
+            Status status) {
+
         this.status = status;
     }
 
@@ -153,7 +205,9 @@ public class SnippetResponse {
         return userId;
     }
 
-    public void setUserId(UUID userId) {
+    public void setUserId(
+            UUID userId) {
+
         this.userId = userId;
     }
 
@@ -161,7 +215,9 @@ public class SnippetResponse {
         return categoryId;
     }
 
-    public void setCategoryId(UUID categoryId) {
+    public void setCategoryId(
+            UUID categoryId) {
+
         this.categoryId = categoryId;
     }
 
@@ -169,15 +225,20 @@ public class SnippetResponse {
         return categoryName;
     }
 
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
+    public void setCategoryName(
+            String categoryName) {
+
+        this.categoryName =
+                categoryName;
     }
 
     public List<String> getTags() {
         return tags;
     }
 
-    public void setTags(List<String> tags) {
+    public void setTags(
+            List<String> tags) {
+
         this.tags = tags;
     }
 
@@ -185,7 +246,9 @@ public class SnippetResponse {
         return viewCount;
     }
 
-    public void setViewCount(long viewCount) {
+    public void setViewCount(
+            long viewCount) {
+
         this.viewCount = viewCount;
     }
 
@@ -193,7 +256,9 @@ public class SnippetResponse {
         return likeCount;
     }
 
-    public void setLikeCount(long likeCount) {
+    public void setLikeCount(
+            long likeCount) {
+
         this.likeCount = likeCount;
     }
 
@@ -201,15 +266,20 @@ public class SnippetResponse {
         return bookmarkCount;
     }
 
-    public void setBookmarkCount(long bookmarkCount) {
-        this.bookmarkCount = bookmarkCount;
+    public void setBookmarkCount(
+            long bookmarkCount) {
+
+        this.bookmarkCount =
+                bookmarkCount;
     }
 
     public long getForkCount() {
         return forkCount;
     }
 
-    public void setForkCount(long forkCount) {
+    public void setForkCount(
+            long forkCount) {
+
         this.forkCount = forkCount;
     }
 
@@ -217,15 +287,20 @@ public class SnippetResponse {
         return parentSnippetId;
     }
 
-    public void setParentSnippetId(UUID parentSnippetId) {
-        this.parentSnippetId = parentSnippetId;
+    public void setParentSnippetId(
+            UUID parentSnippetId) {
+
+        this.parentSnippetId =
+                parentSnippetId;
     }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(
+            LocalDateTime createdAt) {
+
         this.createdAt = createdAt;
     }
 
@@ -233,7 +308,9 @@ public class SnippetResponse {
         return updatedAt;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
+    public void setUpdatedAt(
+            LocalDateTime updatedAt) {
+
         this.updatedAt = updatedAt;
     }
 }

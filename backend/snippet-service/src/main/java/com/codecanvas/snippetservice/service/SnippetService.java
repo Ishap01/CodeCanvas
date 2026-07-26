@@ -3,6 +3,8 @@ package com.codecanvas.snippetservice.service;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.codecanvas.snippetservice.dto.request.CreateSnippetRequest;
 import com.codecanvas.snippetservice.dto.request.UpdateSnippetRequest;
 import com.codecanvas.snippetservice.dto.response.ApiResponse;
@@ -12,8 +14,7 @@ public interface SnippetService {
 
     SnippetResponse createSnippet(
             UUID userId,
-            CreateSnippetRequest request,
-            String previewImageUrl
+            CreateSnippetRequest request
     );
 
     SnippetResponse getSnippetById(
@@ -23,13 +24,25 @@ public interface SnippetService {
 
     List<SnippetResponse> getPublicSnippets();
 
-    List<SnippetResponse> getSnippetsByUserId(UUID userId);
+    List<SnippetResponse> getSnippetsByUserId(
+            UUID userId
+    );
 
     SnippetResponse updateSnippet(
             UUID snippetId,
             UUID userId,
-            UpdateSnippetRequest request,
-            String previewImageUrl
+            UpdateSnippetRequest request
+    );
+
+    SnippetResponse uploadOrReplacePreviewImage(
+            UUID snippetId,
+            UUID userId,
+            MultipartFile image
+    );
+
+    ApiResponse deletePreviewImage(
+            UUID snippetId,
+            UUID userId
     );
 
     ApiResponse deleteSnippet(

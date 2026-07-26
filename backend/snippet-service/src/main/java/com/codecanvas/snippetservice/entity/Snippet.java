@@ -73,11 +73,29 @@ public class Snippet {
     )
     private String framework;
 
+    /*
+     * Cloudinary secure URL.
+     *
+     * Frontend uses this URL to display
+     * the snippet preview image.
+     */
     @Column(
             name = "preview_image_url",
             length = 1000
     )
     private String previewImageUrl;
+
+    /*
+     * Cloudinary public ID.
+     *
+     * Backend uses this value to replace
+     * or delete the image from Cloudinary.
+     */
+    @Column(
+            name = "preview_image_public_id",
+            length = 500
+    )
+    private String previewImagePublicId;
 
     @Enumerated(EnumType.STRING)
     @Column(
@@ -158,7 +176,8 @@ public class Snippet {
     @PrePersist
     public void prePersist() {
 
-        LocalDateTime currentTime = LocalDateTime.now();
+        LocalDateTime currentTime =
+                LocalDateTime.now();
 
         if (createdAt == null) {
             createdAt = currentTime;
@@ -197,26 +216,26 @@ public class Snippet {
             snippetTags = new ArrayList<>();
         }
 
-        for (SnippetTag existingSnippetTag : snippetTags) {
+        for (SnippetTag existingSnippetTag
+                : snippetTags) {
 
             if (existingSnippetTag.getTag() != null
-                    && existingSnippetTag.getTag()
-                            .getTagId() != null
+                    && existingSnippetTag
+                    .getTag()
+                    .getTagId() != null
                     && tag.getTagId() != null
-                    && existingSnippetTag.getTag()
-                            .getTagId()
-                            .equals(tag.getTagId())) {
+                    && existingSnippetTag
+                    .getTag()
+                    .getTagId()
+                    .equals(tag.getTagId())) {
 
                 return;
             }
         }
 
-        SnippetTag snippetTag = new SnippetTag();
+        SnippetTag snippetTag =
+                new SnippetTag();
 
-        /*
-         * Most important part:
-         * Child ke andar parent reference set karna.
-         */
         snippetTag.setSnippet(this);
         snippetTag.setTag(tag);
 
@@ -225,19 +244,24 @@ public class Snippet {
 
     public void removeTag(Tag tag) {
 
-        if (tag == null || snippetTags == null) {
+        if (tag == null
+                || snippetTags == null) {
+
             return;
         }
 
         snippetTags.removeIf(snippetTag -> {
 
-            Tag existingTag = snippetTag.getTag();
+            Tag existingTag =
+                    snippetTag.getTag();
 
             boolean sameTag =
                     existingTag != null
-                    && existingTag.getTagId() != null
-                    && tag.getTagId() != null
-                    && existingTag.getTagId()
+                            && existingTag
+                            .getTagId() != null
+                            && tag.getTagId() != null
+                            && existingTag
+                            .getTagId()
                             .equals(tag.getTagId());
 
             if (sameTag) {
@@ -256,7 +280,9 @@ public class Snippet {
             return;
         }
 
-        for (SnippetTag snippetTag : snippetTags) {
+        for (SnippetTag snippetTag
+                : snippetTags) {
+
             snippetTag.setSnippet(null);
             snippetTag.setTag(null);
         }
@@ -268,7 +294,9 @@ public class Snippet {
         return snippetId;
     }
 
-    public void setSnippetId(UUID snippetId) {
+    public void setSnippetId(
+            UUID snippetId) {
+
         this.snippetId = snippetId;
     }
 
@@ -276,7 +304,9 @@ public class Snippet {
         return userId;
     }
 
-    public void setUserId(UUID userId) {
+    public void setUserId(
+            UUID userId) {
+
         this.userId = userId;
     }
 
@@ -284,7 +314,9 @@ public class Snippet {
         return title;
     }
 
-    public void setTitle(String title) {
+    public void setTitle(
+            String title) {
+
         this.title = title;
     }
 
@@ -292,7 +324,9 @@ public class Snippet {
         return description;
     }
 
-    public void setDescription(String description) {
+    public void setDescription(
+            String description) {
+
         this.description = description;
     }
 
@@ -300,7 +334,9 @@ public class Snippet {
         return code;
     }
 
-    public void setCode(String code) {
+    public void setCode(
+            String code) {
+
         this.code = code;
     }
 
@@ -308,7 +344,9 @@ public class Snippet {
         return language;
     }
 
-    public void setLanguage(String language) {
+    public void setLanguage(
+            String language) {
+
         this.language = language;
     }
 
@@ -316,7 +354,9 @@ public class Snippet {
         return framework;
     }
 
-    public void setFramework(String framework) {
+    public void setFramework(
+            String framework) {
+
         this.framework = framework;
     }
 
@@ -327,7 +367,19 @@ public class Snippet {
     public void setPreviewImageUrl(
             String previewImageUrl) {
 
-        this.previewImageUrl = previewImageUrl;
+        this.previewImageUrl =
+                previewImageUrl;
+    }
+
+    public String getPreviewImagePublicId() {
+        return previewImagePublicId;
+    }
+
+    public void setPreviewImagePublicId(
+            String previewImagePublicId) {
+
+        this.previewImagePublicId =
+                previewImagePublicId;
     }
 
     public Visibility getVisibility() {
@@ -344,7 +396,9 @@ public class Snippet {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(
+            Status status) {
+
         this.status = status;
     }
 
@@ -352,7 +406,9 @@ public class Snippet {
         return category;
     }
 
-    public void setCategory(Category category) {
+    public void setCategory(
+            Category category) {
+
         this.category = category;
     }
 
@@ -363,20 +419,24 @@ public class Snippet {
     public void setSnippetTags(
             List<SnippetTag> snippetTags) {
 
-        this.snippetTags = new ArrayList<>();
+        this.snippetTags =
+                new ArrayList<>();
 
         if (snippetTags == null) {
             return;
         }
 
-        for (SnippetTag snippetTag : snippetTags) {
+        for (SnippetTag snippetTag
+                : snippetTags) {
 
             if (snippetTag == null) {
                 continue;
             }
 
             snippetTag.setSnippet(this);
-            this.snippetTags.add(snippetTag);
+            this.snippetTags.add(
+                    snippetTag
+            );
         }
     }
 
@@ -384,7 +444,9 @@ public class Snippet {
         return viewCount;
     }
 
-    public void setViewCount(long viewCount) {
+    public void setViewCount(
+            long viewCount) {
+
         this.viewCount = viewCount;
     }
 
@@ -392,7 +454,9 @@ public class Snippet {
         return likeCount;
     }
 
-    public void setLikeCount(long likeCount) {
+    public void setLikeCount(
+            long likeCount) {
+
         this.likeCount = likeCount;
     }
 
@@ -400,15 +464,20 @@ public class Snippet {
         return bookmarkCount;
     }
 
-    public void setBookmarkCount(long bookmarkCount) {
-        this.bookmarkCount = bookmarkCount;
+    public void setBookmarkCount(
+            long bookmarkCount) {
+
+        this.bookmarkCount =
+                bookmarkCount;
     }
 
     public long getForkCount() {
         return forkCount;
     }
 
-    public void setForkCount(long forkCount) {
+    public void setForkCount(
+            long forkCount) {
+
         this.forkCount = forkCount;
     }
 
@@ -419,7 +488,8 @@ public class Snippet {
     public void setParentSnippetId(
             UUID parentSnippetId) {
 
-        this.parentSnippetId = parentSnippetId;
+        this.parentSnippetId =
+                parentSnippetId;
     }
 
     public LocalDateTime getCreatedAt() {
