@@ -5,7 +5,7 @@ spring:
   application:
     name: user-service
   mail:
-    host: smtp.gmail.com
+    h ost: smtp.gmail.com
     port: 587
     username: codecanvas.team05@gmail.com
     password: sjgesvcvzhvzecin
