@@ -1,0 +1,88 @@
+.settingsPage{
+    min-height:100vh;
+    background:#0f0f10;
+    color:white;
+    padding:50px 20px;
+}
+
+.settingsContainer{
+    max-width:850px;
+    margin:auto;
+}
+
+.settingsContainer h1{
+    font-size:38px;
+    margin-bottom:8px;
+}
+
+.settingsSubtitle{
+    color:#9ca3af;
+    margin-bottom:40px;
+}
+
+.settingsSection{
+    margin-bottom:40px;
+}
+
+.settingsSection h3{
+    margin-bottom:18px;
+    color:#b5b5b5;
+    font-size:15px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.settingsItem{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    padding:20px 24px;
+
+    background:#18181b;
+
+    border:1px solid #2d2d30;
+
+    border-radius:14px;
+
+    margin-bottom:15px;
+
+    cursor:pointer;
+
+    transition:.25s;
+}
+
+.settingsItem:hover{
+    transform:translateY(-2px);
+    border-color:#6c63ff;
+}
+
+.settingsLeft{
+    display:flex;
+    align-items:center;
+    gap:18px;
+}
+
+.settingsLeft svg{
+    font-size:20px;
+    color:#7c6cff;
+}
+
+.settingsLeft h4{
+    margin:0;
+    font-size:17px;
+}
+
+.settingsLeft p{
+    margin-top:5px;
+    color:#a1a1aa;
+    font-size:14px;
+}
+
+.logout .settingsLeft svg{
+    color:#ef4444;
+}
+
+.logout:hover{
+    border-color:#ef4444;
+}

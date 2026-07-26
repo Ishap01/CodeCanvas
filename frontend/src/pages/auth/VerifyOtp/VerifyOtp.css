@@ -1,0 +1,494 @@
+.verifyPage,
+.verifyPage *,
+.verifyPage *::before,
+.verifyPage *::after {
+  box-sizing: border-box;
+}
+
+.verifyPage {
+  width: 100%;
+  min-height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 35px;
+  gap: 40px;
+
+  background: #0b0b0b;
+  color: #ffffff;
+
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* =====================================
+   LEFT PANEL
+===================================== */
+
+.verifyLeftPanel {
+  flex: 1.7;
+  height: 92vh;
+
+  position: relative;
+  overflow: hidden;
+
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+
+  border: 1px solid #222222;
+  border-radius: 10px;
+
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.03);
+}
+
+.verifyOverlay {
+  position: absolute;
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.verifyLeftContent {
+  position: absolute;
+  left: 40px;
+  bottom: 45px;
+  z-index: 2;
+}
+
+.verifyLeftContent h1 {
+  margin: 0;
+
+  color: #ffffff;
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.verifyLeftContent h1 span {
+  color: #ffffff;
+}
+
+.verifyLeftContent p {
+  margin-top: 20px;
+
+  color: #b7b7b7;
+  font-size: 15px;
+  line-height: 26px;
+}
+
+/* =====================================
+   RIGHT PANEL
+===================================== */
+
+.verifyRightPanel {
+  flex: 1;
+  height: 92vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* =====================================
+   CARD
+===================================== */
+
+.verifyCard {
+  width: 100%;
+  max-width: 500px;
+  height: 100%;
+
+  padding: 55px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  background: #181818;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+
+  transition: border-color 0.2s ease;
+}
+
+.verifyCard:hover {
+  border-color: #3d3d3d;
+}
+
+.verifyLogo {
+  width: 65px;
+  height: 65px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  margin: 0 auto 30px;
+
+  background: #ffffff;
+  color: #000000;
+
+  font-size: 28px;
+
+  border-radius: 8px;
+}
+
+.verifyCard h2 {
+  margin: 0 0 12px;
+
+  color: #ffffff;
+  text-align: center;
+  font-size: 42px;
+  font-weight: 700;
+}
+
+.verifySubtitle {
+  margin: 0 0 35px;
+
+  color: #8d8d8d;
+  text-align: center;
+  font-size: 15px;
+  line-height: 24px;
+}
+
+/* =====================================
+   INPUT
+===================================== */
+
+.verifyInputBox {
+  width: 100%;
+  height: 55px;
+
+  display: flex;
+  align-items: center;
+
+  padding: 0 18px;
+  margin-bottom: 20px;
+
+  background: #1f1f1f;
+  border: 1px solid #333333;
+
+  transition: border-color 0.2s ease;
+}
+
+.verifyInputBox:focus-within {
+  border-color: #ffffff;
+}
+
+.verifyInputBox svg {
+  flex-shrink: 0;
+
+  color: #777777;
+  font-size: 17px;
+}
+
+.verifyInputBox input {
+  flex: 1;
+  min-width: 0;
+
+  margin-left: 15px;
+
+  background: transparent;
+  border: none;
+  outline: none;
+
+  color: #ffffff;
+  font-size: 15px;
+}
+
+.verifyInputBox input::placeholder {
+  color: #777777;
+  opacity: 1;
+}
+
+/* =====================================
+   MESSAGE
+===================================== */
+
+.verifyMessage {
+  margin: 0 0 18px;
+
+  text-align: center;
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.verifyError {
+  color: #ff6b6b;
+  font-weight: 500;
+}
+
+.verifySuccess {
+  color: #72d68c;
+  font-weight: 500;
+}
+
+/* =====================================
+   BUTTON
+===================================== */
+
+.verifyButton {
+  width: 100%;
+  min-height: 55px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+
+  padding: 0 15px;
+
+  background: rgb(45, 43, 43);
+  border: none;
+
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: all 0.3s ease;
+}
+
+
+.verifyButton:hover:not(:disabled) {
+  background: #dddddd;
+  color: #111111;
+
+  transform: translateY(-2px);
+}
+
+.verifyButton:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* =====================================
+   BACK TO LOGIN
+===================================== */
+
+.verifyBack {
+  margin-top: 25px;
+  text-align: center;
+}
+
+.verifyBack a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #b5b5b5;
+  text-decoration: none;
+  font-size: 14px;
+
+  transition: color 0.3s ease;
+}
+
+.verifyBack a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+/* =====================================
+   LARGE LAPTOP
+===================================== */
+
+@media (max-width: 1400px) {
+  .verifyPage {
+    padding: 25px;
+    gap: 30px;
+  }
+
+  .verifyLeftPanel {
+    flex: 1.5;
+  }
+
+  .verifyCard {
+    max-width: 470px;
+    padding: 45px;
+  }
+
+  .verifyLeftContent h1 {
+    font-size: 36px;
+  }
+
+  .verifyCard h2 {
+    font-size: 36px;
+  }
+}
+
+/* =====================================
+   LAPTOP
+===================================== */
+
+@media (max-width: 1200px) {
+  .verifyPage {
+    padding: 20px;
+    gap: 25px;
+  }
+
+  .verifyLeftPanel {
+    flex: 1.4;
+  }
+
+  .verifyCard {
+    max-width: 430px;
+    padding: 40px;
+  }
+
+  .verifyLeftContent h1 {
+    font-size: 32px;
+  }
+
+  .verifyCard h2 {
+    font-size: 34px;
+  }
+}
+
+/* =====================================
+   TABLET
+===================================== */
+
+@media (max-width: 992px) {
+  .verifyPage {
+    min-height: 100vh;
+    height: auto;
+
+    flex-direction: column;
+
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .verifyLeftPanel {
+    width: 100%;
+    height: 320px;
+    flex: none;
+  }
+
+  .verifyRightPanel {
+    width: 100%;
+    height: auto;
+    flex: none;
+  }
+
+  .verifyCard {
+    max-width: 600px;
+    height: auto;
+    padding: 35px;
+  }
+
+  .verifyLeftContent {
+    left: 30px;
+    bottom: 30px;
+  }
+
+  .verifyLeftContent h1 {
+    font-size: 30px;
+  }
+}
+
+/* =====================================
+   MOBILE
+===================================== */
+
+@media (max-width: 768px) {
+  .verifyPage {
+    padding: 15px;
+  }
+
+  .verifyLeftPanel {
+    display: none;
+  }
+
+  .verifyRightPanel {
+    width: 100%;
+    min-height: calc(100vh - 30px);
+  }
+
+  .verifyCard {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+
+    padding: 30px;
+  }
+
+  .verifyLogo {
+    width: 55px;
+    height: 55px;
+    font-size: 24px;
+  }
+
+  .verifyCard h2 {
+    font-size: 30px;
+  }
+
+  .verifySubtitle {
+    font-size: 14px;
+  }
+
+  .verifyInputBox,
+  .verifyButton {
+    min-height: 50px;
+    height: 50px;
+  }
+}
+
+/* =====================================
+   SMALL MOBILE
+===================================== */
+
+@media (max-width: 480px) {
+  .verifyPage {
+    padding: 10px;
+  }
+
+  .verifyRightPanel {
+    min-height: calc(100vh - 20px);
+  }
+
+  .verifyCard {
+    padding: 25px 20px;
+  }
+
+  .verifyLogo {
+    width: 48px;
+    height: 48px;
+
+    margin-bottom: 24px;
+
+    font-size: 20px;
+  }
+
+  .verifyCard h2 {
+    font-size: 26px;
+  }
+
+  .verifySubtitle {
+    margin-bottom: 28px;
+    font-size: 13px;
+  }
+
+  .verifyInputBox {
+    height: 46px;
+    padding: 0 12px;
+  }
+
+  .verifyInputBox input {
+    font-size: 14px;
+  }
+
+  .verifyButton {
+    min-height: 46px;
+    height: auto;
+
+    font-size: 14px;
+  }
+
+  .verifyBack a {
+    font-size: 13px;
+  }
+}

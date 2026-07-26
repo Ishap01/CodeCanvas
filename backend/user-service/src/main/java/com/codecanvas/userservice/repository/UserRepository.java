@@ -1,20 +1,24 @@
 package com.codecanvas.userservice.repository;
 
-import com.codecanvas.userservice.entity.User;
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.Optional;
 import java.util.UUID;
 
-public interface UserRepository extends JpaRepository<User, UUID> {
+import org.springframework.data.jpa.repository.JpaRepository;
 
-    boolean existsByUsername(String username);
+import com.codecanvas.userservice.entity.User;
 
-    boolean existsByEmail(String email);
+public interface UserRepository
+        extends JpaRepository<User, UUID> {
+
+    Optional<User> findByEmail(String email);
 
     Optional<User> findByUsername(String username);
 
-    Optional<User> findByEmail(String email);
+    Optional<User> findByMobileNumber(String mobileNumber);
+
+    boolean existsByEmail(String email);
+
+    boolean existsByUsername(String username);
 
     boolean existsByMobileNumber(String mobileNumber);
 }
