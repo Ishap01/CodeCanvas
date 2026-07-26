@@ -8,12 +8,16 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/codecanvas
     username: postgres
-    password: root
+    password: root123
+
 
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+  elasticsearch:
+      uris: http://localhost:9200
 
 eureka:
   client:
