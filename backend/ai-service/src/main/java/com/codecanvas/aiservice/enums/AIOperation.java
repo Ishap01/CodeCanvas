@@ -1,4 +1,4 @@
-package com.codecanvas.aiservice.entity.enums;
+package com.codecanvas.aiservice.enums;
 
 public enum AIOperation {
 

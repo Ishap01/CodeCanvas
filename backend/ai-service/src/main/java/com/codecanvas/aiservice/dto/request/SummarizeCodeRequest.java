@@ -9,9 +9,6 @@ import java.util.UUID;
 @Data
 public class SummarizeCodeRequest {
 
-    @NotNull(message = "User ID is required")
-    private UUID userId;
-
     private UUID snippetId;
 
     @NotBlank(message = "Code cannot be empty")

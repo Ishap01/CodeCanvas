@@ -1,6 +1,6 @@
 package com.codecanvas.aiservice.entity;
 
-import com.codecanvas.aiservice.entity.enums.AIOperation;
+import com.codecanvas.aiservice.enums.AIOperation;
 import jakarta.persistence.*;
 import lombok.*;
 

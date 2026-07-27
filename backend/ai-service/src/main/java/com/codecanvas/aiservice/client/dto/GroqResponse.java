@@ -5,8 +5,8 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class GeminiResponse {
+public class GroqResponse {
 
-    private List<Candidate> candidates;
+    private List<Choice> choices;
 
 }

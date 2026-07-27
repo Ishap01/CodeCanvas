@@ -4,6 +4,7 @@ import com.codecanvas.aiservice.dto.request.ExplainCodeRequest;
 import com.codecanvas.aiservice.dto.request.GenerateTagsRequest;
 import com.codecanvas.aiservice.dto.request.SummarizeCodeRequest;
 import com.codecanvas.aiservice.dto.response.AIResponse;
+import com.codecanvas.aiservice.security.JwtService;
 import com.codecanvas.aiservice.service.AIService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,33 +20,75 @@ import java.util.UUID;
 public class AIController {
 
     private final AIService aiService;
+    private final JwtService jwtService;
 
     @PostMapping("/explain")
-    public ResponseEntity<AIResponse> explainCode(
-            @Valid @RequestBody ExplainCodeRequest request) {
+    public AIResponse explain(
+            @RequestHeader("Authorization") String authorization,
+            @RequestBody ExplainCodeRequest request) {
 
-        return ResponseEntity.ok(aiService.explainCode(request));
+        System.out.println("===== CONTROLLER HIT =====");
+
+        System.out.println("Authorization: " + authorization);
+
+        String token = authorization.substring(7);
+
+        System.out.println("Before extracting UUID");
+
+        UUID userId = jwtService.extractUserId(token);
+
+        System.out.println("User ID = " + userId);
+
+        return aiService.explainCode(userId, request);
     }
 
     @PostMapping("/summarize")
     public ResponseEntity<AIResponse> summarizeCode(
+
+            @RequestHeader("Authorization")
+            String authorization,
+
             @Valid @RequestBody SummarizeCodeRequest request) {
 
-        return ResponseEntity.ok(aiService.summarizeCode(request));
+        String token = authorization.substring(7);
+
+        UUID userId = jwtService.extractUserId(token);
+
+        return ResponseEntity.ok(
+                aiService.summarizeCode(userId, request)
+        );
     }
 
     @PostMapping("/generate-tags")
     public ResponseEntity<AIResponse> generateTags(
+
+            @RequestHeader("Authorization")
+            String authorization,
+
             @Valid @RequestBody GenerateTagsRequest request) {
 
-        return ResponseEntity.ok(aiService.generateTags(request));
+        String token = authorization.substring(7);
+
+        UUID userId = jwtService.extractUserId(token);
+
+        return ResponseEntity.ok(
+                aiService.generateTags(userId, request)
+        );
     }
 
-    @GetMapping("/history/{userId}")
+    @GetMapping("/history")
     public ResponseEntity<List<AIResponse>> getHistory(
-            @PathVariable UUID userId) {
 
-        return ResponseEntity.ok(aiService.getHistory(userId));
+            @RequestHeader("Authorization")
+            String authorization) {
+
+        String token = authorization.substring(7);
+
+        UUID userId = jwtService.extractUserId(token);
+
+        return ResponseEntity.ok(
+                aiService.getHistory(userId)
+        );
     }
 
 }

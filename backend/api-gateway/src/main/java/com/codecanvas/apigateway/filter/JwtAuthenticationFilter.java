@@ -1,7 +1,9 @@
 package com.codecanvas.apigateway.filter;
 
 import java.io.IOException;
+import java.util.UUID;
 
+import com.codecanvas.apigateway.security.AuthenticatedUser;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -47,9 +49,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 String email = jwtService.extractEmail(token);
 
+                UUID userId = jwtService.extractUserId(token);
+                AuthenticatedUser authenticatedUser =
+                        new AuthenticatedUser(userId, email);
+
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
-                                email,
+                                authenticatedUser,
                                 null,
                                 null
                         );

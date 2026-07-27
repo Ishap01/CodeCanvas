@@ -3,8 +3,8 @@ package com.codecanvas.aiservice.client.dto;
 import lombok.Data;
 
 @Data
-public class Candidate {
+public class Choice {
 
-    private Content content;
+    private Message message;
 
 }

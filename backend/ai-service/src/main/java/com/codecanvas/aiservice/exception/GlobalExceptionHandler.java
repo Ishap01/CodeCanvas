@@ -13,9 +13,9 @@ import java.time.LocalDateTime;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(GeminiException.class)
+    @ExceptionHandler(AIException.class)
     public ResponseEntity<ErrorResponse> handleGeminiException(
-            GeminiException ex,
+            AIException ex,
             HttpServletRequest request) {
 
         ErrorResponse response = ErrorResponse.builder()

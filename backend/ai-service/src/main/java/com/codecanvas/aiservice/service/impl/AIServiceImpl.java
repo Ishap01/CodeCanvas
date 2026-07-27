@@ -1,16 +1,15 @@
 package com.codecanvas.aiservice.service.impl;
 
-import com.codecanvas.aiservice.client.GeminiClient;
+import com.codecanvas.aiservice.client.GroqClient;
 import com.codecanvas.aiservice.dto.request.ExplainCodeRequest;
 import com.codecanvas.aiservice.dto.request.GenerateTagsRequest;
 import com.codecanvas.aiservice.dto.request.SummarizeCodeRequest;
 import com.codecanvas.aiservice.dto.response.AIResponse;
 import com.codecanvas.aiservice.entity.AIHistory;
-import com.codecanvas.aiservice.entity.enums.AIOperation;
+import com.codecanvas.aiservice.enums.AIOperation;
 import com.codecanvas.aiservice.repository.AIHistoryRepository;
 import com.codecanvas.aiservice.service.AIService;
 import com.codecanvas.aiservice.util.PromptBuilder;
-import com.codecanvas.aiservice.util.UserContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
@@ -25,17 +24,17 @@ import java.util.UUID;
 public class AIServiceImpl implements AIService {
 
     private final AIHistoryRepository historyRepository;
-    private final GeminiClient geminiClient;
+    private final GroqClient groqClient;
 
     @Override
-    public AIResponse explainCode(ExplainCodeRequest request) {
+    public AIResponse explainCode(UUID userId, ExplainCodeRequest request) {
 
         String prompt = PromptBuilder.buildExplainPrompt(request.getCode());
 
-        String result = geminiClient.generateContent(prompt);
+        String result = groqClient.generateContent(prompt);
 
         saveHistory(
-                UserContext.getUserId(),
+                userId,
                 prompt,
                 result,
                 AIOperation.EXPLAIN_CODE
@@ -50,14 +49,15 @@ public class AIServiceImpl implements AIService {
 
 
     @Override
-    public AIResponse summarizeCode(SummarizeCodeRequest request) {
+    public AIResponse summarizeCode(UUID userId,
+                                    SummarizeCodeRequest request) {
 
         String prompt = PromptBuilder.buildSummaryPrompt(request.getCode());
 
-        String result = geminiClient.generateContent(prompt);
+        String result = groqClient.generateContent(prompt);
 
         saveHistory(
-                UserContext.getUserId(),
+                userId,
                 prompt,
                 result,
                 AIOperation.SUMMARIZE_CODE
@@ -71,14 +71,15 @@ public class AIServiceImpl implements AIService {
     }
 
     @Override
-    public AIResponse generateTags(GenerateTagsRequest request) {
+    public AIResponse generateTags(UUID userId,
+                                   GenerateTagsRequest request) {
 
         String prompt = PromptBuilder.buildTagPrompt(request.getCode());
 
-        String result = geminiClient.generateContent(prompt);
+        String result = groqClient.generateContent(prompt);
 
         saveHistory(
-                UserContext.getUserId(),
+                userId,
                 prompt,
                 result,
                 AIOperation.GENERATE_TAGS

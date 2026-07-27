@@ -1,4 +1,4 @@
-package com.codecanvas.apigateway.service.impl;
+package com.codecanvas.aiservice.security;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -9,8 +9,6 @@ import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import com.codecanvas.apigateway.service.JwtService;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -23,6 +21,7 @@ public class JwtServiceImpl implements JwtService {
     private String secret;
 
     private SecretKey getSigningKey() {
+        System.out.println("JWT Secret = " + secret);
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -34,12 +33,19 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public UUID extractUserId(String token) {
 
-        return UUID.fromString(
-                extractClaim(
-                        token,
-                        claims -> claims.get("userId", String.class)
-                )
-        );
+        try {
+            String id = extractClaim(token, claims -> claims.get("userId", String.class));
+
+            System.out.println("Extracted userId String = " + id);
+
+            return UUID.fromString(id);
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            throw e;
+        }
     }
 
     @Override

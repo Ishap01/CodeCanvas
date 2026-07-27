@@ -1,4 +1,4 @@
-package com.codecanvas.apigateway.service;
+package com.codecanvas.aiservice.security;
 
 import java.util.UUID;
 

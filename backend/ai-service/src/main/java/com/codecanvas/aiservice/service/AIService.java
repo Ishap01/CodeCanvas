@@ -10,11 +10,12 @@ import java.util.UUID;
 
 public interface AIService {
 
-    AIResponse explainCode(ExplainCodeRequest request);
+    AIResponse explainCode(UUID userId, ExplainCodeRequest request);
 
-    AIResponse summarizeCode(SummarizeCodeRequest request);
+    AIResponse summarizeCode(UUID userId, SummarizeCodeRequest request);
 
-    AIResponse generateTags(GenerateTagsRequest request);
+    AIResponse generateTags(UUID userId, GenerateTagsRequest request);
 
     List<AIResponse> getHistory(UUID userId);
+
 }
