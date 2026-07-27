@@ -4,11 +4,12 @@ import com.codecanvas.aiservice.dto.request.ExplainCodeRequest;
 import com.codecanvas.aiservice.dto.request.GenerateTagsRequest;
 import com.codecanvas.aiservice.dto.request.SummarizeCodeRequest;
 import com.codecanvas.aiservice.dto.response.AIResponse;
-import com.codecanvas.aiservice.security.JwtService;
+import com.codecanvas.aiservice.security.AuthenticatedUser;
 import com.codecanvas.aiservice.service.AIService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,24 +21,13 @@ import java.util.UUID;
 public class AIController {
 
     private final AIService aiService;
-    private final JwtService jwtService;
 
     @PostMapping("/explain")
     public AIResponse explain(
-            @RequestHeader("Authorization") String authorization,
+            Authentication authentication,
             @RequestBody ExplainCodeRequest request) {
 
-        System.out.println("===== CONTROLLER HIT =====");
-
-        System.out.println("Authorization: " + authorization);
-
-        String token = authorization.substring(7);
-
-        System.out.println("Before extracting UUID");
-
-        UUID userId = jwtService.extractUserId(token);
-
-        System.out.println("User ID = " + userId);
+        UUID userId = extractRequiredUserId(authentication);
 
         return aiService.explainCode(userId, request);
     }
@@ -45,14 +35,11 @@ public class AIController {
     @PostMapping("/summarize")
     public ResponseEntity<AIResponse> summarizeCode(
 
-            @RequestHeader("Authorization")
-            String authorization,
+            Authentication authentication,
 
             @Valid @RequestBody SummarizeCodeRequest request) {
 
-        String token = authorization.substring(7);
-
-        UUID userId = jwtService.extractUserId(token);
+        UUID userId = extractRequiredUserId(authentication);
 
         return ResponseEntity.ok(
                 aiService.summarizeCode(userId, request)
@@ -62,14 +49,11 @@ public class AIController {
     @PostMapping("/generate-tags")
     public ResponseEntity<AIResponse> generateTags(
 
-            @RequestHeader("Authorization")
-            String authorization,
+            Authentication authentication,
 
             @Valid @RequestBody GenerateTagsRequest request) {
 
-        String token = authorization.substring(7);
-
-        UUID userId = jwtService.extractUserId(token);
+        UUID userId = extractRequiredUserId(authentication);
 
         return ResponseEntity.ok(
                 aiService.generateTags(userId, request)
@@ -79,16 +63,47 @@ public class AIController {
     @GetMapping("/history")
     public ResponseEntity<List<AIResponse>> getHistory(
 
-            @RequestHeader("Authorization")
-            String authorization) {
+            Authentication authentication) {
 
-        String token = authorization.substring(7);
-
-        UUID userId = jwtService.extractUserId(token);
+        UUID userId = extractRequiredUserId(authentication);
 
         return ResponseEntity.ok(
                 aiService.getHistory(userId)
         );
+    }
+
+    private UUID extractRequiredUserId(
+            Authentication authentication) {
+
+        if (authentication == null) {
+            throw new IllegalStateException(
+                    "Authentication is required"
+            );
+        }
+
+        if (!authentication.isAuthenticated()) {
+            throw new IllegalStateException(
+                    "User is not authenticated"
+            );
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        if (!(principal instanceof AuthenticatedUser authenticatedUser)) {
+            throw new IllegalStateException(
+                    "Invalid authenticated user principal"
+            );
+        }
+
+        UUID userId = authenticatedUser.getUserId();
+
+        if (userId == null) {
+            throw new IllegalStateException(
+                    "User id is missing from authentication"
+            );
+        }
+
+        return userId;
     }
 
 }
