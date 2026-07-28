@@ -8,6 +8,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,9 +32,12 @@ import com.codecanvas.snippetservice.repository.SnippetRepository;
 import com.codecanvas.snippetservice.repository.TagRepository;
 import com.codecanvas.snippetservice.service.CloudinaryService;
 import com.codecanvas.snippetservice.service.SnippetService;
+import com.codecanvas.snippetservice.dto.request.IndexSnippetRequest;
+import com.codecanvas.snippetservice.client.SearchServiceClient;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class SnippetServiceImpl implements SnippetService {
 
     private final SnippetRepository snippetRepository;
@@ -41,20 +45,9 @@ public class SnippetServiceImpl implements SnippetService {
     private final TagRepository tagRepository;
     private final SnippetMapper snippetMapper;
     private final CloudinaryService cloudinaryService;
+    private final SearchServiceClient searchServiceClient;
 
-    public SnippetServiceImpl(
-            SnippetRepository snippetRepository,
-            CategoryRepository categoryRepository,
-            TagRepository tagRepository,
-            SnippetMapper snippetMapper,
-            CloudinaryService cloudinaryService) {
 
-        this.snippetRepository = snippetRepository;
-        this.categoryRepository = categoryRepository;
-        this.tagRepository = tagRepository;
-        this.snippetMapper = snippetMapper;
-        this.cloudinaryService = cloudinaryService;
-    }
 
     @Override
     public SnippetResponse createSnippet(
@@ -113,9 +106,29 @@ public class SnippetServiceImpl implements SnippetService {
         Snippet savedSnippet =
                 snippetRepository.save(snippet);
 
-        return snippetMapper.toResponse(
-                savedSnippet
-        );
+        IndexSnippetRequest indexRequest =
+                IndexSnippetRequest.builder()
+                        .snippetId(savedSnippet.getSnippetId())
+                        .title(savedSnippet.getTitle())
+                        .description(savedSnippet.getDescription())
+                        .language(savedSnippet.getLanguage())
+                        .framework(savedSnippet.getFramework())
+                        .category(savedSnippet.getCategory().getCategoryName())
+                        .tags(
+                                savedSnippet.getSnippetTags()
+                                        .stream()
+                                        .map(snippetTag ->
+                                                snippetTag.getTag().getTagName())
+                                        .toList()
+                        )
+                        .likes(savedSnippet.getLikeCount())
+                        .views(savedSnippet.getViewCount())
+                        .previewImageUrl(savedSnippet.getPreviewImageUrl())
+                        .build();
+
+        searchServiceClient.indexSnippet(indexRequest);
+
+        return snippetMapper.toResponse(savedSnippet);
     }
 
     @Override
@@ -490,7 +503,7 @@ public class SnippetServiceImpl implements SnippetService {
                 );
 
         return categoryRepository
-                .findByNameIgnoreCase(
+                .findByCategoryNameIgnoreCase(
                         normalizedCategoryName
                 )
                 .orElseGet(() -> {
@@ -498,7 +511,7 @@ public class SnippetServiceImpl implements SnippetService {
                     Category category =
                             new Category();
 
-                    category.setName(
+                    category.setCategoryName(
                             normalizedCategoryName
                     );
 
@@ -634,7 +647,7 @@ public class SnippetServiceImpl implements SnippetService {
             if (snippetTag == null
                     || snippetTag.getTag() == null
                     || snippetTag.getTag()
-                    .getName() == null) {
+                    .getTagName() == null) {
 
                 iterator.remove();
                 continue;
@@ -642,7 +655,7 @@ public class SnippetServiceImpl implements SnippetService {
 
             String existingTagName =
                     snippetTag.getTag()
-                            .getName()
+                            .getTagName()
                             .trim()
                             .toLowerCase(
                                     Locale.ROOT
@@ -665,14 +678,14 @@ public class SnippetServiceImpl implements SnippetService {
             if (snippetTag == null
                     || snippetTag.getTag() == null
                     || snippetTag.getTag()
-                    .getName() == null) {
+                    .getTagName() == null) {
 
                 continue;
             }
 
             existingNormalizedNames.add(
                     snippetTag.getTag()
-                            .getName()
+                            .getTagName()
                             .trim()
                             .toLowerCase(
                                     Locale.ROOT
@@ -742,14 +755,14 @@ public class SnippetServiceImpl implements SnippetService {
                 );
 
         return tagRepository
-                .findByNameIgnoreCase(
+                .findByTagNameIgnoreCase(
                         normalizedTagName
                 )
                 .orElseGet(() -> {
 
                     Tag tag = new Tag();
 
-                    tag.setName(
+                    tag.setTagName(
                             normalizedTagName
                     );
 

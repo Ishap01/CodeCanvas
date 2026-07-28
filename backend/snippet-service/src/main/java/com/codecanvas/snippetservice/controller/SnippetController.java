@@ -55,16 +55,44 @@ public class SnippetController {
      */
     @PostMapping
     public ResponseEntity<SnippetResponse>
+
+
+//    createSnippet(
+//            Authentication authentication,
+//            @Valid
+//            @RequestBody
+//            CreateSnippetRequest request) {
+//
+//        UUID userId =
+//                extractRequiredUserId(
+//                        authentication
+//                );
+//
+//        SnippetResponse response =
+//                snippetService.createSnippet(
+//                        userId,
+//                        request
+//                );
+//
+//        return ResponseEntity
+//                .status(HttpStatus.CREATED)
+//                .body(response);
+
     createSnippet(
             Authentication authentication,
             @Valid
             @RequestBody
             CreateSnippetRequest request) {
 
-        UUID userId =
-                extractRequiredUserId(
-                        authentication
-                );
+        UUID userId;
+
+        if (authentication == null) {
+            userId = UUID.fromString(
+                    "11111111-1111-1111-1111-111111111111"
+            );
+        } else {
+            userId = extractRequiredUserId(authentication);
+        }
 
         SnippetResponse response =
                 snippetService.createSnippet(

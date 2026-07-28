@@ -23,7 +23,7 @@ public class SearchHistory {
     @Column(name = "user_id")
     private UUID userId;
 
-    @Column(nullable = false)
+    @Column
     private String keyword;
 
     @Column(length = 50)

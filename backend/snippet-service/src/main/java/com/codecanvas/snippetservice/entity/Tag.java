@@ -21,8 +21,8 @@ public class Tag {
     @Column(name = "tag_id", nullable = false, updatable = false)
     private UUID tagId;
 
-    @Column(name = "name", nullable = false, unique = true, length = 50)
-    private String name;
+    @Column(name = "tag_name", nullable = false, unique = true, length = 50)
+    private String tagName;
 
     @OneToMany(
             mappedBy = "tag",
@@ -36,17 +36,18 @@ public class Tag {
 
     public Tag(
             UUID tagId,
-            String name,
+            String tagName,
             List<SnippetTag> snippetTags) {
 
         this.tagId = tagId;
-        this.name = name;
+        this.tagName = tagName;
         this.snippetTags = snippetTags;
     }
 
-    public Tag(String name) {
-        this.name = name;
+    public Tag(String tagName) {
+        this.tagName = tagName;
     }
+
 
     public UUID getTagId() {
         return tagId;
@@ -56,12 +57,12 @@ public class Tag {
         this.tagId = tagId;
     }
 
-    public String getName() {
-        return name;
+    public String getTagName() {
+        return tagName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setTagName(String tagName) {
+        this.tagName = tagName;
     }
 
     public List<SnippetTag> getSnippetTags() {

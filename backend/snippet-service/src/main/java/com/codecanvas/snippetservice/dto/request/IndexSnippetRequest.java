@@ -1,7 +1,8 @@
-package com.codecanvas.searchservice.dto.response;
+package com.codecanvas.snippetservice.dto.request;
 
 import lombok.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -9,7 +10,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SearchResponse {
+public class IndexSnippetRequest {
 
     private UUID snippetId;
 
@@ -21,14 +22,14 @@ public class SearchResponse {
 
     private String framework;
 
-    private String previewImageUrl;
+    private String category;
 
-    private Long views;
+    private List<String> tags;
 
     private Long likes;
 
-    private Long forks;
+    private Long views;
 
-    private Boolean bookmarked;
+    private String previewImageUrl;
 
 }
