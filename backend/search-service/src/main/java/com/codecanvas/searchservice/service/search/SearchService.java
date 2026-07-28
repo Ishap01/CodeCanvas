@@ -5,6 +5,8 @@ import com.codecanvas.searchservice.dto.response.AutocompleteResponse;
 import com.codecanvas.searchservice.dto.response.PopularSearchResponse;
 import com.codecanvas.searchservice.dto.response.SearchHistoryResponse;
 import com.codecanvas.searchservice.dto.response.SearchPageResponse;
+import com.codecanvas.searchservice.dto.request.IndexSnippetRequest;
+
 
 import java.util.List;
 import java.util.UUID;
@@ -21,4 +23,6 @@ public interface SearchService {
     List<AutocompleteResponse> getSuggestions(String keyword);
 
     List<PopularSearchResponse> getPopularSearches();
+
+    void indexSnippet(IndexSnippetRequest request);
 }

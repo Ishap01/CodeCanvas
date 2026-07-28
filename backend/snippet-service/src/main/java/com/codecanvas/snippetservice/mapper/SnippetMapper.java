@@ -189,11 +189,11 @@ public class SnippetMapper {
                             snippetTag != null
                                     && snippetTag.getTag() != null
                                     && snippetTag.getTag()
-                                    .getName() != null
+                                    .getTagName() != null
                     )
                     .map(snippetTag ->
                             snippetTag.getTag()
-                                    .getName()
+                                    .getTagName()
                     )
                     .sorted(
                             String.CASE_INSENSITIVE_ORDER
@@ -260,7 +260,7 @@ public class SnippetMapper {
 
             response.setCategoryName(
                     snippet.getCategory()
-                            .getName()
+                            .getCategoryName()
             );
         }
 

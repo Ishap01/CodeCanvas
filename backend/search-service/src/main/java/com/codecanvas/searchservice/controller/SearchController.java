@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.codecanvas.searchservice.dto.request.IndexSnippetRequest;
 
 import java.util.List;
 import java.util.UUID;
@@ -86,6 +87,21 @@ public class SearchController {
                         .success(true)
                         .message("Popular searches fetched successfully")
                         .data(response)
+                        .build()
+        );
+    }
+
+    @PostMapping("/index")
+    public ResponseEntity<ApiResponse<String>> indexSnippet(
+            @RequestBody IndexSnippetRequest request) {
+
+        searchService.indexSnippet(request);
+
+        return ResponseEntity.ok(
+                ApiResponse.<String>builder()
+                        .success(true)
+                        .message("Snippet indexed successfully")
+                        .data("SUCCESS")
                         .build()
         );
     }

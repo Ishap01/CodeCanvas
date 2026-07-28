@@ -112,7 +112,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/snippets/**"
-                        ).authenticated()
+                        ).permitAll()
 
                         .requestMatchers(
                                 HttpMethod.PUT,

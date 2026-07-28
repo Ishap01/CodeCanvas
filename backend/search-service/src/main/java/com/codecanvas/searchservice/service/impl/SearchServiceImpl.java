@@ -1,15 +1,18 @@
 package com.codecanvas.searchservice.service.impl;
 
 import com.codecanvas.searchservice.document.SearchDocument;
+import com.codecanvas.searchservice.dto.request.IndexSnippetRequest;
 import com.codecanvas.searchservice.dto.request.SearchRequest;
 import com.codecanvas.searchservice.dto.response.*;
 import com.codecanvas.searchservice.entity.SearchHistory;
+import com.codecanvas.searchservice.repository.SearchDocumentRepository;
 import com.codecanvas.searchservice.repository.SearchHistoryRepository;
 import com.codecanvas.searchservice.service.search.SearchService;
 import com.codecanvas.searchservice.service.search.ElasticSearchQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.codecanvas.searchservice.service.search.SearchPage;
+
 
 import java.util.List;
 import java.util.UUID;
@@ -20,6 +23,7 @@ public class SearchServiceImpl implements SearchService {
 
     private final SearchHistoryRepository searchHistoryRepository;
     private final ElasticSearchQueryService elasticSearchQueryService;
+    private final SearchDocumentRepository searchDocumentRepository;
 
 
     @Override
@@ -62,6 +66,25 @@ public class SearchServiceImpl implements SearchService {
                 .first(result.isFirst())
                 .last(result.isLast())
                 .build();
+    }
+    @Override
+    public void indexSnippet(IndexSnippetRequest request) {
+
+        SearchDocument document =
+                SearchDocument.builder()
+                        .snippetId(request.getSnippetId())
+                        .title(request.getTitle())
+                        .description(request.getDescription())
+                        .language(request.getLanguage())
+                        .framework(request.getFramework())
+                        .category(request.getCategory())
+                        .tags(request.getTags())
+                        .likes(request.getLikes())
+                        .views(request.getViews())
+                        .previewImageUrl(request.getPreviewImageUrl())
+                        .build();
+
+        searchDocumentRepository.save(document);
     }
 
     @Override
