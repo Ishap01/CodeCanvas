@@ -1,5 +1,5 @@
 package com.codecanvas.snippetservice.entity;
 
-public class Like {
+public class SnippetLike {
 
 }

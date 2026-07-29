@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
+import java.time.LocalDateTime;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -46,7 +47,9 @@ public class SnippetServiceImpl implements SnippetService {
     private final SnippetMapper snippetMapper;
     private final CloudinaryService cloudinaryService;
     private final SearchServiceClient searchServiceClient;
-
+    private Long bookmarks;
+    private Long forks;
+    private LocalDateTime createdAt;
 
 
     @Override
@@ -826,7 +829,6 @@ public class SnippetServiceImpl implements SnippetService {
 
         return value.trim();
     }
-
     private IndexSnippetRequest buildIndexRequest(Snippet snippet) {
 
         return IndexSnippetRequest.builder()
@@ -845,7 +847,10 @@ public class SnippetServiceImpl implements SnippetService {
                 )
                 .likes(snippet.getLikeCount())
                 .views(snippet.getViewCount())
+                .bookmarks(snippet.getBookmarkCount())
+                .forks(snippet.getForkCount())
+                .createdAt(snippet.getCreatedAt())
                 .previewImageUrl(snippet.getPreviewImageUrl())
                 .build();
     }
-}
+    }

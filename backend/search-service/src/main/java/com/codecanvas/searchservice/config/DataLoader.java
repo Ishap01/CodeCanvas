@@ -35,6 +35,7 @@ public class DataLoader implements CommandLineRunner {
                         .tags(List.of("jwt", "security", "authentication"))
                         .likes(320L)
                         .views(1250L)
+                        .forks(0L)
                         .previewImageUrl("/images/jwt.png")
                         .build(),
 
@@ -48,6 +49,7 @@ public class DataLoader implements CommandLineRunner {
                         .tags(List.of("oauth2", "security"))
                         .likes(980L)
                         .views(5400L)
+                        .forks(0L)
                         .previewImageUrl("/images/oauth2.png")
                         .build(),
 
@@ -61,6 +63,7 @@ public class DataLoader implements CommandLineRunner {
                         .tags(List.of("jpa", "crud", "mysql"))
                         .likes(180L)
                         .views(950L)
+                        .forks(0L)
                         .previewImageUrl("/images/jpa.png")
                         .build(),
 
@@ -74,6 +77,7 @@ public class DataLoader implements CommandLineRunner {
                         .tags(List.of("rest", "api", "json"))
                         .likes(420L)
                         .views(3100L)
+                        .forks(0L)
                         .previewImageUrl("/images/rest.png")
                         .build(),
 
@@ -87,6 +91,7 @@ public class DataLoader implements CommandLineRunner {
                         .tags(List.of("microservices", "eureka", "gateway"))
                         .likes(760L)
                         .views(4700L)
+                        .forks(0L)
                         .previewImageUrl("/images/microservice.png")
                         .build()
 

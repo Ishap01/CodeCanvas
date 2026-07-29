@@ -20,7 +20,7 @@ public class SearchRequest {
     private String framework;
     private String category;
 
-    private String sortBy;
+    private SortBy sortBy;
 
     @Min(value = 0, message = "Page cannot be negative")
     private Integer page;

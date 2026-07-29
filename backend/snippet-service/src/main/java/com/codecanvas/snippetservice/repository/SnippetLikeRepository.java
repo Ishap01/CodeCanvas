@@ -1,5 +1,5 @@
 package com.codecanvas.snippetservice.repository;
 
-public class LikeRepository {
+public class SnippetLikeRepository {
 
 }

@@ -30,7 +30,12 @@ public class SearchServiceImpl implements SearchService {
     public SearchPageResponse search(SearchRequest request, UUID userId) {
 
         // Save search history
-        saveSearchHistory(userId, request);
+        if (request.getKeyword() != null &&
+                !request.getKeyword().isBlank()) {
+
+            saveSearchHistory(userId, request);
+
+        }
 
         // Get paginated result from Elasticsearch
         SearchPage<SearchDocument> result =
@@ -48,9 +53,9 @@ public class SearchServiceImpl implements SearchService {
                                         .language(document.getLanguage())
                                         .framework(document.getFramework())
                                         .previewImageUrl(document.getPreviewImageUrl())
-                                        .views(document.getViews())
-                                        .likes(document.getLikes())
-                                        .forks(0L)
+                                        .likes(safeCount(document.getLikes()))
+                                        .views(safeCount(document.getViews()))
+                                        .forks(safeCount(document.getForks()))
                                         .bookmarked(false)
                                         .build()
                         )
@@ -67,6 +72,11 @@ public class SearchServiceImpl implements SearchService {
                 .last(result.isLast())
                 .build();
     }
+
+    private Long safeCount(Long value) {
+        return value == null ? 0L : value;
+    }
+
     @Override
     public void indexSnippet(IndexSnippetRequest request) {
 
@@ -82,6 +92,9 @@ public class SearchServiceImpl implements SearchService {
                         .tags(request.getTags())
                         .likes(request.getLikes())
                         .views(request.getViews())
+                        .bookmarks(request.getBookmarks())
+                        .forks(request.getForks())
+                        .createdAt(request.getCreatedAt())
                         .previewImageUrl(request.getPreviewImageUrl())
                         .build();
 
@@ -114,16 +127,20 @@ public class SearchServiceImpl implements SearchService {
     @Override
     public void saveSearchHistory(UUID userId, SearchRequest request) {
 
+        if (request.getKeyword() == null ||
+                request.getKeyword().isBlank()) {
+            return;
+        }
+
         SearchHistory history = SearchHistory.builder()
                 .userId(userId)
-                .keyword(request.getKeyword())
+                .keyword(request.getKeyword().trim())
                 .language(request.getLanguage())
                 .framework(request.getFramework())
                 .build();
 
         searchHistoryRepository.save(history);
     }
-
     @Override
     public List<SearchHistoryResponse> getUserSearchHistory(UUID userId) {
 

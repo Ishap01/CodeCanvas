@@ -2,6 +2,7 @@ package com.codecanvas.searchservice.dto.request;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,6 +30,12 @@ public class IndexSnippetRequest {
     private Long likes;
 
     private Long views;
+
+    private Long bookmarks;
+
+    private Long forks;
+
+    private LocalDateTime createdAt;
 
     private String previewImageUrl;
 

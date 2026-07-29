@@ -83,30 +83,63 @@ public class ElasticSearchQueryServiceImpl
 
         Query query = Query.of(q -> q.bool(boolQuery.build()));
 
-        int page = request.getPage() != null ? request.getPage() : 0;
-        int size = request.getSize() != null ? request.getSize() : 10;
+        int page =
+                request.getPage() == null
+                        ? 0
+                        : Math.max(request.getPage(), 0);
 
+        int size =
+                request.getSize() == null
+                        ? 10
+                        : Math.min(
+                        Math.max(request.getSize(), 1),
+                        100
+                );
         NativeQueryBuilder builder = NativeQuery.builder()
                 .withQuery(query)
                 .withPageable(PageRequest.of(page, size));
 
         // Sorting
-        if ("TRENDING".equalsIgnoreCase(request.getSortBy())) {
+        if (request.getSortBy() != null) {
 
-            builder.withSort(
-                    SortOptions.of(s -> s.field(f -> f
-                            .field("views")
-                            .order(SortOrder.Desc)))
-            );
-        }
+            switch (request.getSortBy()) {
 
-        if ("MOST_LIKED".equalsIgnoreCase(request.getSortBy())) {
+                case TRENDING ->
 
-            builder.withSort(
-                    SortOptions.of(s -> s.field(f -> f
-                            .field("likes")
-                            .order(SortOrder.Desc)))
-            );
+                        builder.withSort(
+                                SortOptions.of(s ->
+                                        s.field(f ->
+                                                f.field("views")
+                                                        .order(SortOrder.Desc)))
+                        );
+
+                case MOST_LIKED ->
+
+                        builder.withSort(
+                                SortOptions.of(s ->
+                                        s.field(f ->
+                                                f.field("likes")
+                                                        .order(SortOrder.Desc)))
+                        );
+
+                case NEWEST ->
+
+                        builder.withSort(
+                                SortOptions.of(s ->
+                                        s.field(f ->
+                                                f.field("createdAt")
+                                                        .order(SortOrder.Desc)))
+                        );
+
+                case MOST_FORKED ->
+
+                        builder.withSort(
+                                SortOptions.of(s ->
+                                        s.field(f ->
+                                                f.field("forks")
+                                                        .order(SortOrder.Desc)))
+                        );
+            }
         }
 
         NativeQuery nativeQuery = builder.build();
