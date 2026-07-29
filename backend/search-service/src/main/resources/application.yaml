@@ -8,7 +8,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/codecanvas
     username: postgres
-    password: root
+    password: root123
 
   jpa:
     hibernate:

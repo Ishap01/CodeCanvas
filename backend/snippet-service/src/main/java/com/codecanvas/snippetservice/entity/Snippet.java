@@ -23,9 +23,18 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 
 @Entity
 @Table(name = "snippets")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Snippet {
 
     @Id
@@ -170,8 +179,7 @@ public class Snippet {
     )
     private LocalDateTime updatedAt;
 
-    public Snippet() {
-    }
+
 
     @PrePersist
     public void prePersist() {
@@ -289,133 +297,8 @@ public class Snippet {
 
         snippetTags.clear();
     }
-
-    public UUID getSnippetId() {
-        return snippetId;
-    }
-
-    public void setSnippetId(
-            UUID snippetId) {
-
-        this.snippetId = snippetId;
-    }
-
-    public UUID getUserId() {
-        return userId;
-    }
-
-    public void setUserId(
-            UUID userId) {
-
-        this.userId = userId;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(
-            String title) {
-
-        this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(
-            String description) {
-
-        this.description = description;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(
-            String code) {
-
-        this.code = code;
-    }
-
-    public String getLanguage() {
-        return language;
-    }
-
-    public void setLanguage(
-            String language) {
-
-        this.language = language;
-    }
-
-    public String getFramework() {
-        return framework;
-    }
-
-    public void setFramework(
-            String framework) {
-
-        this.framework = framework;
-    }
-
-    public String getPreviewImageUrl() {
-        return previewImageUrl;
-    }
-
-    public void setPreviewImageUrl(
-            String previewImageUrl) {
-
-        this.previewImageUrl =
-                previewImageUrl;
-    }
-
-    public String getPreviewImagePublicId() {
-        return previewImagePublicId;
-    }
-
-    public void setPreviewImagePublicId(
-            String previewImagePublicId) {
-
-        this.previewImagePublicId =
-                previewImagePublicId;
-    }
-
-    public Visibility getVisibility() {
-        return visibility;
-    }
-
-    public void setVisibility(
-            Visibility visibility) {
-
-        this.visibility = visibility;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(
-            Status status) {
-
-        this.status = status;
-    }
-
-    public Category getCategory() {
-        return category;
-    }
-
-    public void setCategory(
-            Category category) {
-
-        this.category = category;
-    }
-
-    public List<SnippetTag> getSnippetTags() {
-        return snippetTags;
-    }
-
+    // Added Lombok to the entity classes and removed boilerplate code.
+    // Kept the custom setSnippetTags() method as it contains custom logic for maintaining the entity relationship.
     public void setSnippetTags(
             List<SnippetTag> snippetTags) {
 
@@ -440,75 +323,4 @@ public class Snippet {
         }
     }
 
-    public long getViewCount() {
-        return viewCount;
-    }
-
-    public void setViewCount(
-            long viewCount) {
-
-        this.viewCount = viewCount;
-    }
-
-    public long getLikeCount() {
-        return likeCount;
-    }
-
-    public void setLikeCount(
-            long likeCount) {
-
-        this.likeCount = likeCount;
-    }
-
-    public long getBookmarkCount() {
-        return bookmarkCount;
-    }
-
-    public void setBookmarkCount(
-            long bookmarkCount) {
-
-        this.bookmarkCount =
-                bookmarkCount;
-    }
-
-    public long getForkCount() {
-        return forkCount;
-    }
-
-    public void setForkCount(
-            long forkCount) {
-
-        this.forkCount = forkCount;
-    }
-
-    public UUID getParentSnippetId() {
-        return parentSnippetId;
-    }
-
-    public void setParentSnippetId(
-            UUID parentSnippetId) {
-
-        this.parentSnippetId =
-                parentSnippetId;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(
-            LocalDateTime createdAt) {
-
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(
-            LocalDateTime updatedAt) {
-
-        this.updatedAt = updatedAt;
-    }
 }

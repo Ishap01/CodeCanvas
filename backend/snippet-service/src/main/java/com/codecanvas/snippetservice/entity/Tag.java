@@ -11,9 +11,17 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "tags")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Tag {
 
     @Id
@@ -31,45 +39,7 @@ public class Tag {
     )
     private List<SnippetTag> snippetTags = new ArrayList<>();
 
-    public Tag() {
-    }
-
-    public Tag(
-            UUID tagId,
-            String tagName,
-            List<SnippetTag> snippetTags) {
-
-        this.tagId = tagId;
-        this.tagName = tagName;
-        this.snippetTags = snippetTags;
-    }
-
     public Tag(String tagName) {
         this.tagName = tagName;
-    }
-
-
-    public UUID getTagId() {
-        return tagId;
-    }
-
-    public void setTagId(UUID tagId) {
-        this.tagId = tagId;
-    }
-
-    public String getTagName() {
-        return tagName;
-    }
-
-    public void setTagName(String tagName) {
-        this.tagName = tagName;
-    }
-
-    public List<SnippetTag> getSnippetTags() {
-        return snippetTags;
-    }
-
-    public void setSnippetTags(List<SnippetTag> snippetTags) {
-        this.snippetTags = snippetTags;
     }
 }
