@@ -12,9 +12,9 @@ import com.codecanvas.snippetservice.entity.Tag;
 @Repository
 public interface TagRepository extends JpaRepository<Tag, UUID> {
 
-    Optional<Tag> findByNameIgnoreCase(String name);
+    Optional<Tag> findByTagNameIgnoreCase(String name);
 
-    boolean existsByNameIgnoreCase(String name);
+    boolean existsByTagNameIgnoreCase(String name);
 
-    List<Tag> findByNameInIgnoreCase(List<String> names);
+    List<Tag> findByTagNameInIgnoreCase(List<String> names);
 }
