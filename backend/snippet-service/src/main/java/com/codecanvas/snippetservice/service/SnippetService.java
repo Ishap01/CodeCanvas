@@ -49,4 +49,6 @@ public interface SnippetService {
             UUID snippetId,
             UUID userId
     );
+
+    List<SnippetResponse> getAllSnippets();
 }

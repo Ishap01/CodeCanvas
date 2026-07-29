@@ -105,6 +105,12 @@ public class SnippetController {
                 .body(response);
     }
 
+    /*Get all snippets*/
+    @GetMapping
+    public ResponseEntity<List<SnippetResponse>> getAllSnippets() {
+        return ResponseEntity.ok(snippetService.getAllSnippets());
+    }
+
     /*
      * GET SINGLE SNIPPET
      *

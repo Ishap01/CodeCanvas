@@ -72,6 +72,7 @@ public class SearchServiceImpl implements SearchService {
 
         SearchDocument document =
                 SearchDocument.builder()
+                        .id(request.getSnippetId().toString())
                         .snippetId(request.getSnippetId())
                         .title(request.getTitle())
                         .description(request.getDescription())
@@ -137,6 +138,14 @@ public class SearchServiceImpl implements SearchService {
                         .searchedAt(history.getSearchedAt())
                         .build())
                 .toList();
+    }
+
+    @Override
+    public void deleteSnippet(UUID snippetId) {
+
+        searchDocumentRepository.deleteById(
+                snippetId.toString()
+        );
     }
 }
 

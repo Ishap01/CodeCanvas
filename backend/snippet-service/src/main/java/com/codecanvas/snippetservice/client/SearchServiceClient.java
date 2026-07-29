@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class SearchServiceClient {
@@ -12,7 +14,7 @@ public class SearchServiceClient {
     private final RestTemplate restTemplate;
 
     private static final String SEARCH_SERVICE_URL =
-            "http://localhost:8083/api/search/index";
+            "http://search-service/api/search/internal/index";
 
     public void indexSnippet(IndexSnippetRequest request) {
 
@@ -22,6 +24,14 @@ public class SearchServiceClient {
                 String.class
         );
 
+    }
+
+    public void deleteSnippet(UUID snippetId) {
+
+        restTemplate.delete(
+                "http://search-service/api/search/internal/index/{snippetId}",
+                snippetId
+        );
     }
 
 }

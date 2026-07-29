@@ -25,4 +25,6 @@ public interface SearchService {
     List<PopularSearchResponse> getPopularSearches();
 
     void indexSnippet(IndexSnippetRequest request);
+
+    void deleteSnippet(UUID snippetId);
 }

@@ -29,4 +29,5 @@ public interface SnippetRepository extends JpaRepository<Snippet, UUID> {
             UUID snippetId,
             UUID userId
     );
+
 }

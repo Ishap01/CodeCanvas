@@ -106,27 +106,7 @@ public class SnippetServiceImpl implements SnippetService {
         Snippet savedSnippet =
                 snippetRepository.save(snippet);
 
-        IndexSnippetRequest indexRequest =
-                IndexSnippetRequest.builder()
-                        .snippetId(savedSnippet.getSnippetId())
-                        .title(savedSnippet.getTitle())
-                        .description(savedSnippet.getDescription())
-                        .language(savedSnippet.getLanguage())
-                        .framework(savedSnippet.getFramework())
-                        .category(savedSnippet.getCategory().getCategoryName())
-                        .tags(
-                                savedSnippet.getSnippetTags()
-                                        .stream()
-                                        .map(snippetTag ->
-                                                snippetTag.getTag().getTagName())
-                                        .toList()
-                        )
-                        .likes(savedSnippet.getLikeCount())
-                        .views(savedSnippet.getViewCount())
-                        .previewImageUrl(savedSnippet.getPreviewImageUrl())
-                        .build();
-
-        searchServiceClient.indexSnippet(indexRequest);
+        searchServiceClient.indexSnippet(buildIndexRequest(savedSnippet));
 
         return snippetMapper.toResponse(savedSnippet);
     }
@@ -169,6 +149,19 @@ public class SnippetServiceImpl implements SnippetService {
                                 Visibility.PUBLIC,
                                 Status.ACTIVE
                         );
+
+        return convertToResponseList(snippets);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<SnippetResponse> getAllSnippets() {
+
+        List<Snippet> snippets =
+                snippetRepository.findByVisibilityAndStatus(
+                        Visibility.PUBLIC,
+                        Status.ACTIVE
+                );
 
         return convertToResponseList(snippets);
     }
@@ -243,9 +236,9 @@ public class SnippetServiceImpl implements SnippetService {
         Snippet updatedSnippet =
                 snippetRepository.save(snippet);
 
-        return snippetMapper.toResponse(
-                updatedSnippet
-        );
+        searchServiceClient.indexSnippet(buildIndexRequest(updatedSnippet));
+
+        return snippetMapper.toResponse(updatedSnippet);
     }
 
     @Override
@@ -316,6 +309,8 @@ public class SnippetServiceImpl implements SnippetService {
             Snippet updatedSnippet =
                     snippetRepository.save(snippet);
 
+            searchServiceClient.indexSnippet(buildIndexRequest(updatedSnippet));
+
             /*
              * New image and database update successful hone ke baad
              * previous Cloudinary image delete karenge.
@@ -380,11 +375,13 @@ public class SnippetServiceImpl implements SnippetService {
             snippet.setPreviewImageUrl(null);
             snippet.setPreviewImagePublicId(null);
 
-            snippetRepository.save(snippet);
+            Snippet updatedSnippet = snippetRepository.save(snippet);
+
+            searchServiceClient.indexSnippet(buildIndexRequest(updatedSnippet));
 
             return new ApiResponse(
                     true,
-                    "Snippet preview image is already removed"
+                    "Snippet preview image deleted successfully"
             );
         }
 
@@ -430,11 +427,15 @@ public class SnippetServiceImpl implements SnippetService {
 
         snippetRepository.save(snippet);
 
+        searchServiceClient.deleteSnippet(snippetId);
+
         return new ApiResponse(
                 true,
                 "Snippet deleted successfully"
         );
     }
+
+
 
     private Snippet findActiveSnippetById(
             UUID snippetId) {
@@ -824,5 +825,27 @@ public class SnippetServiceImpl implements SnippetService {
         }
 
         return value.trim();
+    }
+
+    private IndexSnippetRequest buildIndexRequest(Snippet snippet) {
+
+        return IndexSnippetRequest.builder()
+                .snippetId(snippet.getSnippetId())
+                .title(snippet.getTitle())
+                .description(snippet.getDescription())
+                .language(snippet.getLanguage())
+                .framework(snippet.getFramework())
+                .category(snippet.getCategory().getCategoryName())
+                .tags(
+                        snippet.getSnippetTags()
+                                .stream()
+                                .map(snippetTag ->
+                                        snippetTag.getTag().getTagName())
+                                .toList()
+                )
+                .likes(snippet.getLikeCount())
+                .views(snippet.getViewCount())
+                .previewImageUrl(snippet.getPreviewImageUrl())
+                .build();
     }
 }
