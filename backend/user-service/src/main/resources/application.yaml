@@ -5,7 +5,7 @@ spring:
   application:
     name: user-service
   mail:
-    host: smtp.gmail.com
+    h ost: smtp.gmail.com
     port: 587
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
@@ -35,6 +35,27 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: user-service
+      auto-offset-reset: earliest
+
+subscription:
+  plans:
+    free:
+      tier: FREE
+      maxSnippetsPerMonth: 20
+      aiRequestsPerMonth: 5
+    basicPremium:
+      tier: BASIC_PREMIUM
+      maxSnippetsPerMonth: 100
+      aiRequestsPerMonth: 100
+    proPremium:
+      tier: PRO_PREMIUM
+      maxSnippetsPerMonth: 1000
+      aiRequestsPerMonth: 1000
 
 eureka:
   client:

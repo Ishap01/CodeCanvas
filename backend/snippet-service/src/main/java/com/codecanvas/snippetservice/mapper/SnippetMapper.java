@@ -19,18 +19,73 @@ public class SnippetMapper {
             CreateSnippetRequest request,
             Category category) {
 
+        if (request == null) {
+            throw new IllegalArgumentException(
+                    "Create snippet request is required"
+            );
+        }
+
+        if (category == null) {
+            throw new IllegalArgumentException(
+                    "Category is required"
+            );
+        }
+
         Snippet snippet = new Snippet();
 
-        snippet.setTitle(request.getTitle().trim());
-        snippet.setDescription(request.getDescription().trim());
-        snippet.setCode(request.getCode());
-        snippet.setLanguage(request.getLanguage().trim());
-        snippet.setFramework(
-                normalizeOptionalText(request.getFramework())
+        snippet.setTitle(
+                normalizeRequiredText(
+                        request.getTitle(),
+                        "Title is required"
+                )
         );
-        snippet.setVisibility(request.getVisibility());
+
+        snippet.setDescription(
+                normalizeRequiredText(
+                        request.getDescription(),
+                        "Description is required"
+                )
+        );
+
+        /*
+         * Code ke leading spaces aur indentation important
+         * ho sakte hain, isliye trim nahi karenge.
+         */
+        snippet.setCode(
+                validateRequiredCode(
+                        request.getCode()
+                )
+        );
+
+        snippet.setLanguage(
+                normalizeRequiredText(
+                        request.getLanguage(),
+                        "Language is required"
+                )
+        );
+
+        snippet.setFramework(
+                normalizeOptionalText(
+                        request.getFramework()
+                )
+        );
+
+        snippet.setVisibility(
+                request.getVisibility()
+        );
+
         snippet.setStatus(Status.ACTIVE);
         snippet.setCategory(category);
+
+        /*
+         * Image initial create ke time null rahegi.
+         *
+         * Separate Cloudinary image endpoint se
+         * upload ki jayegi.
+         */
+        snippet.setPreviewImageUrl(null);
+        snippet.setPreviewImagePublicId(null);
+
         snippet.setViewCount(0L);
         snippet.setLikeCount(0L);
         snippet.setBookmarkCount(0L);
@@ -44,18 +99,81 @@ public class SnippetMapper {
             UpdateSnippetRequest request,
             Category category) {
 
-        snippet.setTitle(request.getTitle().trim());
-        snippet.setDescription(request.getDescription().trim());
-        snippet.setCode(request.getCode());
-        snippet.setLanguage(request.getLanguage().trim());
-        snippet.setFramework(
-                normalizeOptionalText(request.getFramework())
+        if (snippet == null) {
+            throw new IllegalArgumentException(
+                    "Snippet entity is required"
+            );
+        }
+
+        if (request == null) {
+            throw new IllegalArgumentException(
+                    "Update snippet request is required"
+            );
+        }
+
+        if (category == null) {
+            throw new IllegalArgumentException(
+                    "Category is required"
+            );
+        }
+
+        snippet.setTitle(
+                normalizeRequiredText(
+                        request.getTitle(),
+                        "Title is required"
+                )
         );
-        snippet.setVisibility(request.getVisibility());
+
+        snippet.setDescription(
+                normalizeRequiredText(
+                        request.getDescription(),
+                        "Description is required"
+                )
+        );
+
+        snippet.setCode(
+                validateRequiredCode(
+                        request.getCode()
+                )
+        );
+
+        snippet.setLanguage(
+                normalizeRequiredText(
+                        request.getLanguage(),
+                        "Language is required"
+                )
+        );
+
+        snippet.setFramework(
+                normalizeOptionalText(
+                        request.getFramework()
+                )
+        );
+
+        snippet.setVisibility(
+                request.getVisibility()
+        );
+
         snippet.setCategory(category);
+
+        /*
+         * Important:
+         *
+         * Image fields yahan update nahi hongi.
+         *
+         * Cloudinary image upload, replace aur delete
+         * separate service methods se honge.
+         */
     }
 
-    public SnippetResponse toResponse(Snippet snippet) {
+    public SnippetResponse toResponse(
+            Snippet snippet) {
+
+        if (snippet == null) {
+            throw new IllegalArgumentException(
+                    "Snippet entity is required"
+            );
+        }
 
         List<String> tagNames;
 
@@ -69,53 +187,155 @@ public class SnippetMapper {
                     .stream()
                     .filter(snippetTag ->
                             snippetTag != null
-                            && snippetTag.getTag() != null
+                                    && snippetTag.getTag() != null
+                                    && snippetTag.getTag()
+                                    .getTagName() != null
                     )
                     .map(snippetTag ->
-                            snippetTag.getTag().getName()
+                            snippetTag.getTag()
+                                    .getTagName()
                     )
-                    .sorted(String.CASE_INSENSITIVE_ORDER)
+                    .sorted(
+                            String.CASE_INSENSITIVE_ORDER
+                    )
                     .toList();
         }
 
-        SnippetResponse response = new SnippetResponse();
+        SnippetResponse response =
+                new SnippetResponse();
 
-        response.setSnippetId(snippet.getSnippetId());
-        response.setTitle(snippet.getTitle());
-        response.setDescription(snippet.getDescription());
-        response.setCode(snippet.getCode());
-        response.setLanguage(snippet.getLanguage());
-        response.setFramework(snippet.getFramework());
-        response.setPreviewImageUrl(snippet.getPreviewImageUrl());
-        response.setVisibility(snippet.getVisibility());
-        response.setStatus(snippet.getStatus());
-        response.setUserId(snippet.getUserId());
+        response.setSnippetId(
+                snippet.getSnippetId()
+        );
+
+        response.setTitle(
+                snippet.getTitle()
+        );
+
+        response.setDescription(
+                snippet.getDescription()
+        );
+
+        response.setCode(
+                snippet.getCode()
+        );
+
+        response.setLanguage(
+                snippet.getLanguage()
+        );
+
+        response.setFramework(
+                snippet.getFramework()
+        );
+
+        /*
+         * Cloudinary fields.
+         */
+        response.setPreviewImageUrl(
+                snippet.getPreviewImageUrl()
+        );
+
+        response.setPreviewImagePublicId(
+                snippet.getPreviewImagePublicId()
+        );
+
+        response.setVisibility(
+                snippet.getVisibility()
+        );
+
+        response.setStatus(
+                snippet.getStatus()
+        );
+
+        response.setUserId(
+                snippet.getUserId()
+        );
 
         if (snippet.getCategory() != null) {
+
             response.setCategoryId(
-                    snippet.getCategory().getCategoryId()
+                    snippet.getCategory()
+                            .getCategoryId()
             );
 
             response.setCategoryName(
-                    snippet.getCategory().getName()
+                    snippet.getCategory()
+                            .getCategoryName()
             );
         }
 
         response.setTags(tagNames);
-        response.setViewCount(snippet.getViewCount());
-        response.setLikeCount(snippet.getLikeCount());
-        response.setBookmarkCount(snippet.getBookmarkCount());
-        response.setForkCount(snippet.getForkCount());
-        response.setParentSnippetId(snippet.getParentSnippetId());
-        response.setCreatedAt(snippet.getCreatedAt());
-        response.setUpdatedAt(snippet.getUpdatedAt());
+
+        response.setViewCount(
+                snippet.getViewCount()
+        );
+
+        response.setLikeCount(
+                snippet.getLikeCount()
+        );
+
+        response.setBookmarkCount(
+                snippet.getBookmarkCount()
+        );
+
+        response.setForkCount(
+                snippet.getForkCount()
+        );
+
+        response.setParentSnippetId(
+                snippet.getParentSnippetId()
+        );
+
+        response.setCreatedAt(
+                snippet.getCreatedAt()
+        );
+
+        response.setUpdatedAt(
+                snippet.getUpdatedAt()
+        );
 
         return response;
     }
 
-    private String normalizeOptionalText(String value) {
+    private String normalizeRequiredText(
+            String value,
+            String errorMessage) {
 
-        if (value == null || value.isBlank()) {
+        if (value == null
+                || value.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    errorMessage
+            );
+        }
+
+        return value.trim();
+    }
+
+    private String validateRequiredCode(
+            String code) {
+
+        if (code == null
+                || code.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Code is required"
+            );
+        }
+
+        /*
+         * Code ko trim nahi karenge because indentation
+         * aur formatting preserve rehni chahiye.
+         */
+        return code;
+    }
+
+    private String normalizeOptionalText(
+            String value) {
+
+        if (value == null
+                || value.isBlank()) {
+
             return null;
         }
 

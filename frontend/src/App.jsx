@@ -2,17 +2,17 @@ import { Routes, Route } from "react-router-dom";
 
 import MainLayout from "./components/layout/MainLayout";
 
-import Login from "./pages/Login/Login";
-import Register from "./pages/Register/Register";
+import Login from "./pages/auth/Login/Login";
+import Register from "./pages/auth/Register/Register";
 import LandingPage from "./pages/LandingPage/LandingPage";
-import UserDashboard from "./pages/UserDashboard/UserDashboard";
-import Profile from "./pages/Profile/Profile";
-import EditProfile from "./pages/EditProfile/EditProfile";
-import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
-import VerifyOtp from "./pages/VerifyOtp/VerifyOtp";
-import ResetPassword from "./pages/ResetPassword/ResetPassword";
-import ChangePassword from "./pages/ChangePassword/ChangePassword";
-import Settings from "./pages/settings/Settings";
+import UserDashboard from "./pages/user/UserDashboard/UserDashboard";
+import Profile from "./pages/user/Profile/Profile";
+import EditProfile from "./pages/user/EditProfile/EditProfile";
+import ForgotPassword from "./pages/auth/ForgotPassword/ForgotPassword";
+import VerifyOtp from "./pages/auth/VerifyOtp/VerifyOtp";
+import ResetPassword from "./pages/auth/ResetPassword/ResetPassword";
+import ChangePassword from "./pages/auth/ChangePassword/ChangePassword";
+import Settings from "./pages/user/settings/Settings";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 

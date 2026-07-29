@@ -26,6 +26,25 @@ spring:
               predicates:
                 - Path=/api/statistics/**
 
+            - id: user-service-subscriptions
+              uri: lb://USER-SERVICE
+              predicates:
+                - Path=/api/subscriptions/**
+
+            - id: ai-service
+              uri: lb://AI-SERVICE
+              predicates:
+                - Path=/api/ai/**
+
+            - id: snippet-service
+              uri: lb://SNIPPET-SERVICE
+              predicates:
+                - Path=/api/snippets/**
+
+            - id: search-service
+              uri: lb://SEARCH-SERVICE
+              predicates:
+                - Path=/api/search/**
 eureka:
   client:
     service-url:

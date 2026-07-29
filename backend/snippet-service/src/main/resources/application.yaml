@@ -26,6 +26,11 @@ management:
       exposure:
         include: health
 
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:3600000}
+
+
 cloudinary:
   cloud-name: wqxaugxx
   api-key: 916333465954846

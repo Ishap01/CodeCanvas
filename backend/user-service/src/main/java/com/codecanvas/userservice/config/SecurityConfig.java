@@ -44,9 +44,12 @@ public class SecurityConfig {
                                 "/api/auth/reset-password"
                         ).permitAll()
 
-                        // Statistics APIs (remove permitAll later if you want JWT)
-                        .requestMatchers("/api/statistics/**")
-                        .permitAll()
+                        // Statistics & Subscription public APIs
+                        .requestMatchers(
+                                "/api/statistics/**",
+                                "/api/subscriptions/plans",
+                                "/api/subscriptions/status/**"
+                        ).permitAll()
 
                         .anyRequest()
                         .authenticated()

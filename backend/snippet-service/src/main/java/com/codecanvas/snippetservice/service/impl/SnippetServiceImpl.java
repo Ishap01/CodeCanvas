@@ -8,12 +8,15 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.codecanvas.snippetservice.dto.request.CreateSnippetRequest;
 import com.codecanvas.snippetservice.dto.request.UpdateSnippetRequest;
 import com.codecanvas.snippetservice.dto.response.ApiResponse;
+import com.codecanvas.snippetservice.dto.response.CloudinaryUploadResponse;
 import com.codecanvas.snippetservice.dto.response.SnippetResponse;
 import com.codecanvas.snippetservice.entity.Category;
 import com.codecanvas.snippetservice.entity.Snippet;
@@ -27,34 +30,29 @@ import com.codecanvas.snippetservice.mapper.SnippetMapper;
 import com.codecanvas.snippetservice.repository.CategoryRepository;
 import com.codecanvas.snippetservice.repository.SnippetRepository;
 import com.codecanvas.snippetservice.repository.TagRepository;
+import com.codecanvas.snippetservice.service.CloudinaryService;
 import com.codecanvas.snippetservice.service.SnippetService;
+import com.codecanvas.snippetservice.dto.request.IndexSnippetRequest;
+import com.codecanvas.snippetservice.client.SearchServiceClient;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class SnippetServiceImpl implements SnippetService {
 
     private final SnippetRepository snippetRepository;
     private final CategoryRepository categoryRepository;
     private final TagRepository tagRepository;
     private final SnippetMapper snippetMapper;
+    private final CloudinaryService cloudinaryService;
+    private final SearchServiceClient searchServiceClient;
 
-    public SnippetServiceImpl(
-            SnippetRepository snippetRepository,
-            CategoryRepository categoryRepository,
-            TagRepository tagRepository,
-            SnippetMapper snippetMapper) {
 
-        this.snippetRepository = snippetRepository;
-        this.categoryRepository = categoryRepository;
-        this.tagRepository = tagRepository;
-        this.snippetMapper = snippetMapper;
-    }
 
     @Override
     public SnippetResponse createSnippet(
             UUID userId,
-            CreateSnippetRequest request,
-            String previewImageUrl) {
+            CreateSnippetRequest request) {
 
         if (userId == null) {
             throw new IllegalArgumentException(
@@ -85,9 +83,14 @@ public class SnippetServiceImpl implements SnippetService {
 
         snippet.setUserId(userId);
 
-        snippet.setPreviewImageUrl(
-                normalizeOptionalText(previewImageUrl)
-        );
+        /*
+         * Image initially null rahegi.
+         *
+         * Image upload API baad mein Cloudinary URL
+         * aur public ID save karegi.
+         */
+        snippet.setPreviewImageUrl(null);
+        snippet.setPreviewImagePublicId(null);
 
         addTagsToSnippet(
                 snippet,
@@ -97,11 +100,13 @@ public class SnippetServiceImpl implements SnippetService {
         /*
          * Snippet parent entity hai.
          *
-         * Snippet.java mein CascadeType.ALL hone ki wajah se
-         * associated SnippetTag objects automatically save honge.
+         * CascadeType.ALL ke karan associated
+         * SnippetTag rows automatically save hongi.
          */
         Snippet savedSnippet =
                 snippetRepository.save(snippet);
+
+        searchServiceClient.indexSnippet(buildIndexRequest(savedSnippet));
 
         return snippetMapper.toResponse(savedSnippet);
     }
@@ -117,7 +122,7 @@ public class SnippetServiceImpl implements SnippetService {
 
         boolean owner =
                 currentUserId != null
-                && currentUserId.equals(
+                        && currentUserId.equals(
                         snippet.getUserId()
                 );
 
@@ -137,6 +142,20 @@ public class SnippetServiceImpl implements SnippetService {
     @Override
     @Transactional(readOnly = true)
     public List<SnippetResponse> getPublicSnippets() {
+
+        List<Snippet> snippets =
+                snippetRepository
+                        .findByVisibilityAndStatus(
+                                Visibility.PUBLIC,
+                                Status.ACTIVE
+                        );
+
+        return convertToResponseList(snippets);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<SnippetResponse> getAllSnippets() {
 
         List<Snippet> snippets =
                 snippetRepository.findByVisibilityAndStatus(
@@ -159,10 +178,11 @@ public class SnippetServiceImpl implements SnippetService {
         }
 
         List<Snippet> snippets =
-                snippetRepository.findByUserIdAndStatus(
-                        userId,
-                        Status.ACTIVE
-                );
+                snippetRepository
+                        .findByUserIdAndStatus(
+                                userId,
+                                Status.ACTIVE
+                        );
 
         return convertToResponseList(snippets);
     }
@@ -171,8 +191,7 @@ public class SnippetServiceImpl implements SnippetService {
     public SnippetResponse updateSnippet(
             UUID snippetId,
             UUID userId,
-            UpdateSnippetRequest request,
-            String previewImageUrl) {
+            UpdateSnippetRequest request) {
 
         if (request == null) {
             throw new IllegalArgumentException(
@@ -191,8 +210,17 @@ public class SnippetServiceImpl implements SnippetService {
                 );
 
         /*
-         * Title, description, code, language,
-         * framework, visibility aur category update karega.
+         * This updates:
+         *
+         * title
+         * description
+         * code
+         * language
+         * framework
+         * visibility
+         * category
+         *
+         * Cloudinary fields are not modified here.
          */
         snippetMapper.updateEntity(
                 snippet,
@@ -200,27 +228,6 @@ public class SnippetServiceImpl implements SnippetService {
                 category
         );
 
-        String normalizedImageUrl =
-                normalizeOptionalText(previewImageUrl);
-
-        /*
-         * New image URL mila tabhi old image replace hogi.
-         * Null hone par existing URL preserve rahegi.
-         */
-        if (normalizedImageUrl != null) {
-            snippet.setPreviewImageUrl(
-                    normalizedImageUrl
-            );
-        }
-
-        /*
-         * Purane tags ko clear karke immediately dobara add nahi
-         * karenge, kyunki usse unique constraint conflict aata tha.
-         *
-         * Existing tags keep honge.
-         * Removed tags delete honge.
-         * New tags insert honge.
-         */
         synchronizeTags(
                 snippet,
                 request.getTags()
@@ -229,8 +236,171 @@ public class SnippetServiceImpl implements SnippetService {
         Snippet updatedSnippet =
                 snippetRepository.save(snippet);
 
-        return snippetMapper.toResponse(
-                updatedSnippet
+        searchServiceClient.indexSnippet(buildIndexRequest(updatedSnippet));
+
+        return snippetMapper.toResponse(updatedSnippet);
+    }
+
+    @Override
+    public SnippetResponse uploadOrReplacePreviewImage(
+            UUID snippetId,
+            UUID userId,
+            MultipartFile image) {
+
+        Snippet snippet =
+                findActiveSnippetById(snippetId);
+
+        verifyOwnership(snippet, userId);
+
+        /*
+         * Existing Cloudinary public ID ko temporarily
+         * preserve karenge.
+         *
+         * New image successfully upload hone ke baad hi
+         * old image delete hogi.
+         */
+        String oldPublicId =
+                normalizeOptionalText(
+                        snippet.getPreviewImagePublicId()
+                );
+
+        /*
+         * CloudinaryService internally:
+         *
+         * 1. File validate karegi
+         * 2. Image upload karegi
+         * 3. secure_url return karegi
+         * 4. public_id return karegi
+         */
+        CloudinaryUploadResponse uploadResponse =
+                cloudinaryService.uploadImage(image);
+
+        if (uploadResponse == null
+                || normalizeOptionalText(
+                uploadResponse.getImageUrl()
+        ) == null
+                || normalizeOptionalText(
+                uploadResponse.getImagePublicId()
+        ) == null) {
+
+            throw new IllegalStateException(
+                    "Cloudinary did not return valid image details"
+            );
+        }
+
+        String newImageUrl =
+                uploadResponse.getImageUrl().trim();
+
+        String newPublicId =
+                uploadResponse
+                        .getImagePublicId()
+                        .trim();
+
+        snippet.setPreviewImageUrl(
+                newImageUrl
+        );
+
+        snippet.setPreviewImagePublicId(
+                newPublicId
+        );
+
+        try {
+
+            Snippet updatedSnippet =
+                    snippetRepository.save(snippet);
+
+            searchServiceClient.indexSnippet(buildIndexRequest(updatedSnippet));
+
+            /*
+             * New image and database update successful hone ke baad
+             * previous Cloudinary image delete karenge.
+             */
+            if (oldPublicId != null
+                    && !oldPublicId.equals(newPublicId)) {
+
+                cloudinaryService.deleteImage(
+                        oldPublicId
+                );
+            }
+
+            return snippetMapper.toResponse(
+                    updatedSnippet
+            );
+
+        } catch (RuntimeException exception) {
+
+            /*
+             * Database save fail ho gaya, lekin new image
+             * Cloudinary par upload ho chuki hai.
+             *
+             * Orphan image avoid karne ke liye new image
+             * delete karne ki koshish karenge.
+             */
+            try {
+                cloudinaryService.deleteImage(
+                        newPublicId
+                );
+            } catch (RuntimeException cleanupException) {
+
+                exception.addSuppressed(
+                        cleanupException
+                );
+            }
+
+            throw exception;
+        }
+    }
+
+    @Override
+    public ApiResponse deletePreviewImage(
+            UUID snippetId,
+            UUID userId) {
+
+        Snippet snippet =
+                findActiveSnippetById(snippetId);
+
+        verifyOwnership(snippet, userId);
+
+        String publicId =
+                normalizeOptionalText(
+                        snippet.getPreviewImagePublicId()
+                );
+
+        if (publicId == null) {
+
+            /*
+             * Public ID absent hone par bhi stale URL
+             * database mein ho sakti hai.
+             */
+            snippet.setPreviewImageUrl(null);
+            snippet.setPreviewImagePublicId(null);
+
+            Snippet updatedSnippet = snippetRepository.save(snippet);
+
+            searchServiceClient.indexSnippet(buildIndexRequest(updatedSnippet));
+
+            return new ApiResponse(
+                    true,
+                    "Snippet preview image deleted successfully"
+            );
+        }
+
+        /*
+         * First Cloudinary asset delete karenge.
+         *
+         * Delete successful hone ke baad database fields
+         * clear hongi.
+         */
+        cloudinaryService.deleteImage(publicId);
+
+        snippet.setPreviewImageUrl(null);
+        snippet.setPreviewImagePublicId(null);
+
+        snippetRepository.save(snippet);
+
+        return new ApiResponse(
+                true,
+                "Snippet preview image deleted successfully"
         );
     }
 
@@ -246,17 +416,26 @@ public class SnippetServiceImpl implements SnippetService {
 
         /*
          * Soft delete:
-         * database row delete nahi hogi.
+         *
+         * Database row remove nahi hogi.
+         * Status ACTIVE se DELETED ho jayega.
+         *
+         * Preview image bhi preserve rahegi because future
+         * mein restore feature add kiya ja sakta hai.
          */
         snippet.setStatus(Status.DELETED);
 
         snippetRepository.save(snippet);
+
+        searchServiceClient.deleteSnippet(snippetId);
 
         return new ApiResponse(
                 true,
                 "Snippet deleted successfully"
         );
     }
+
+
 
     private Snippet findActiveSnippetById(
             UUID snippetId) {
@@ -267,16 +446,19 @@ public class SnippetServiceImpl implements SnippetService {
             );
         }
 
-        Snippet snippet = snippetRepository
-                .findById(snippetId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Snippet not found with id: "
-                                        + snippetId
-                        )
-                );
+        Snippet snippet =
+                snippetRepository
+                        .findById(snippetId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Snippet not found with id: "
+                                                + snippetId
+                                )
+                        );
 
-        if (snippet.getStatus() == Status.DELETED) {
+        if (snippet.getStatus()
+                == Status.DELETED) {
+
             throw new ResourceNotFoundException(
                     "Snippet not found with id: "
                             + snippetId
@@ -304,7 +486,7 @@ public class SnippetServiceImpl implements SnippetService {
 
         if (snippet.getUserId() == null
                 || !snippet.getUserId()
-                        .equals(userId)) {
+                .equals(userId)) {
 
             throw new UnauthorizedActionException(
                     "You are not allowed to modify this snippet"
@@ -322,7 +504,7 @@ public class SnippetServiceImpl implements SnippetService {
                 );
 
         return categoryRepository
-                .findByNameIgnoreCase(
+                .findByCategoryNameIgnoreCase(
                         normalizedCategoryName
                 )
                 .orElseGet(() -> {
@@ -330,7 +512,7 @@ public class SnippetServiceImpl implements SnippetService {
                     Category category =
                             new Category();
 
-                    category.setName(
+                    category.setCategoryName(
                             normalizedCategoryName
                     );
 
@@ -377,11 +559,12 @@ public class SnippetServiceImpl implements SnippetService {
                     );
 
             /*
-             * React, react aur REACT ko duplicate
+             * React, react aur REACT ko same
              * request tag maana jayega.
              */
             if (!processedTagNames.add(
                     lowercaseTagName)) {
+
                 continue;
             }
 
@@ -389,15 +572,12 @@ public class SnippetServiceImpl implements SnippetService {
                     normalizedTagName
             );
 
-            /*
-             * addTag() child SnippetTag mein
-             * snippet aur tag dono set karega.
-             */
             snippet.addTag(tag);
         }
 
         if (snippet.getSnippetTags() == null
-                || snippet.getSnippetTags().isEmpty()) {
+                || snippet.getSnippetTags()
+                .isEmpty()) {
 
             throw new IllegalArgumentException(
                     "At least one valid tag is required"
@@ -423,13 +603,11 @@ public class SnippetServiceImpl implements SnippetService {
             );
         }
 
-        /*
-         * Request ke valid aur unique tag names.
-         */
         Set<String> requestedNormalizedNames =
                 new HashSet<>();
 
-        for (String tagName : requestedTagNames) {
+        for (String tagName
+                : requestedTagNames) {
 
             if (tagName == null
                     || tagName.isBlank()) {
@@ -438,30 +616,29 @@ public class SnippetServiceImpl implements SnippetService {
 
             requestedNormalizedNames.add(
                     tagName.trim()
-                            .toLowerCase(Locale.ROOT)
+                            .toLowerCase(
+                                    Locale.ROOT
+                            )
             );
         }
 
         if (requestedNormalizedNames.isEmpty()) {
+
             throw new IllegalArgumentException(
                     "At least one valid tag is required"
             );
         }
 
         if (snippet.getSnippetTags() == null) {
+
             throw new IllegalStateException(
                     "Snippet tag collection is not initialized"
             );
         }
 
-        /*
-         * Jo existing tags updated request mein nahi hain,
-         * unke SnippetTag relationships remove karenge.
-         *
-         * Snippet.java mein orphanRemoval = true hona chahiye.
-         */
         Iterator<SnippetTag> iterator =
-                snippet.getSnippetTags().iterator();
+                snippet.getSnippetTags()
+                        .iterator();
 
         while (iterator.hasNext()) {
 
@@ -471,7 +648,7 @@ public class SnippetServiceImpl implements SnippetService {
             if (snippetTag == null
                     || snippetTag.getTag() == null
                     || snippetTag.getTag()
-                            .getName() == null) {
+                    .getTagName() == null) {
 
                 iterator.remove();
                 continue;
@@ -479,26 +656,20 @@ public class SnippetServiceImpl implements SnippetService {
 
             String existingTagName =
                     snippetTag.getTag()
-                            .getName()
+                            .getTagName()
                             .trim()
-                            .toLowerCase(Locale.ROOT);
+                            .toLowerCase(
+                                    Locale.ROOT
+                            );
 
-            if (!requestedNormalizedNames.contains(
-                    existingTagName)) {
+            if (!requestedNormalizedNames
+                    .contains(existingTagName)) {
 
                 iterator.remove();
-
-                /*
-                 * Bidirectional relationship clean-up.
-                 */
                 snippetTag.setSnippet(null);
             }
         }
 
-        /*
-         * Removal ke baad jo tags already associated hain,
-         * unke normalized names collect karenge.
-         */
         Set<String> existingNormalizedNames =
                 new HashSet<>();
 
@@ -508,22 +679,21 @@ public class SnippetServiceImpl implements SnippetService {
             if (snippetTag == null
                     || snippetTag.getTag() == null
                     || snippetTag.getTag()
-                            .getName() == null) {
+                    .getTagName() == null) {
+
                 continue;
             }
 
             existingNormalizedNames.add(
                     snippetTag.getTag()
-                            .getName()
+                            .getTagName()
                             .trim()
-                            .toLowerCase(Locale.ROOT)
+                            .toLowerCase(
+                                    Locale.ROOT
+                            )
             );
         }
 
-        /*
-         * Sirf genuinely new tags add honge.
-         * Existing same tag dobara insert nahi hoga.
-         */
         Set<String> processedRequestTags =
                 new HashSet<>();
 
@@ -532,6 +702,7 @@ public class SnippetServiceImpl implements SnippetService {
 
             if (requestedTagName == null
                     || requestedTagName.isBlank()) {
+
                 continue;
             }
 
@@ -545,11 +716,13 @@ public class SnippetServiceImpl implements SnippetService {
 
             if (!processedRequestTags.add(
                     lowercaseTagName)) {
+
                 continue;
             }
 
             if (existingNormalizedNames.contains(
                     lowercaseTagName)) {
+
                 continue;
             }
 
@@ -564,7 +737,9 @@ public class SnippetServiceImpl implements SnippetService {
             );
         }
 
-        if (snippet.getSnippetTags().isEmpty()) {
+        if (snippet.getSnippetTags()
+                .isEmpty()) {
+
             throw new IllegalArgumentException(
                     "At least one valid tag is required"
             );
@@ -581,14 +756,14 @@ public class SnippetServiceImpl implements SnippetService {
                 );
 
         return tagRepository
-                .findByNameIgnoreCase(
+                .findByTagNameIgnoreCase(
                         normalizedTagName
                 )
                 .orElseGet(() -> {
 
                     Tag tag = new Tag();
 
-                    tag.setName(
+                    tag.setTagName(
                             normalizedTagName
                     );
 
@@ -597,14 +772,15 @@ public class SnippetServiceImpl implements SnippetService {
     }
 
     private List<SnippetResponse>
-            convertToResponseList(
-                    List<Snippet> snippets) {
+    convertToResponseList(
+            List<Snippet> snippets) {
 
         List<SnippetResponse> responses =
                 new ArrayList<>();
 
         if (snippets == null
                 || snippets.isEmpty()) {
+
             return responses;
         }
 
@@ -615,7 +791,9 @@ public class SnippetServiceImpl implements SnippetService {
             }
 
             responses.add(
-                    snippetMapper.toResponse(snippet)
+                    snippetMapper.toResponse(
+                            snippet
+                    )
             );
         }
 
@@ -642,9 +820,32 @@ public class SnippetServiceImpl implements SnippetService {
 
         if (value == null
                 || value.isBlank()) {
+
             return null;
         }
 
         return value.trim();
+    }
+
+    private IndexSnippetRequest buildIndexRequest(Snippet snippet) {
+
+        return IndexSnippetRequest.builder()
+                .snippetId(snippet.getSnippetId())
+                .title(snippet.getTitle())
+                .description(snippet.getDescription())
+                .language(snippet.getLanguage())
+                .framework(snippet.getFramework())
+                .category(snippet.getCategory().getCategoryName())
+                .tags(
+                        snippet.getSnippetTags()
+                                .stream()
+                                .map(snippetTag ->
+                                        snippetTag.getTag().getTagName())
+                                .toList()
+                )
+                .likes(snippet.getLikeCount())
+                .views(snippet.getViewCount())
+                .previewImageUrl(snippet.getPreviewImageUrl())
+                .build();
     }
 }

@@ -95,7 +95,7 @@ public class JwtService {
                     || expiration.after(new Date());
 
         } catch (JwtException
-                | IllegalArgumentException exception) {
+                 | IllegalArgumentException exception) {
 
             return false;
         }

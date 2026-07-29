@@ -42,123 +42,123 @@ public class SecurityConfig {
             HttpSecurity http) throws Exception {
 
         http
-            /*
-             * REST API JWT use kar rahi hai.
-             * Browser session-based CSRF token use nahi ho raha.
-             */
-            .csrf(csrf -> csrf.disable())
+                /*
+                 * REST API JWT use kar rahi hai.
+                 * Browser session-based CSRF token use nahi ho raha.
+                 */
+                .csrf(csrf -> csrf.disable())
 
-            /*
-             * React frontend se requests allow hongi.
-             */
-            .cors(cors -> cors.configurationSource(
-                    corsConfigurationSource()
-            ))
+                /*
+                 * React frontend se requests allow hongi.
+                 */
+                .cors(cors -> cors.configurationSource(
+                        corsConfigurationSource()
+                ))
 
-            /*
-             * JWT stateless authentication:
-             * server HTTP session create nahi karega.
-             */
-            .sessionManagement(session ->
-                    session.sessionCreationPolicy(
-                            SessionCreationPolicy.STATELESS
-                    )
-            )
+                /*
+                 * JWT stateless authentication:
+                 * server HTTP session create nahi karega.
+                 */
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
+                )
 
-            /*
-             * Unauthorized request par custom JSON response.
-             */
-            .exceptionHandling(exception ->
-                    exception.authenticationEntryPoint(
-                            jwtAuthenticationEntryPoint
-                    )
-            )
+                /*
+                 * Unauthorized request par custom JSON response.
+                 */
+                .exceptionHandling(exception ->
+                        exception.authenticationEntryPoint(
+                                jwtAuthenticationEntryPoint
+                        )
+                )
 
-            .authorizeHttpRequests(auth -> auth
+                .authorizeHttpRequests(auth -> auth
 
-                    /*
-                     * Browser preflight request.
-                     */
-                    .requestMatchers(
-                            HttpMethod.OPTIONS,
-                            "/**"
-                    ).permitAll()
+                        /*
+                         * Browser preflight request.
+                         */
+                        .requestMatchers(
+                                HttpMethod.OPTIONS,
+                                "/**"
+                        ).permitAll()
 
-                    /*
-                     * Public snippets ki listing.
-                     */
-                    .requestMatchers(
-                            HttpMethod.GET,
-                            "/api/snippets/public"
-                    ).permitAll()
+                        /*
+                         * Public snippets ki listing.
+                         */
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/snippets/public"
+                        ).permitAll()
 
-                    /*
-                     * Individual public snippet service layer
-                     * visibility check ke through accessible hai.
-                     *
-                     * Lekin private snippet owner ko token ki
-                     * requirement hogi. Is endpoint ko permitAll
-                     * rakhne par optional authentication possible hai.
-                     */
-                    .requestMatchers(
-                            HttpMethod.GET,
-                            "/api/snippets/*"
-                    ).permitAll()
+                        /*
+                         * Individual public snippet service layer
+                         * visibility check ke through accessible hai.
+                         *
+                         * Lekin private snippet owner ko token ki
+                         * requirement hogi. Is endpoint ko permitAll
+                         * rakhne par optional authentication possible hai.
+                         */
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/snippets/*"
+                        ).permitAll()
 
-                    /*
-                     * Create, update, delete aur user snippets
-                     * ke liye valid JWT required hai.
-                     */
-                    .requestMatchers(
-                            HttpMethod.POST,
-                            "/api/snippets/**"
-                    ).authenticated()
+                        /*
+                         * Create, update, delete aur user snippets
+                         * ke liye valid JWT required hai.
+                         */
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/snippets/**"
+                        ).permitAll()
 
-                    .requestMatchers(
-                            HttpMethod.PUT,
-                            "/api/snippets/**"
-                    ).authenticated()
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/snippets/**"
+                        ).authenticated()
 
-                    .requestMatchers(
-                            HttpMethod.DELETE,
-                            "/api/snippets/**"
-                    ).authenticated()
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/api/snippets/**"
+                        ).authenticated()
 
-                    .requestMatchers(
-                            "/api/snippets/user/**"
-                    ).authenticated()
+                        .requestMatchers(
+                                "/api/snippets/user/**"
+                        ).authenticated()
 
-                    /*
-                     * Baaki endpoints protected.
-                     */
-                    .anyRequest().authenticated()
-            )
+                        /*
+                         * Baaki endpoints protected.
+                         */
+                        .anyRequest().authenticated()
+                )
 
-            /*
-             * Form login aur basic auth ki zarurat nahi.
-             */
-            .formLogin(form ->
-                    form.disable()
-            )
+                /*
+                 * Form login aur basic auth ki zarurat nahi.
+                 */
+                .formLogin(form ->
+                        form.disable()
+                )
 
-            .httpBasic(httpBasic ->
-                    httpBasic.disable()
-            )
+                .httpBasic(httpBasic ->
+                        httpBasic.disable()
+                )
 
-            /*
-             * JWT filter username/password filter se pehle chalega.
-             */
-            .addFilterBefore(
-                    jwtAuthenticationFilter,
-                    UsernamePasswordAuthenticationFilter.class
-            );
+                /*
+                 * JWT filter username/password filter se pehle chalega.
+                 */
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                );
 
         return http.build();
     }
 
     @Bean
     public CorsConfigurationSource
-            corsConfigurationSource() {
+    corsConfigurationSource() {
 
         CorsConfiguration configuration =
                 new CorsConfiguration();

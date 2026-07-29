@@ -20,8 +20,8 @@ public class Category {
     @Column(name = "category_id", nullable = false, updatable = false)
     private UUID categoryId;
 
-    @Column(name = "name", nullable = false, unique = true, length = 100)
-    private String name;
+    @Column(name = "category_name", nullable = false, unique = true)
+    private String categoryName;
 
     @OneToMany(mappedBy = "category")
     private List<Snippet> snippets = new ArrayList<>();
@@ -31,16 +31,16 @@ public class Category {
 
     public Category(
             UUID categoryId,
-            String name,
+            String categoryName,
             List<Snippet> snippets) {
 
         this.categoryId = categoryId;
-        this.name = name;
+        this.categoryName = categoryName;
         this.snippets = snippets;
     }
 
-    public Category(String name) {
-        this.name = name;
+    public Category(String categoryName) {
+        this.categoryName = categoryName;
     }
 
     public UUID getCategoryId() {
@@ -51,12 +51,12 @@ public class Category {
         this.categoryId = categoryId;
     }
 
-    public String getName() {
-        return name;
+    public String getCategoryName() {
+        return categoryName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
     }
 
     public List<Snippet> getSnippets() {

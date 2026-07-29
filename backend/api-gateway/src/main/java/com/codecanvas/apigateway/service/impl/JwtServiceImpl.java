@@ -2,6 +2,7 @@ package com.codecanvas.apigateway.service.impl;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.UUID;
 import java.util.function.Function;
 
 import javax.crypto.SecretKey;
@@ -28,6 +29,17 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+
+    @Override
+    public UUID extractUserId(String token) {
+
+        return UUID.fromString(
+                extractClaim(
+                        token,
+                        claims -> claims.get("userId", String.class)
+                )
+        );
     }
 
     @Override

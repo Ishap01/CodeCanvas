@@ -1,4 +1,4 @@
-import axiosInstance from "./axios";
+import axiosInstance from "../api/axios";
 
 //Register new user
 export const registerUser = async (userData) => {

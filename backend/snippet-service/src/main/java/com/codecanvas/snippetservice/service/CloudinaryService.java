@@ -2,11 +2,13 @@ package com.codecanvas.snippetservice.service;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.codecanvas.snippetservice.dto.response.CloudinaryUploadResponse;
+
 public interface CloudinaryService {
 
-  String uploadImage(MultipartFile file);
+    CloudinaryUploadResponse uploadImage(
+            MultipartFile file);
 
-  String updateImage(MultipartFile file, String publicId);
-
-  void deleteImage(String publicId);
+    void deleteImage(
+            String publicId);
 }

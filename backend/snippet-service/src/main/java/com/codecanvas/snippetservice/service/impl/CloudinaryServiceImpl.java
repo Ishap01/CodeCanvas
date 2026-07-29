@@ -1,115 +1,151 @@
 package com.codecanvas.snippetservice.service.impl;
 
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
-import com.codecanvas.snippetservice.service.CloudinaryService;
 import java.io.IOException;
 import java.util.Map;
+import java.util.UUID;
+
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+import com.codecanvas.snippetservice.dto.response.CloudinaryUploadResponse;
+import com.codecanvas.snippetservice.service.CloudinaryService;
+
 @Service
-public class CloudinaryServiceImpl implements CloudinaryService {
+public class CloudinaryServiceImpl
+        implements CloudinaryService {
 
-  private static final String FOLDER = "codecanvas/codeImages";
+    private static final long MAX_FILE_SIZE =
+            5 * 1024 * 1024;
 
-  private final Cloudinary cloudinary;
+    private final Cloudinary cloudinary;
 
-  public CloudinaryServiceImpl(Cloudinary cloudinary) {
+    public CloudinaryServiceImpl(
+            Cloudinary cloudinary) {
 
-    this.cloudinary = cloudinary;
-  }
-
-  @Override
-  public String uploadImage(MultipartFile file) {
-
-    validateImageFile(file);
-
-    try {
-      Map<?, ?> uploadResult =
-          cloudinary
-              .uploader()
-              .upload(
-                  file.getBytes(), ObjectUtils.asMap("folder", FOLDER, "resource_type", "image"));
-
-      return getSecureUrl(uploadResult);
-
-    } catch (IOException exception) {
-      throw new IllegalStateException("Failed to upload image", exception);
-    }
-  }
-
-  @Override
-  public String updateImage(MultipartFile file, String publicId) {
-
-    validateImageFile(file);
-    validatePublicId(publicId);
-
-    try {
-      Map<?, ?> uploadResult =
-          cloudinary
-              .uploader()
-              .upload(
-                  file.getBytes(),
-                  ObjectUtils.asMap(
-                      "public_id",
-                      publicId,
-                      "overwrite",
-                      true,
-                      "invalidate",
-                      true,
-                      "resource_type",
-                      "image"));
-
-      return getSecureUrl(uploadResult);
-
-    } catch (IOException exception) {
-      throw new IllegalStateException("Failed to update image", exception);
-    }
-  }
-
-  @Override
-  public void deleteImage(String publicId) {
-
-    validatePublicId(publicId);
-
-    try {
-      cloudinary
-          .uploader()
-          .destroy(publicId, ObjectUtils.asMap("resource_type", "image", "invalidate", true));
-
-    } catch (IOException exception) {
-      throw new IllegalStateException("Failed to delete image", exception);
-    }
-  }
-
-  private void validateImageFile(MultipartFile file) {
-
-    if (file == null || file.isEmpty()) {
-      throw new IllegalArgumentException("Image file is required");
+        this.cloudinary = cloudinary;
     }
 
-    if (file.getContentType() == null || !file.getContentType().startsWith("image/")) {
+    @Override
+    public CloudinaryUploadResponse uploadImage(
+            MultipartFile file) {
 
-      throw new IllegalArgumentException("Only image files are allowed");
+        validateImage(file);
+
+        try {
+
+            String generatedPublicId =
+                    UUID.randomUUID().toString();
+
+            Map<?, ?> uploadResult =
+                    cloudinary.uploader().upload(
+                            file.getBytes(),
+                            ObjectUtils.asMap(
+                                    "folder",
+                                    "codecanvas/snippets",
+                                    "public_id",
+                                    generatedPublicId,
+                                    "resource_type",
+                                    "image"
+                            )
+                    );
+
+            String imageUrl =
+                    uploadResult
+                            .get("secure_url")
+                            .toString();
+
+            String imagePublicId =
+                    uploadResult
+                            .get("public_id")
+                            .toString();
+
+            return new CloudinaryUploadResponse(
+                    imageUrl,
+                    imagePublicId
+            );
+
+        } catch (IOException exception) {
+
+            throw new RuntimeException(
+                    "Failed to upload image to Cloudinary",
+                    exception
+            );
+        }
     }
-  }
 
-  private void validatePublicId(String publicId) {
+    @Override
+    public void deleteImage(
+            String publicId) {
 
-    if (publicId == null || publicId.isBlank()) {
-      throw new IllegalArgumentException("Cloudinary public id is required");
+        if (publicId == null ||
+                publicId.isBlank()) {
+
+            return;
+        }
+
+        try {
+
+            Map<?, ?> deleteResult =
+                    cloudinary.uploader().destroy(
+                            publicId,
+                            ObjectUtils.asMap(
+                                    "resource_type",
+                                    "image",
+                                    "invalidate",
+                                    true
+                            )
+                    );
+
+            String result =
+                    deleteResult
+                            .get("result")
+                            .toString();
+
+            if (!result.equals("ok") &&
+                    !result.equals("not found")) {
+
+                throw new RuntimeException(
+                        "Cloudinary image deletion failed"
+                );
+            }
+
+        } catch (IOException exception) {
+
+            throw new RuntimeException(
+                    "Failed to delete image from Cloudinary",
+                    exception
+            );
+        }
     }
-  }
 
-  private String getSecureUrl(Map<?, ?> uploadResult) {
+    private void validateImage(
+            MultipartFile file) {
 
-    Object secureUrl = uploadResult.get("secure_url");
+        if (file == null || file.isEmpty()) {
 
-    if (secureUrl == null) {
-      throw new IllegalStateException("Cloudinary did not return an image URL");
+            throw new IllegalArgumentException(
+                    "Image file is required"
+            );
+        }
+
+        if (file.getSize() > MAX_FILE_SIZE) {
+
+            throw new IllegalArgumentException(
+                    "Image size must not exceed 5 MB"
+            );
+        }
+
+        String contentType =
+                file.getContentType();
+
+        if (contentType == null ||
+                !contentType.startsWith("image/")) {
+
+            throw new IllegalArgumentException(
+                    "Only image files are allowed"
+            );
+        }
     }
-
-    return secureUrl.toString();
-  }
 }
