@@ -15,245 +15,189 @@ import {
 
 import bg from "../../assets/login-bg.jpg";
 
-import { loginUser } from "../../../services/authService";
-import { useAuth } from "../../../context/AuthContext";
-
 export default function Login() {
-
   const navigate = useNavigate();
 
-  const { login } = useAuth();
-
   const [formData, setFormData] = useState({
-    email: "",
+    username: "",
     password: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
-
   const [message, setMessage] = useState("");
-
   const [loading, setLoading] = useState(false);
 
+  // Input me jo value type hogi, wo formData me store hogi
   const handleChange = (event) => {
-
     const { name, value } = event.target;
 
-    setFormData((prev) => ({
-      ...prev,
+    setFormData({
+      ...formData,
       [name]: value,
-    }));
-
+    });
   };
 
+  // Login button click hone par
   const handleLogin = async (event) => {
-
     event.preventDefault();
 
     setMessage("");
 
-    if (!formData.email.trim() || !formData.password.trim()) {
-      setMessage("Email and Password are required.");
+    if (!formData.username.trim() || !formData.password.trim()) {
+      setMessage("Username and password are required");
       return;
     }
 
     try {
-
       setLoading(true);
 
-  const loginRequest = {
-    email: formData.email.trim(),
-    password: formData.password,
-  };
+      const response = await fetch(
+          "http://localhost:8082/api/auth/login",
+          {
+            method: "POST",
 
-const data = await loginUser(loginRequest);
+            headers: {
+              "Content-Type": "application/json",
+            },
 
-      if (data.token) {
+            body: JSON.stringify(formData),
+          }
+      );
 
-        login(data.token);
+      const data = await response.json();
 
+      if (data.success) {
+        setMessage(data.message);
+
+        // JWT implement hone ke baad token save hoga
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+        }
+
+        // Login success ke baad dashboard
         navigate("/dashboard");
-
       } else {
-
-        setMessage(data.message || "Login failed.");
-
+        setMessage(data.message || "Invalid username or password");
       }
-
     } catch (error) {
-
-      console.error(error);
-
-      if (error.response) {
-
-        setMessage(
-          error.response.data.message || "Invalid credentials."
-        );
-
-      } else {
-
-        setMessage("Unable to connect to the server.");
-
-      }
-
+      console.error("Login error:", error);
+      setMessage("Backend server se connection nahi ho raha");
     } finally {
-
       setLoading(false);
-
     }
-
   };
 
   return (
+      <div className="loginPage">
+        {/* LEFT PANEL */}
 
-    <div className="loginPage">
-
-      {/* LEFT PANEL */}
-
-      <div
-        className="leftPanel"
-        style={{ backgroundImage: `url(${bg})` }}
-      >
-        <div className="overlay"></div>
-
-        <div className="leftContent">
-          <h1>
-            Welcome back to <br />
-            <span>CodeCanvas.</span>
-          </h1>
-
-          <p>
-            The visual code collaboration platform
-            <br />
-            for modern developers.
-          </p>
-        </div>
-      </div>
-
-      {/* RIGHT PANEL */}
-
-      <div className="rightPanel">
-
-        <form
-          className="loginCard"
-          onSubmit={handleLogin}
+        <div
+            className="leftPanel"
+            style={{ backgroundImage: `url(${bg})` }}
         >
+          <div className="overlay"></div>
 
-          <div className="logo">
-            <FaCode />
+          <div className="leftContent">
+            <h1>
+              Welcome back to <br />
+              <span>CodeCanvas.</span>
+            </h1>
+
+            <p>
+              The visual code collaboration platform
+              <br />
+              for modern developers.
+            </p>
           </div>
+        </div>
 
-          <h2>Welcome Back</h2>
+        {/* RIGHT PANEL */}
 
-          <p>Sign in to your CodeCanvas account</p>
+        <div className="rightPanel">
+          <form className="loginCard" onSubmit={handleLogin}>
+            <div className="logo">
+              <FaCode />
+            </div>
 
-          <div className="inputBox">
+            <h2>Welcome Back</h2>
 
-            <FaUser />
+            <p>Sign in to your CodeCanvas account</p>
 
-            <input
-              autoFocus
-              type="email"
-              name="email"
-              placeholder="Enter Email"
-              value={formData.email}
-              onChange={handleChange}
-            />
+            {/* USERNAME */}
 
-          </div>
+            <div className="inputBox">
+              <FaUser />
 
-          <div className="inputBox">
+              <input
+                  type="text"
+                  name="username"
+                  placeholder="Username"
+                  value={formData.username}
+                  onChange={handleChange}
+              />
+            </div>
 
-            <FaLock />
+            {/* PASSWORD */}
 
-            <input
-              autoFocus
-              type={showPassword ? "text" : "password"}
-              name="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-            />
+            <div className="inputBox">
+              <FaLock />
 
-            <span
-              className="eye"
-              onClick={() =>
-                setShowPassword(!showPassword)
-              }
-            >
+              <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleChange}
+              />
+
+              <span
+                  className="eye"
+                  onClick={() => setShowPassword(!showPassword)}
+              >
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </span>
+            </div>
 
-          </div>
+            <div className="options">
+              <label>
+                <input type="checkbox" />
+                Remember me
+              </label>
 
-          <div className="options">
+              <Link to="/forgot-password">Forgot password?</Link>
+            </div>
 
-            <label>
+            {message && <p className="formMessage">{message}</p>}
 
-              <input autoFocus type="checkbox" />
+            <button
+                type="submit"
+                className="loginBtn"
+                disabled={loading}
+            >
+              <FaSignInAlt />
 
-              Remember me
+              {loading ? "Signing In..." : "Sign In"}
+            </button>
 
-            </label>
+            <button type="button" className="socialBtn">
+              <FaGithub />
+              Continue with GitHub
+            </button>
 
-            <Link to="/forgot-password">
-              Forgot Password?
-            </Link>
+            <button type="button" className="socialBtn">
+              <FaGoogle />
+              Continue with Google
+            </button>
 
-          </div>
+            <div className="signup">
+              Don't have an account?
 
-          {message && (
-            <p className="formMessage">
-              {message}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            className="loginBtn"
-            disabled={loading}
-          >
-
-            <FaSignInAlt />
-
-            {loading
-              ? "Signing In..."
-              : "Sign In"}
-
-          </button>
-
-          <button
-            type="button"
-            className="socialBtn"
-          >
-            <FaGithub />
-            Continue with GitHub
-          </button>
-
-          <button
-            type="button"
-            className="socialBtn"
-          >
-            <FaGoogle />
-            Continue with Google
-          </button>
-
-          <div className="signup">
-
-            Don't have an account?
-
-            <Link to="/register">
-              <span>Create one</span>
-            </Link>
-
-          </div>
-
-        </form>
-
+              <Link to="/register">
+                <span>Create one</span>
+              </Link>
+            </div>
+          </form>
+        </div>
       </div>
-
-    </div>
-
   );
-
 }

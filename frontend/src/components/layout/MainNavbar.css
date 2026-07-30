@@ -56,7 +56,6 @@
 }
 
 .globalTopLinks a {
-  transition: color 0.2s ease, border-color 0.2s ease;
   height: 100%;
 
   display: flex;
@@ -143,7 +142,6 @@
 .globalSearch {
   width: 100%;
   max-width: 310px;
-  min-width: 220px;
   height: 34px;
 
   display: flex;
@@ -185,8 +183,6 @@
 
 .globalNavbarActions button,
 .globalProfileButton {
-
-  transition: color 0.2s ease, transform 0.2s ease;
   width: 28px;
   height: 28px;
 
@@ -207,15 +203,8 @@
 .globalNavbarActions button:hover,
 .globalProfileButton:hover {
   color: #eeeeee;
-  transform: scale(1.08);
 }
 
-.globalTopLinks a:focus-visible,
-.globalProfileButton:focus-visible,
-.globalNavbarActions button:focus-visible {
-  outline: 2px solid #eeeeee;
-  outline-offset: 2px;
-}
 /* =====================================
    RESPONSIVE
 ===================================== */
@@ -270,9 +259,4 @@
   .globalNavbarActions button:nth-child(2) {
     display: none;
   }
-
-  .mainApplicationLayout {
-  min-height: 100vh;
-  background: #0b0b0b;
-}
 }

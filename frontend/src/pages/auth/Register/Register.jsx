@@ -15,8 +15,6 @@ import {
 
 import bg from "../../assets/login-bg.jpg";
 
-import { registerUser } from "../../../services/authService";
-
 function Register() {
   const navigate = useNavigate();
 
@@ -30,20 +28,23 @@ function Register() {
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState(false);
 
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Har input ki value formData me update karega
   const handleChange = (event) => {
     const { name, value } = event.target;
 
-    setFormData((prev) => ({
-      ...prev,
+    setFormData({
+      ...formData,
       [name]: value,
-    }));
+    });
   };
 
+  // Register API call
   const handleRegister = async (event) => {
     event.preventDefault();
 
@@ -57,57 +58,49 @@ function Register() {
       !formData.password.trim() ||
       !formData.confirmPassword.trim()
     ) {
-      setMessage("All fields are required.");
+      setMessage("All fields are required");
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailRegex.test(formData.email)) {
-      setMessage("Please enter a valid email address.");
-      return;
-    }
-
-    if (/\s/.test(formData.username)) {
-    setMessage("Username cannot contain spaces.");
-    return;
-    }
-
-    if (!/^\d{10}$/.test(formData.mobileNumber)) {
-      setMessage("Enter a valid 10-digit mobile number.");
-      return;
-    }
-
-    if (formData.password.length < 8) {
-      setMessage("Password must be at least 8 characters.");
+    if (formData.mobileNumber.length !== 10) {
+      setMessage("Mobile number must contain 10 digits");
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setMessage("Password and Confirm Password do not match.");
+      setMessage("Password and confirm password do not match");
       return;
     }
 
     try {
       setLoading(true);
 
-      const data = await registerUser(formData);
+      const response = await fetch(
+        "http://localhost:8081/api/auth/register",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify(formData),
+        }
+      );
+
+      const data = await response.json();
 
       setMessage(data.message);
 
       if (data.success) {
+        // Registration success ke baad login page
         setTimeout(() => {
           navigate("/login");
-        }, 1500);
+        }, 1000);
       }
     } catch (error) {
-      console.error(error);
-
-      if (error.response) {
-        setMessage(error.response.data.message);
-      } else {
-        setMessage("Unable to connect to the server.");
-      }
+      console.error("Registration error:", error);
+      setMessage("Backend server se connection nahi ho raha");
     } finally {
       setLoading(false);
     }
@@ -115,7 +108,7 @@ function Register() {
 
   return (
     <div className="loginPage">
-      {/* Left Panel */}
+      {/* LEFT PANEL */}
 
       <div
         className="leftPanel"
@@ -134,7 +127,7 @@ function Register() {
         </div>
       </div>
 
-      {/* Right Panel */}
+      {/* RIGHT PANEL */}
 
       <div className="rightPanel">
         <form className="loginCard" onSubmit={handleRegister}>
@@ -146,7 +139,7 @@ function Register() {
 
           <p>Create your CodeCanvas account</p>
 
-          {/* Full Name */}
+          {/* FULL NAME */}
 
           <div className="inputBox">
             <FaUser />
@@ -160,21 +153,20 @@ function Register() {
             />
           </div>
 
-          {/* Email */}
-
           <div className="inputBox">
             <FaUser />
 
             <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={formData.email}
-              onChange={handleChange}
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleChange}
             />
-          </div>
+        </div>
 
-          {/* Username */}
+
+          {/* USERNAME */}
 
           <div className="inputBox">
             <FaUser />
@@ -188,7 +180,7 @@ function Register() {
             />
           </div>
 
-          {/* Mobile */}
+          {/* MOBILE NUMBER */}
 
           <div className="inputBox">
             <FaPhone />
@@ -197,13 +189,13 @@ function Register() {
               type="tel"
               name="mobileNumber"
               placeholder="Mobile Number"
-              maxLength={10}
+              maxLength="10"
               value={formData.mobileNumber}
               onChange={handleChange}
             />
           </div>
 
-          {/* Password */}
+          {/* PASSWORD */}
 
           <div className="inputBox">
             <FaLock />
@@ -224,7 +216,7 @@ function Register() {
             </span>
           </div>
 
-          {/* Confirm Password */}
+          {/* CONFIRM PASSWORD */}
 
           <div className="inputBox">
             <FaLock />
@@ -261,8 +253,9 @@ function Register() {
 
           <div className="signup">
             Already have an account?
+
             <Link to="/login">
-              <span> Login</span>
+              <span>Login</span>
             </Link>
           </div>
         </form>
