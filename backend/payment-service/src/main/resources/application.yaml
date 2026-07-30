@@ -1,22 +1,83 @@
 server:
-  port: 8085
+  port: 8083
 
 spring:
   application:
     name: payment-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/codecanvas
-    username: postgres
-    password: root
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/codecanvas}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:root}
+    driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
       ddl-auto: update
-
     show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connect-timeout: 5000
+            read-timeout: 10000
+            logger-level: basic
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          secret-key: ${JWT_SECRET}
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
+
+  instance:
+    prefer-ip-address: true
+
+razorpay:
+  key-id: ${RAZORPAY_KEY_ID}
+  key-secret: ${RAZORPAY_KEY_SECRET}
+  webhook-secret: ${RAZORPAY_WEBHOOK_SECRET}
+
+jwt:
+  secret: ${JWT_SECRET}
+
+payment:
+  premium-plan:
+    amount: ${PREMIUM_PLAN_AMOUNT:499.00}
+
+  scheduler:
+    pending-expiry-minutes: 30
+    fixed-delay-milliseconds: 300000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    root: INFO
+    com.codecanvas.paymentservice: DEBUG
+    org.springframework.security: INFO
+    feign: INFO

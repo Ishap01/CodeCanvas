@@ -1,4 +1,4 @@
-package com.codecanvas.paymentservice.entity;
+package com.codecanvas.paymentservice.dto.response;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -7,86 +7,53 @@ import java.util.UUID;
 import com.codecanvas.paymentservice.enums.Currency;
 import com.codecanvas.paymentservice.enums.PaymentStatus;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
+public class PaymentResponse {
 
-@Entity
-@Table(name = "payments")
-public class Payment {
-
-    @Id
     private UUID paymentId;
-
-    @Column(nullable = false)
     private UUID userId;
-
-    @Column(nullable = false)
     private UUID subscriptionPlanId;
-
-    @Column(nullable = false, unique = true)
     private String razorpayOrderId;
-
-    @Column(unique = true)
     private String razorpayPaymentId;
-
-    @Column(unique = true)
-    private String razorpaySignature;
-
-    @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Currency currency;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private PaymentStatus status;
-
-    @Column(nullable = false)
     private String receipt;
-
     private String failureReason;
-
     private LocalDateTime verifiedAt;
-
-    @Column(nullable = false)
     private LocalDateTime createdAt;
-
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    public Payment() {
+    public PaymentResponse() {
     }
 
-    @PrePersist
-    public void prePersist() {
+    public PaymentResponse(
+            UUID paymentId,
+            UUID userId,
+            UUID subscriptionPlanId,
+            String razorpayOrderId,
+            String razorpayPaymentId,
+            BigDecimal amount,
+            Currency currency,
+            PaymentStatus status,
+            String receipt,
+            String failureReason,
+            LocalDateTime verifiedAt,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt) {
 
-        paymentId = UUID.randomUUID();
-
-        createdAt = LocalDateTime.now();
-
-        updatedAt = LocalDateTime.now();
-
-        if (status == null) {
-            status = PaymentStatus.CREATED;
-        }
-
-        if (currency == null) {
-            currency = Currency.INR;
-        }
-
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = LocalDateTime.now();
+        this.paymentId = paymentId;
+        this.userId = userId;
+        this.subscriptionPlanId = subscriptionPlanId;
+        this.razorpayOrderId = razorpayOrderId;
+        this.razorpayPaymentId = razorpayPaymentId;
+        this.amount = amount;
+        this.currency = currency;
+        this.status = status;
+        this.receipt = receipt;
+        this.failureReason = failureReason;
+        this.verifiedAt = verifiedAt;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public UUID getPaymentId() {
@@ -127,14 +94,6 @@ public class Payment {
 
     public void setRazorpayPaymentId(String razorpayPaymentId) {
         this.razorpayPaymentId = razorpayPaymentId;
-    }
-
-    public String getRazorpaySignature() {
-        return razorpaySignature;
-    }
-
-    public void setRazorpaySignature(String razorpaySignature) {
-        this.razorpaySignature = razorpaySignature;
     }
 
     public BigDecimal getAmount() {
@@ -200,5 +159,4 @@ public class Payment {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
-
 }

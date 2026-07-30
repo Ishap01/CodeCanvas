@@ -1,51 +1,81 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="
+         http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
 	<modelVersion>4.0.0</modelVersion>
+
+	<!--
+        Spring Boot parent manages compatible versions of
+        Spring Framework, Hibernate, Jackson, PostgreSQL driver,
+        Spring Security and testing libraries.
+    -->
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>4.1.0</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
+
 	<groupId>com.codecanvas</groupId>
 	<artifactId>payment-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
+
+	<name>payment-service</name>
+
+	<description>
+		Razorpay-based payment microservice for CodeCanvas premium subscriptions
+	</description>
+
 	<properties>
+
+		<!-- Project Java version -->
 		<java.version>21</java.version>
+
+		<!-- Spring Cloud manages Eureka and OpenFeign versions -->
 		<spring-cloud.version>2025.1.2</spring-cloud.version>
+
+		<!-- Official Razorpay Java SDK -->
+		<razorpay-java.version>1.4.10</razorpay-java.version>
+
+		<!-- OpenAPI and Swagger UI compatible with Spring Boot 4 -->
+		<springdoc-openapi.version>3.0.3</springdoc-openapi.version>
+
+		<!-- Preserve Java parameter names for reflection and OpenAPI -->
+		<maven.compiler.parameters>true</maven.compiler.parameters>
+
 	</properties>
+
 	<dependencies>
+
+		<!-- ========================================================= -->
+		<!-- REST API                                                   -->
+		<!-- ========================================================= -->
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
+			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+
+		<!-- ========================================================= -->
+		<!-- VALIDATION                                                 -->
+		<!-- ========================================================= -->
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
+
+		<!-- ========================================================= -->
+		<!-- DATABASE AND JPA                                           -->
+		<!-- ========================================================= -->
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webmvc</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 
 		<dependency>
@@ -53,29 +83,113 @@
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa-test</artifactId>
-			<scope>test</scope>
-		</dependency>
+
+		<!-- ========================================================= -->
+		<!-- SECURITY AND JWT VALIDATION                                -->
+		<!-- ========================================================= -->
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-validation-test</artifactId>
-			<scope>test</scope>
+			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
+
+		<!--
+            Payment Service does not generate JWT tokens.
+
+            This dependency will later allow the service to validate
+            JWT tokens received through the API Gateway.
+        -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+		</dependency>
+
+		<!-- ========================================================= -->
+		<!-- SERVICE DISCOVERY                                          -->
+		<!-- ========================================================= -->
+
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+		</dependency>
+
+		<!-- ========================================================= -->
+		<!-- INTER-SERVICE COMMUNICATION                                -->
+		<!-- ========================================================= -->
+
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-openfeign</artifactId>
+		</dependency>
+
+		<!-- ========================================================= -->
+		<!-- RAZORPAY                                                   -->
+		<!-- ========================================================= -->
+
+		<dependency>
+			<groupId>com.razorpay</groupId>
+			<artifactId>razorpay-java</artifactId>
+			<version>${razorpay-java.version}</version>
+		</dependency>
+
+		<!-- ========================================================= -->
+		<!-- MONITORING                                                 -->
+		<!-- ========================================================= -->
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
+		<!-- ========================================================= -->
+		<!-- API DOCUMENTATION                                          -->
+		<!-- ========================================================= -->
+
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>${springdoc-openapi.version}</version>
+		</dependency>
+
+		<!-- ========================================================= -->
+		<!-- TESTING                                                    -->
+		<!-- ========================================================= -->
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Integration tests using a real PostgreSQL Docker container -->
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
+
+	<!--
+        Spring Cloud BOM keeps Eureka and OpenFeign dependencies
+        on mutually compatible versions.
+    -->
 	<dependencyManagement>
+
 		<dependencies>
+
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-dependencies</artifactId>
@@ -83,60 +197,34 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
+
 		</dependencies>
+
 	</dependencyManagement>
 
 	<build>
+
 		<plugins>
+
+			<!-- Creates an executable Spring Boot JAR -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<excludes>
-						<exclude>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</exclude>
-					</excludes>
-				</configuration>
 			</plugin>
+
+			<!-- Compiles the project using Java 21 -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>default-compile</id>
-						<phase>compile</phase>
-						<goals>
-							<goal>compile</goal>
-						</goals>
-						<configuration>
-							<annotationProcessorPaths>
-								<path>
-									<groupId>org.projectlombok</groupId>
-									<artifactId>lombok</artifactId>
-								</path>
-							</annotationProcessorPaths>
-						</configuration>
-					</execution>
-					<execution>
-						<id>default-testCompile</id>
-						<phase>test-compile</phase>
-						<goals>
-							<goal>testCompile</goal>
-						</goals>
-						<configuration>
-							<annotationProcessorPaths>
-								<path>
-									<groupId>org.projectlombok</groupId>
-									<artifactId>lombok</artifactId>
-								</path>
-							</annotationProcessorPaths>
-						</configuration>
-					</execution>
-				</executions>
+
+				<configuration>
+					<release>${java.version}</release>
+					<parameters>true</parameters>
+				</configuration>
 			</plugin>
+
 		</plugins>
+
 	</build>
 
 </project>
