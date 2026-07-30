@@ -47,6 +47,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Object>> handleException(
             Exception ex) {
 
+        ex.printStackTrace();   // <-- Add this line
+
         return ResponseEntity.internalServerError()
                 .body(
                         ApiResponse.builder()
