@@ -12,6 +12,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(
@@ -26,6 +30,10 @@ import jakarta.persistence.UniqueConstraint;
                 )
         }
 )
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class SnippetTag {
 
     @Id
@@ -53,38 +61,11 @@ public class SnippetTag {
     )
     private Tag tag;
 
-    public SnippetTag() {
-    }
-
     public SnippetTag(
             Snippet snippet,
             Tag tag) {
 
         this.snippet = snippet;
-        this.tag = tag;
-    }
-
-    public UUID getSnippetTagId() {
-        return snippetTagId;
-    }
-
-    public void setSnippetTagId(UUID snippetTagId) {
-        this.snippetTagId = snippetTagId;
-    }
-
-    public Snippet getSnippet() {
-        return snippet;
-    }
-
-    public void setSnippet(Snippet snippet) {
-        this.snippet = snippet;
-    }
-
-    public Tag getTag() {
-        return tag;
-    }
-
-    public void setTag(Tag tag) {
         this.tag = tag;
     }
 }

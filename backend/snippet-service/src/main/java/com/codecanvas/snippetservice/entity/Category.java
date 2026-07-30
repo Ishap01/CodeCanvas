@@ -10,9 +10,17 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "categories")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Category {
 
     @Id
@@ -26,44 +34,7 @@ public class Category {
     @OneToMany(mappedBy = "category")
     private List<Snippet> snippets = new ArrayList<>();
 
-    public Category() {
-    }
-
-    public Category(
-            UUID categoryId,
-            String categoryName,
-            List<Snippet> snippets) {
-
-        this.categoryId = categoryId;
-        this.categoryName = categoryName;
-        this.snippets = snippets;
-    }
-
     public Category(String categoryName) {
         this.categoryName = categoryName;
-    }
-
-    public UUID getCategoryId() {
-        return categoryId;
-    }
-
-    public void setCategoryId(UUID categoryId) {
-        this.categoryId = categoryId;
-    }
-
-    public String getCategoryName() {
-        return categoryName;
-    }
-
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
-    }
-
-    public List<Snippet> getSnippets() {
-        return snippets;
-    }
-
-    public void setSnippets(List<Snippet> snippets) {
-        this.snippets = snippets;
     }
 }
