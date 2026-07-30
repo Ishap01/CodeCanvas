@@ -57,17 +57,13 @@ public class JwtServiceImpl implements JwtService {
 
         return Jwts.builder()
 
-                /*
-                 * Snippet Service isi claim se UUID nikalegi.
-                 */
+
                 .claim(
                         "userId",
                         user.getUserId().toString()
                 )
 
-                /*
-                 * Subject email rahega.
-                 */
+
                 .subject(user.getEmail())
 
                 .issuedAt(new Date())
