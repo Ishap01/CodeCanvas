@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,76 +26,65 @@ public class DataLoader implements CommandLineRunner {
 
         List<SearchDocument> documents = List.of(
 
-                SearchDocument.builder()
-                        .snippetId(UUID.randomUUID())
-                        .title("JWT Authentication")
-                        .description("Spring Boot JWT Authentication Example")
-                        .language("Java")
-                        .framework("Spring Boot")
-                        .category("Security")
-                        .tags(List.of("jwt", "security", "authentication"))
-                        .likes(320L)
-                        .views(1250L)
-                        .forks(0L)
-                        .previewImageUrl("/images/jwt.png")
-                        .build(),
+                createDocument(
+                        "JWT Authentication",
+                        "Spring Boot JWT Authentication Example",
+                        "Java",
+                        "Spring Boot",
+                        "Security",
+                        List.of("jwt", "security", "authentication"),
+                        320L,
+                        1250L,
+                        "/images/jwt.png"
+                ),
 
-                SearchDocument.builder()
-                        .snippetId(UUID.randomUUID())
-                        .title("Spring Security OAuth2")
-                        .description("OAuth2 Login using Spring Security")
-                        .language("Java")
-                        .framework("Spring Boot")
-                        .category("Security")
-                        .tags(List.of("oauth2", "security"))
-                        .likes(980L)
-                        .views(5400L)
-                        .forks(0L)
-                        .previewImageUrl("/images/oauth2.png")
-                        .build(),
+                createDocument(
+                        "Spring Security OAuth2",
+                        "OAuth2 Login using Spring Security",
+                        "Java",
+                        "Spring Boot",
+                        "Security",
+                        List.of("oauth2", "security"),
+                        980L,
+                        5400L,
+                        "/images/oauth2.png"
+                ),
 
-                SearchDocument.builder()
-                        .snippetId(UUID.randomUUID())
-                        .title("Spring Data JPA CRUD")
-                        .description("CRUD Operations using Spring Data JPA")
-                        .language("Java")
-                        .framework("Spring Boot")
-                        .category("Database")
-                        .tags(List.of("jpa", "crud", "mysql"))
-                        .likes(180L)
-                        .views(950L)
-                        .forks(0L)
-                        .previewImageUrl("/images/jpa.png")
-                        .build(),
+                createDocument(
+                        "Spring Data JPA CRUD",
+                        "CRUD Operations using Spring Data JPA",
+                        "Java",
+                        "Spring Boot",
+                        "Database",
+                        List.of("jpa", "crud", "mysql"),
+                        180L,
+                        950L,
+                        "/images/jpa.png"
+                ),
 
-                SearchDocument.builder()
-                        .snippetId(UUID.randomUUID())
-                        .title("Spring Boot REST API")
-                        .description("Build REST APIs using Spring Boot")
-                        .language("Java")
-                        .framework("Spring Boot")
-                        .category("REST API")
-                        .tags(List.of("rest", "api", "json"))
-                        .likes(420L)
-                        .views(3100L)
-                        .forks(0L)
-                        .previewImageUrl("/images/rest.png")
-                        .build(),
+                createDocument(
+                        "Spring Boot REST API",
+                        "Build REST APIs using Spring Boot",
+                        "Java",
+                        "Spring Boot",
+                        "REST API",
+                        List.of("rest", "api", "json"),
+                        420L,
+                        3100L,
+                        "/images/rest.png"
+                ),
 
-                SearchDocument.builder()
-                        .snippetId(UUID.randomUUID())
-                        .title("Spring Boot Microservices")
-                        .description("Microservices using Spring Cloud")
-                        .language("Java")
-                        .framework("Spring Boot")
-                        .category("Microservices")
-                        .tags(List.of("microservices", "eureka", "gateway"))
-                        .likes(760L)
-                        .views(4700L)
-                        .forks(0L)
-                        .previewImageUrl("/images/microservice.png")
-                        .build()
-
+                createDocument(
+                        "Spring Boot Microservices",
+                        "Microservices using Spring Cloud",
+                        "Java",
+                        "Spring Boot",
+                        "Microservices",
+                        List.of("microservices", "eureka", "gateway"),
+                        760L,
+                        4700L,
+                        "/images/microservice.png"
+                )
         );
 
         repository.saveAll(documents);
@@ -102,5 +92,37 @@ public class DataLoader implements CommandLineRunner {
         System.out.println("----------------------------------------");
         System.out.println("5 Sample Documents Inserted Successfully");
         System.out.println("----------------------------------------");
+    }
+
+    private SearchDocument createDocument(
+            String title,
+            String description,
+            String language,
+            String framework,
+            String category,
+            List<String> tags,
+            Long likes,
+            Long views,
+            String previewImageUrl
+    ) {
+
+        UUID snippetId = UUID.randomUUID();
+
+        return SearchDocument.builder()
+                .id(snippetId.toString())
+                .snippetId(snippetId)
+                .title(title)
+                .description(description)
+                .language(language)
+                .framework(framework)
+                .category(category)
+                .tags(tags)
+                .likes(likes)
+                .views(views)
+                .bookmarks(0L)
+                .forks(0L)
+                .createdAt(LocalDateTime.now())
+                .previewImageUrl(previewImageUrl)
+                .build();
     }
 }

@@ -104,7 +104,6 @@ public class SecurityConfig {
                                 HttpMethod.GET,
                                 "/api/snippets/*"
                         ).permitAll()
-
                         /*
                          * Create, update, delete aur user snippets
                          * ke liye valid JWT required hai.
@@ -112,7 +111,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/snippets/**"
-                        ).permitAll()
+                        ).authenticated()
 
                         .requestMatchers(
                                 HttpMethod.PUT,

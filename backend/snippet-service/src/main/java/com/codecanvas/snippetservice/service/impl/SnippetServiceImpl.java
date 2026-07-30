@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.time.LocalDateTime;
 
+import com.codecanvas.snippetservice.service.SearchIndexService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,11 +47,7 @@ public class SnippetServiceImpl implements SnippetService {
     private final TagRepository tagRepository;
     private final SnippetMapper snippetMapper;
     private final CloudinaryService cloudinaryService;
-    private final SearchServiceClient searchServiceClient;
-    private Long bookmarks;
-    private Long forks;
-    private LocalDateTime createdAt;
-
+    private final SearchIndexService searchIndexService;
 
     @Override
     public SnippetResponse createSnippet(
@@ -109,7 +106,7 @@ public class SnippetServiceImpl implements SnippetService {
         Snippet savedSnippet =
                 snippetRepository.save(snippet);
 
-        searchServiceClient.indexSnippet(buildIndexRequest(savedSnippet));
+        searchIndexService.indexSnippet(savedSnippet);
 
         return snippetMapper.toResponse(savedSnippet);
     }
@@ -239,8 +236,7 @@ public class SnippetServiceImpl implements SnippetService {
         Snippet updatedSnippet =
                 snippetRepository.save(snippet);
 
-        searchServiceClient.indexSnippet(buildIndexRequest(updatedSnippet));
-
+        searchIndexService.indexSnippet(updatedSnippet);
         return snippetMapper.toResponse(updatedSnippet);
     }
 
@@ -312,7 +308,7 @@ public class SnippetServiceImpl implements SnippetService {
             Snippet updatedSnippet =
                     snippetRepository.save(snippet);
 
-            searchServiceClient.indexSnippet(buildIndexRequest(updatedSnippet));
+            searchIndexService.indexSnippet(updatedSnippet);
 
             /*
              * New image and database update successful hone ke baad
@@ -380,7 +376,7 @@ public class SnippetServiceImpl implements SnippetService {
 
             Snippet updatedSnippet = snippetRepository.save(snippet);
 
-            searchServiceClient.indexSnippet(buildIndexRequest(updatedSnippet));
+            searchIndexService.indexSnippet(updatedSnippet);
 
             return new ApiResponse(
                     true,
@@ -399,7 +395,10 @@ public class SnippetServiceImpl implements SnippetService {
         snippet.setPreviewImageUrl(null);
         snippet.setPreviewImagePublicId(null);
 
-        snippetRepository.save(snippet);
+        Snippet updatedSnippet =
+                snippetRepository.save(snippet);
+
+        searchIndexService.indexSnippet(updatedSnippet);
 
         return new ApiResponse(
                 true,
@@ -430,7 +429,7 @@ public class SnippetServiceImpl implements SnippetService {
 
         snippetRepository.save(snippet);
 
-        searchServiceClient.deleteSnippet(snippetId);
+        searchIndexService.deleteSnippet(snippetId);
 
         return new ApiResponse(
                 true,
@@ -828,29 +827,5 @@ public class SnippetServiceImpl implements SnippetService {
         }
 
         return value.trim();
-    }
-    private IndexSnippetRequest buildIndexRequest(Snippet snippet) {
-
-        return IndexSnippetRequest.builder()
-                .snippetId(snippet.getSnippetId())
-                .title(snippet.getTitle())
-                .description(snippet.getDescription())
-                .language(snippet.getLanguage())
-                .framework(snippet.getFramework())
-                .category(snippet.getCategory().getCategoryName())
-                .tags(
-                        snippet.getSnippetTags()
-                                .stream()
-                                .map(snippetTag ->
-                                        snippetTag.getTag().getTagName())
-                                .toList()
-                )
-                .likes(snippet.getLikeCount())
-                .views(snippet.getViewCount())
-                .bookmarks(snippet.getBookmarkCount())
-                .forks(snippet.getForkCount())
-                .createdAt(snippet.getCreatedAt())
-                .previewImageUrl(snippet.getPreviewImageUrl())
-                .build();
     }
     }
