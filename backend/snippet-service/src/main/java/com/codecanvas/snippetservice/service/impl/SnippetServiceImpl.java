@@ -9,7 +9,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.time.LocalDateTime;
 
+import com.codecanvas.snippetservice.repository.SnippetViewRepository;
 import com.codecanvas.snippetservice.service.SearchIndexService;
+import com.codecanvas.snippetservice.service.ViewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +50,9 @@ public class SnippetServiceImpl implements SnippetService {
     private final SnippetMapper snippetMapper;
     private final CloudinaryService cloudinaryService;
     private final SearchIndexService searchIndexService;
+    private final SnippetViewRepository snippetViewRepository;
+    private final ViewService viewService;
+
 
     @Override
     public SnippetResponse createSnippet(
@@ -112,7 +117,7 @@ public class SnippetServiceImpl implements SnippetService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public SnippetResponse getSnippetById(
             UUID snippetId,
             UUID currentUserId) {
@@ -131,10 +136,16 @@ public class SnippetServiceImpl implements SnippetService {
                         == Visibility.PUBLIC;
 
         if (!owner && !publiclyVisible) {
+            System.out.println("Visibility = " + snippet.getVisibility());
             throw new UnauthorizedActionException(
                     "You are not allowed to view this private snippet"
             );
         }
+
+        viewService.recordView(
+                snippet,
+                currentUserId
+        );
 
         return snippetMapper.toResponse(snippet);
     }
@@ -802,6 +813,8 @@ public class SnippetServiceImpl implements SnippetService {
         return responses;
     }
 
+
+
     private String normalizeRequiredText(
             String value,
             String errorMessage) {
@@ -828,4 +841,7 @@ public class SnippetServiceImpl implements SnippetService {
 
         return value.trim();
     }
-    }
+
+
+
+}

@@ -29,6 +29,11 @@ public interface BookmarkRepository
             UUID userId
     );
 
+    List<Bookmark> findByUserId(
+            UUID userId
+    );
 
-    List<Bookmark> findByUserIdOrderByBookmarkedAtDesc(UUID userId);
+    List<Bookmark> findByUserIdOrderByBookmarkedAtDesc(
+            UUID userId
+    );
 }

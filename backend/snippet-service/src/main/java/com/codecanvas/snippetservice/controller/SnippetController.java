@@ -123,16 +123,14 @@ public class SnippetController {
      * Owner ka valid token required.
      */
     @GetMapping("/{snippetId}")
-    public ResponseEntity<SnippetResponse>
-    getSnippetById(
-            @PathVariable
-            UUID snippetId,
+    public ResponseEntity<SnippetResponse> getSnippetById(
+            @PathVariable UUID snippetId,
             Authentication authentication) {
 
+        System.out.println("INSIDE CONTROLLER");
+
         UUID currentUserId =
-                extractOptionalUserId(
-                        authentication
-                );
+                extractOptionalUserId(authentication);
 
         SnippetResponse response =
                 snippetService.getSnippetById(
