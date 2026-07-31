@@ -16,6 +16,7 @@ public class SnippetResponse {
     private String language;
     private String framework;
 
+
     /*
      * URL sent to frontend for displaying
      * the preview image.
@@ -42,6 +43,7 @@ public class SnippetResponse {
     private long likeCount;
     private long bookmarkCount;
     private long forkCount;
+    private long commentCount;
     private UUID parentSnippetId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -68,6 +70,7 @@ public class SnippetResponse {
             long likeCount,
             long bookmarkCount,
             long forkCount,
+            long commentCount,
             UUID parentSnippetId,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
@@ -93,6 +96,7 @@ public class SnippetResponse {
         this.bookmarkCount =
                 bookmarkCount;
         this.forkCount = forkCount;
+        this.commentCount = commentCount;
         this.parentSnippetId =
                 parentSnippetId;
         this.createdAt = createdAt;
@@ -283,6 +287,11 @@ public class SnippetResponse {
         this.forkCount = forkCount;
     }
 
+
+    public long getCommentCount() {
+        return commentCount;
+    }
+
     public UUID getParentSnippetId() {
         return parentSnippetId;
     }
@@ -312,5 +321,9 @@ public class SnippetResponse {
             LocalDateTime updatedAt) {
 
         this.updatedAt = updatedAt;
+    }
+
+    public void setCommentCount(long commentCount) {
+        this.commentCount = commentCount;
     }
 }
