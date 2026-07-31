@@ -75,8 +75,8 @@ public class Payment {
     private PaymentStatus paymentStatus = PaymentStatus.CREATED;
 
     /**
-     //     * Refund status.
-     //     */
+//     * Refund status.
+//     */
 //    @Enumerated(EnumType.STRING)
 //    @Column(name = "refund_status", nullable = false)
 //    @Builder.Default
