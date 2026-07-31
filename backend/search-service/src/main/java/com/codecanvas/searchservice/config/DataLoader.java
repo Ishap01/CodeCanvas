@@ -10,7 +10,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-@Component
+
+// Disabled because snippets are now indexed from Snippet Service.
+// Remove this comment and enable @Component only for local testing.
+//@Component
 @RequiredArgsConstructor
 public class DataLoader implements CommandLineRunner {
 

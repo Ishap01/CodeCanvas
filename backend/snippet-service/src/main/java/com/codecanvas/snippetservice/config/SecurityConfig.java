@@ -79,6 +79,8 @@ public class SecurityConfig {
                         /*
                          * Browser preflight request.
                          */
+
+
                         .requestMatchers(
                                 HttpMethod.OPTIONS,
                                 "/**"
@@ -125,6 +127,29 @@ public class SecurityConfig {
 
                         .requestMatchers(
                                 "/api/snippets/user/**"
+                        ).authenticated()
+
+
+
+
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/comments/**"
+                        ).authenticated()
+
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/comments/**"
+                        ).authenticated()
+
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/api/comments/**"
+                        ).authenticated()
+
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/comments/**"
                         ).authenticated()
 
                         /*

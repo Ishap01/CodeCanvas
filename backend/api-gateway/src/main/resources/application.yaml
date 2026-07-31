@@ -36,6 +36,12 @@ spring:
               predicates:
                 - Path=/api/snippets/**
 
+
+            - id: snippet-service-comments
+              uri: lb://SNIPPET-SERVICE
+              predicates:
+                - Path=/api/comments/**
+
             - id: search-service
               uri: lb://SEARCH-SERVICE
               predicates:
