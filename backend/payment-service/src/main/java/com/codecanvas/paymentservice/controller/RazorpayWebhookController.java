@@ -32,7 +32,7 @@ public class RazorpayWebhookController {
     }
 
     @PostMapping("/razorpay")
-    public ResponseEntity<ApiResponse> processRazorpayWebhook(
+    public ResponseEntity<ApiResponse<Void>> processRazorpayWebhook(
             @RequestBody String rawPayload,
             @RequestHeader(RAZORPAY_SIGNATURE_HEADER)
             String webhookSignature,
@@ -45,14 +45,12 @@ public class RazorpayWebhookController {
                 razorpayEventId
         );
 
-        ApiResponse response = new ApiResponse(
-                true,
-                "Razorpay webhook processed successfully",
-                LocalDateTime.now()
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("Razorpay webhook processed successfully.")
+                        .data(null)
+                        .build()
         );
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(response);
     }
 }

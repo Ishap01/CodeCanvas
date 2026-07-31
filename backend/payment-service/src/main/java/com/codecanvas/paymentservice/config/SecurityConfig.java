@@ -1,37 +1,24 @@
 package com.codecanvas.paymentservice.config;
 
-import java.nio.charset.StandardCharsets;
-
-import javax.crypto.SecretKey;
-
-import org.springframework.beans.factory.annotation.Value;
+import com.codecanvas.paymentservice.security.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
-
-import io.jsonwebtoken.security.Keys;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final String jwtSecret;
-
-    public SecurityConfig(
-            @Value("${jwt.secret}")
-            String jwtSecret) {
-
-        this.jwtSecret = jwtSecret;
-    }
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http)
+    public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
 
         http
@@ -45,60 +32,25 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        .requestMatchers(
-                                "/api/payments/webhooks/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/v3/api-docs/**",
-                                "/actuator/health"
-                        )
+                        // Razorpay webhook endpoint
+                        .requestMatchers("/api/payments/webhooks/**")
                         .permitAll()
 
+                        // Actuator
+                        .requestMatchers("/actuator/**")
+                        .permitAll()
+
+                        // All other APIs require JWT
                         .anyRequest()
                         .authenticated()
                 )
 
-                .oauth2ResourceServer(oauth2 ->
-                        oauth2.jwt(
-                                Customizer.withDefaults()
-                        )
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
                 );
 
         return http.build();
     }
 
-    @Bean
-    public JwtDecoder jwtDecoder() {
-
-        if (jwtSecret == null
-                || jwtSecret.isBlank()) {
-
-            throw new IllegalStateException(
-                    "JWT secret is not configured"
-            );
-        }
-
-        byte[] secretBytes =
-                jwtSecret.getBytes(
-                        StandardCharsets.UTF_8
-                );
-
-        if (secretBytes.length < 32) {
-            throw new IllegalStateException(
-                    "JWT secret must contain at least 32 bytes"
-            );
-        }
-
-        SecretKey secretKey =
-                Keys.hmacShaKeyFor(
-                        secretBytes
-                );
-
-        return NimbusJwtDecoder
-                .withSecretKey(secretKey)
-                .macAlgorithm(
-                        MacAlgorithm.HS256
-                )
-                .build();
-    }
 }

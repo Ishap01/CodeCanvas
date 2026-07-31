@@ -1,15 +1,13 @@
 package com.codecanvas.paymentservice.service;
 
-import com.codecanvas.paymentservice.dto.request.CreateRefundRequest;
 import com.razorpay.Order;
-import com.razorpay.Refund;
 import com.razorpay.RazorpayException;
 
 public interface RazorpayService {
 
     Order createOrder(
             String receipt,
-            Long amountInPaise
+            long amountInPaise
     ) throws RazorpayException;
 
     boolean verifyPaymentSignature(
@@ -18,14 +16,8 @@ public interface RazorpayService {
             String razorpaySignature
     );
 
-    Refund createRefund(
-            String razorpayPaymentId,
-            CreateRefundRequest request
-    ) throws RazorpayException;
-
     boolean verifyWebhookSignature(
             String payload,
             String webhookSignature
     );
-
 }

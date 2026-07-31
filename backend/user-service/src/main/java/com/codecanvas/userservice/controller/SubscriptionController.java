@@ -143,6 +143,7 @@ public class SubscriptionController {
     public ResponseEntity<UsageStatusResponse> checkUsageStatus(
             @PathVariable String metricName) {
 
+
         UUID currentUserId = subscriptionService.getCurrentAuthenticatedUserId();
 
         return ResponseEntity.ok(UsageStatusResponse.builder()
@@ -151,5 +152,13 @@ public class SubscriptionController {
                 .remainingUsage(subscriptionService.getRemainingUsage(currentUserId, metricName))
                 .build()
         );
+    }
+    @GetMapping("/plans/{planId}")
+    public ResponseEntity<SubscriptionPlanDTO> getPlanById(
+            @PathVariable Long planId) {
+
+        return subscriptionService.getPlanById(planId)
+                .map(plan -> ResponseEntity.ok(SubscriptionPlanDTO.from(plan)))
+                .orElse(ResponseEntity.notFound().build());
     }
 }

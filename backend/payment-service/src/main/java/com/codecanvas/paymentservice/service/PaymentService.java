@@ -1,32 +1,20 @@
 package com.codecanvas.paymentservice.service;
 
+import com.codecanvas.paymentservice.dto.request.CreateOrderRequest;
+import com.codecanvas.paymentservice.dto.request.VerifyPaymentRequest;
+import com.codecanvas.paymentservice.dto.response.PaymentResponse;
+import com.codecanvas.paymentservice.dto.response.RazorpayOrderResponse;
+
 import java.util.List;
 import java.util.UUID;
 
-import com.codecanvas.paymentservice.dto.request.CreatePaymentOrderRequest;
-import com.codecanvas.paymentservice.dto.request.VerifyPaymentRequest;
-import com.codecanvas.paymentservice.dto.response.PaymentOrderResponse;
-import com.codecanvas.paymentservice.dto.response.PaymentResponse;
-import com.codecanvas.paymentservice.dto.response.PaymentVerificationResponse;
-
 public interface PaymentService {
 
-    PaymentOrderResponse createPaymentOrder(
-            UUID userId,
-            CreatePaymentOrderRequest request
-    );
+    RazorpayOrderResponse createOrder(CreateOrderRequest request);
 
-    PaymentVerificationResponse verifyPayment(
-            UUID userId,
-            VerifyPaymentRequest request
-    );
+    PaymentResponse verifyPayment(VerifyPaymentRequest request);
 
-    PaymentResponse getPaymentById(
-            UUID paymentId
-    );
+    PaymentResponse getPaymentById(UUID paymentId);
 
-    List<PaymentResponse> getUserPayments(
-            UUID userId
-    );
-
+    List<PaymentResponse> getMyPayments();
 }

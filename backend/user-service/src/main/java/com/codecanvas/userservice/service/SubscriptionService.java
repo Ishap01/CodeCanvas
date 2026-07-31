@@ -40,4 +40,6 @@ public interface SubscriptionService {
     List<SubscriptionHistory> getSubscriptionHistory(UUID userId);
 
     UUID getCurrentAuthenticatedUserId();
+
+    Optional<SubscriptionPlan> getPlanById(Long planId);
 }

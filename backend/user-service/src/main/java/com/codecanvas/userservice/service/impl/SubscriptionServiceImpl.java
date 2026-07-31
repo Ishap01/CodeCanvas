@@ -281,6 +281,12 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     @Override
     @Transactional(readOnly = true)
+    public Optional<SubscriptionPlan> getPlanById(Long planId) {
+        return planRepository.findById(planId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public UUID getCurrentAuthenticatedUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {

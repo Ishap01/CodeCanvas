@@ -1,116 +1,101 @@
 package com.codecanvas.paymentservice.controller;
 
+import com.codecanvas.paymentservice.dto.request.CreateOrderRequest;
+import com.codecanvas.paymentservice.dto.request.VerifyPaymentRequest;
+import com.codecanvas.paymentservice.dto.response.ApiResponse;
+import com.codecanvas.paymentservice.dto.response.PaymentResponse;
+import com.codecanvas.paymentservice.dto.response.RazorpayOrderResponse;
+import com.codecanvas.paymentservice.service.PaymentService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.codecanvas.paymentservice.dto.request.CreatePaymentOrderRequest;
-import com.codecanvas.paymentservice.dto.request.VerifyPaymentRequest;
-import com.codecanvas.paymentservice.dto.response.PaymentOrderResponse;
-import com.codecanvas.paymentservice.dto.response.PaymentResponse;
-import com.codecanvas.paymentservice.dto.response.PaymentVerificationResponse;
-import com.codecanvas.paymentservice.service.PaymentService;
-import com.codecanvas.paymentservice.util.AuthenticatedUserExtractor;
-
-import jakarta.validation.Valid;
-
 @RestController
 @RequestMapping("/api/payments")
+@RequiredArgsConstructor
 public class PaymentController {
 
     private final PaymentService paymentService;
-    private final AuthenticatedUserExtractor authenticatedUserExtractor;
 
-    public PaymentController(
-            PaymentService paymentService,
-            AuthenticatedUserExtractor authenticatedUserExtractor) {
+    /**
+     * Create Razorpay Order
+     */
+    @PostMapping("/create-order")
+    public ResponseEntity<ApiResponse<RazorpayOrderResponse>> createOrder(
+            @Valid @RequestBody CreateOrderRequest request) {
 
-        this.paymentService = paymentService;
-        this.authenticatedUserExtractor =
-                authenticatedUserExtractor;
-    }
+        RazorpayOrderResponse response =
+                paymentService.createOrder(request);
 
-    @PostMapping("/order")
-    public ResponseEntity<PaymentOrderResponse> createPaymentOrder(
-            @AuthenticationPrincipal Jwt jwt,
-            @Valid @RequestBody
-            CreatePaymentOrderRequest request) {
-
-        UUID userId =
-                authenticatedUserExtractor.extractUserId(jwt);
-
-        PaymentOrderResponse response =
-                paymentService.createPaymentOrder(
-                        userId,
-                        request
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(
+                        ApiResponse.<RazorpayOrderResponse>builder()
+                                .success(true)
+                                .message("Razorpay order created successfully.")
+                                .data(response)
+                                .build()
                 );
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(response);
     }
 
+    /**
+     * Verify Razorpay Payment
+     */
     @PostMapping("/verify")
-    public ResponseEntity<PaymentVerificationResponse> verifyPayment(
-            @AuthenticationPrincipal Jwt jwt,
-            @Valid @RequestBody
-            VerifyPaymentRequest request) {
+    public ResponseEntity<ApiResponse<PaymentResponse>> verifyPayment(
+            @Valid @RequestBody VerifyPaymentRequest request) {
 
-        UUID userId =
-                authenticatedUserExtractor.extractUserId(jwt);
+        PaymentResponse response =
+                paymentService.verifyPayment(request);
 
-        PaymentVerificationResponse response =
-                paymentService.verifyPayment(
-                        userId,
-                        request
-                );
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                ApiResponse.<PaymentResponse>builder()
+                        .success(true)
+                        .message("Payment verified successfully.")
+                        .data(response)
+                        .build()
+        );
     }
 
+    /**
+     * Get Payment By ID
+     */
     @GetMapping("/{paymentId}")
-    public ResponseEntity<PaymentResponse> getPaymentById(
-            @AuthenticationPrincipal Jwt jwt,
+    public ResponseEntity<ApiResponse<PaymentResponse>> getPaymentById(
             @PathVariable UUID paymentId) {
-
-        UUID authenticatedUserId =
-                authenticatedUserExtractor.extractUserId(jwt);
 
         PaymentResponse response =
                 paymentService.getPaymentById(paymentId);
 
-        if (!authenticatedUserId.equals(
-                response.getUserId())) {
-
-            throw new com.codecanvas.paymentservice.exception
-                    .UnauthorizedActionException(
-                    "You are not allowed to access this payment"
-            );
-        }
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                ApiResponse.<PaymentResponse>builder()
+                        .success(true)
+                        .message("Payment fetched successfully.")
+                        .data(response)
+                        .build()
+        );
     }
 
-    @GetMapping("/my")
-    public ResponseEntity<List<PaymentResponse>> getMyPayments(
-            @AuthenticationPrincipal Jwt jwt) {
+    /**
+     * Get Logged-in User Payment History
+     */
+    @GetMapping("/history")
+    public ResponseEntity<ApiResponse<List<PaymentResponse>>> getMyPayments() {
 
-        UUID userId =
-                authenticatedUserExtractor.extractUserId(jwt);
+        List<PaymentResponse> response =
+                paymentService.getMyPayments();
 
-        List<PaymentResponse> responses =
-                paymentService.getUserPayments(userId);
-
-        return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(
+                ApiResponse.<List<PaymentResponse>>builder()
+                        .success(true)
+                        .message("Payment history fetched successfully.")
+                        .data(response)
+                        .build()
+        );
     }
+
 }

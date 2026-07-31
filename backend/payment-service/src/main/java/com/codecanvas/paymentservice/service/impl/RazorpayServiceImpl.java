@@ -1,34 +1,26 @@
 package com.codecanvas.paymentservice.service.impl;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-
-import org.json.JSONObject;
-import org.springframework.stereotype.Service;
-
-import com.codecanvas.paymentservice.config.RazorpayConfig.RazorpayProperties;
-import com.codecanvas.paymentservice.dto.request.CreateRefundRequest;
 import com.codecanvas.paymentservice.service.RazorpayService;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
-import com.razorpay.Refund;
 import com.razorpay.Utils;
+import lombok.RequiredArgsConstructor;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 @Service
-public class RazorpayServiceImpl
-        implements RazorpayService {
+@RequiredArgsConstructor
+public class RazorpayServiceImpl implements RazorpayService {
 
     private final RazorpayClient razorpayClient;
-    private final RazorpayProperties razorpayProperties;
 
-    public RazorpayServiceImpl(
-            RazorpayClient razorpayClient,
-            RazorpayProperties razorpayProperties) {
+    @Value("${razorpay.key-secret}")
+    private String keySecret;
 
-        this.razorpayClient = razorpayClient;
-        this.razorpayProperties = razorpayProperties;
-    }
+    @Value("${razorpay.webhook-secret:}")
+    private String webhookSecret;
 
     @Override
     public Order createOrder(
@@ -37,38 +29,20 @@ public class RazorpayServiceImpl
             throws RazorpayException {
 
         if (receipt == null || receipt.isBlank()) {
-            throw new IllegalArgumentException(
-                    "Receipt is required"
-            );
+            throw new IllegalArgumentException("Receipt cannot be empty.");
         }
 
         if (amountInPaise <= 0) {
-            throw new IllegalArgumentException(
-                    "Payment amount must be greater than zero"
-            );
+            throw new IllegalArgumentException("Amount must be greater than zero.");
         }
 
-        JSONObject orderRequest =
-                new JSONObject();
+        JSONObject orderRequest = new JSONObject();
 
-        orderRequest.put(
-                "amount",
-                amountInPaise
-        );
+        orderRequest.put("amount", amountInPaise);
+        orderRequest.put("currency", "INR");
+        orderRequest.put("receipt", receipt);
 
-        orderRequest.put(
-                "currency",
-                "INR"
-        );
-
-        orderRequest.put(
-                "receipt",
-                receipt
-        );
-
-        return razorpayClient
-                .orders
-                .create(orderRequest);
+        return razorpayClient.orders.create(orderRequest);
     }
 
     @Override
@@ -77,111 +51,34 @@ public class RazorpayServiceImpl
             String razorpayPaymentId,
             String razorpaySignature) {
 
-        validatePaymentSignatureData(
-                razorpayOrderId,
-                razorpayPaymentId,
-                razorpaySignature
-        );
-
-        JSONObject signatureAttributes =
-                new JSONObject();
-
-        signatureAttributes.put(
-                "razorpay_order_id",
-                razorpayOrderId
-        );
-
-        signatureAttributes.put(
-                "razorpay_payment_id",
-                razorpayPaymentId
-        );
-
-        signatureAttributes.put(
-                "razorpay_signature",
-                razorpaySignature
-        );
-
-        try {
-            return Utils.verifyPaymentSignature(
-                    signatureAttributes,
-                    razorpayProperties.getKeySecret()
-            );
-
-        } catch (RazorpayException exception) {
+        if (razorpayOrderId == null || razorpayOrderId.isBlank()) {
             return false;
         }
-    }
 
-    @Override
-    public Refund createRefund(
-            String razorpayPaymentId,
-            CreateRefundRequest request)
-            throws RazorpayException {
-
-        if (razorpayPaymentId == null
-                || razorpayPaymentId.isBlank()) {
-
-            throw new IllegalArgumentException(
-                    "Razorpay payment ID is required"
-            );
+        if (razorpayPaymentId == null || razorpayPaymentId.isBlank()) {
+            return false;
         }
 
-        if (request == null) {
-            throw new IllegalArgumentException(
-                    "Refund request is required"
-            );
+        if (razorpaySignature == null || razorpaySignature.isBlank()) {
+            return false;
         }
 
-        if (request.getAmount() == null
-                || request.getAmount()
-                .compareTo(BigDecimal.ZERO) <= 0) {
+        JSONObject attributes = new JSONObject();
 
-            throw new IllegalArgumentException(
-                    "Refund amount must be greater than zero"
+        attributes.put("razorpay_order_id", razorpayOrderId);
+        attributes.put("razorpay_payment_id", razorpayPaymentId);
+        attributes.put("razorpay_signature", razorpaySignature);
+
+        try {
+
+            return Utils.verifyPaymentSignature(
+                    attributes,
+                    keySecret
             );
+
+        } catch (RazorpayException ex) {
+            return false;
         }
-
-        long amountInPaise =
-                convertRupeesToPaise(
-                        request.getAmount()
-                );
-
-        JSONObject refundRequest =
-                new JSONObject();
-
-        refundRequest.put(
-                "amount",
-                amountInPaise
-        );
-
-        refundRequest.put(
-                "speed",
-                "normal"
-        );
-
-        if (request.getReason() != null
-                && !request.getReason().isBlank()) {
-
-            JSONObject notes =
-                    new JSONObject();
-
-            notes.put(
-                    "reason",
-                    request.getReason()
-            );
-
-            refundRequest.put(
-                    "notes",
-                    notes
-            );
-        }
-
-        return razorpayClient
-                .payments
-                .refund(
-                        razorpayPaymentId,
-                        refundRequest
-                );
     }
 
     @Override
@@ -189,69 +86,28 @@ public class RazorpayServiceImpl
             String payload,
             String webhookSignature) {
 
-        if (payload == null
-                || payload.isBlank()) {
-
+        if (payload == null || payload.isBlank()) {
             return false;
         }
 
-        if (webhookSignature == null
-                || webhookSignature.isBlank()) {
+        if (webhookSignature == null || webhookSignature.isBlank()) {
+            return false;
+        }
 
+        if (webhookSecret == null || webhookSecret.isBlank()) {
             return false;
         }
 
         try {
+
             return Utils.verifyWebhookSignature(
                     payload,
                     webhookSignature,
-                    razorpayProperties.getWebhookSecret()
+                    webhookSecret
             );
 
-        } catch (RazorpayException exception) {
+        } catch (RazorpayException ex) {
             return false;
         }
-    }
-
-    private void validatePaymentSignatureData(
-            String razorpayOrderId,
-            String razorpayPaymentId,
-            String razorpaySignature) {
-
-        if (razorpayOrderId == null
-                || razorpayOrderId.isBlank()) {
-
-            throw new IllegalArgumentException(
-                    "Razorpay order ID is required"
-            );
-        }
-
-        if (razorpayPaymentId == null
-                || razorpayPaymentId.isBlank()) {
-
-            throw new IllegalArgumentException(
-                    "Razorpay payment ID is required"
-            );
-        }
-
-        if (razorpaySignature == null
-                || razorpaySignature.isBlank()) {
-
-            throw new IllegalArgumentException(
-                    "Razorpay signature is required"
-            );
-        }
-    }
-
-    private long convertRupeesToPaise(
-            BigDecimal amountInRupees) {
-
-        return amountInRupees
-                .setScale(
-                        2,
-                        RoundingMode.UNNECESSARY
-                )
-                .movePointRight(2)
-                .longValueExact();
     }
 }

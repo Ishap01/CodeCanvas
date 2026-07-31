@@ -2,6 +2,16 @@ package com.codecanvas.paymentservice.enums;
 
 public enum Currency {
 
-    INR
+    INR,
+
+    USD,
+
+    EUR,
+
+    GBP,
+
+    AED,
+
+    SGD
 
 }

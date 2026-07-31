@@ -235,7 +235,7 @@ public class WebhookServiceImpl implements WebhookService {
                                     razorpayPaymentId
                             );
 
-                            payment.setStatus(
+                            payment.setPaymentStatus(
                                     PaymentStatus.AUTHORIZED
                             );
 
@@ -279,14 +279,14 @@ public class WebhookServiceImpl implements WebhookService {
                                     razorpayPaymentId
                             );
 
-                            payment.setStatus(
+                            payment.setPaymentStatus(
                                     PaymentStatus.CAPTURED
                             );
 
                             payment.setFailureReason(null);
 
-                            if (payment.getVerifiedAt() == null) {
-                                payment.setVerifiedAt(
+                            if (payment.getPaidAt() == null) {
+                                payment.setPaidAt(
                                         LocalDateTime.now()
                                 );
                             }
@@ -340,7 +340,7 @@ public class WebhookServiceImpl implements WebhookService {
                                 );
                             }
 
-                            payment.setStatus(
+                            payment.setPaymentStatus(
                                     PaymentStatus.FAILED
                             );
 

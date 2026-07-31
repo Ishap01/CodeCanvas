@@ -48,6 +48,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/statistics/**",
                                 "/api/subscriptions/plans",
+                                "/api/subscriptions/plans/**",
                                 "/api/subscriptions/status/**"
                         ).permitAll()
 

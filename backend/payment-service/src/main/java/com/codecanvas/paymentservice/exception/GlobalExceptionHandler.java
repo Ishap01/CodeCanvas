@@ -1,282 +1,82 @@
 package com.codecanvas.paymentservice.exception;
 
-import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import feign.FeignException;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(
-                    GlobalExceptionHandler.class
-            );
+    @ExceptionHandler(PaymentNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlePaymentNotFound(
+            PaymentNotFoundException ex) {
 
-    @ExceptionHandler({
-            PaymentNotFoundException.class,
-            ResourceNotFoundException.class,
-            EntityNotFoundException.class
-    })
-    public ResponseEntity<ErrorResponse> handleNotFound(
-            RuntimeException exception,
-            HttpServletRequest request) {
-
-        return buildResponse(
-                HttpStatus.NOT_FOUND,
-                exception.getMessage(),
-                request,
-                null
-        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ErrorResponse.builder()
+                        .status(HttpStatus.NOT_FOUND.value())
+                        .error("Payment Not Found")
+                        .message(ex.getMessage())
+                        .build());
     }
 
-    @ExceptionHandler({
-            UnauthorizedActionException.class,
-            SecurityException.class
-    })
-    public ResponseEntity<ErrorResponse> handleUnauthorized(
-            RuntimeException exception,
-            HttpServletRequest request) {
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFound(
+            ResourceNotFoundException ex) {
 
-        return buildResponse(
-                HttpStatus.UNAUTHORIZED,
-                exception.getMessage(),
-                request,
-                null
-        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ErrorResponse.builder()
+                        .status(HttpStatus.NOT_FOUND.value())
+                        .error("Resource Not Found")
+                        .message(ex.getMessage())
+                        .build());
     }
 
-    @ExceptionHandler({
-            RefundNotAllowedException.class,
-            PaymentVerificationException.class
-    })
-    public ResponseEntity<ErrorResponse> handleUnprocessableEntity(
-            RuntimeException exception,
-            HttpServletRequest request) {
+    @ExceptionHandler(InvalidSignatureException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidSignature(
+            InvalidSignatureException ex) {
 
-        return buildResponse(
-                HttpStatus.UNPROCESSABLE_ENTITY,
-                exception.getMessage(),
-                request,
-                null
-        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.builder()
+                        .status(HttpStatus.BAD_REQUEST.value())
+                        .error("Invalid Signature")
+                        .message(ex.getMessage())
+                        .build());
     }
 
-    @ExceptionHandler({
-            PaymentProcessingException.class,
-            RazorpayIntegrationException.class,
-            UserServiceIntegrationException.class
-    })
+    @ExceptionHandler(UserServiceIntegrationException.class)
+    public ResponseEntity<ErrorResponse> handleUserService(
+            UserServiceIntegrationException ex) {
+
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ErrorResponse.builder()
+                        .status(HttpStatus.SERVICE_UNAVAILABLE.value())
+                        .error("User Service Unavailable")
+                        .message(ex.getMessage())
+                        .build());
+    }
+
+    @ExceptionHandler(PaymentProcessingException.class)
     public ResponseEntity<ErrorResponse> handlePaymentProcessing(
-            RuntimeException exception,
-            HttpServletRequest request) {
+            PaymentProcessingException ex) {
 
-        LOGGER.error(
-                "Payment processing error: {}",
-                exception.getMessage(),
-                exception
-        );
-
-        return buildResponse(
-                HttpStatus.BAD_GATEWAY,
-                exception.getMessage(),
-                request,
-                null
-        );
-    }
-
-    @ExceptionHandler(
-            MethodArgumentNotValidException.class
-    )
-    public ResponseEntity<ErrorResponse> handleValidation(
-            MethodArgumentNotValidException exception,
-            HttpServletRequest request) {
-
-        Map<String, String> validationErrors =
-                new LinkedHashMap<>();
-
-        for (FieldError fieldError :
-                exception.getBindingResult()
-                        .getFieldErrors()) {
-
-            validationErrors.putIfAbsent(
-                    fieldError.getField(),
-                    fieldError.getDefaultMessage()
-            );
-        }
-
-        return buildResponse(
-                HttpStatus.BAD_REQUEST,
-                "Request validation failed",
-                request,
-                validationErrors
-        );
-    }
-
-    @ExceptionHandler(
-            HttpMessageNotReadableException.class
-    )
-    public ResponseEntity<ErrorResponse>
-    handleUnreadableRequest(
-            HttpMessageNotReadableException exception,
-            HttpServletRequest request) {
-
-        return buildResponse(
-                HttpStatus.BAD_REQUEST,
-                "Request body is missing or invalid",
-                request,
-                null
-        );
-    }
-
-    @ExceptionHandler(
-            MissingRequestHeaderException.class
-    )
-    public ResponseEntity<ErrorResponse>
-    handleMissingHeader(
-            MissingRequestHeaderException exception,
-            HttpServletRequest request) {
-
-        return buildResponse(
-                HttpStatus.BAD_REQUEST,
-                "Required request header is missing: "
-                        + exception.getHeaderName(),
-                request,
-                null
-        );
-    }
-
-    @ExceptionHandler(
-            IllegalArgumentException.class
-    )
-    public ResponseEntity<ErrorResponse>
-    handleIllegalArgument(
-            IllegalArgumentException exception,
-            HttpServletRequest request) {
-
-        return buildResponse(
-                HttpStatus.BAD_REQUEST,
-                exception.getMessage(),
-                request,
-                null
-        );
-    }
-
-    @ExceptionHandler(
-            IllegalStateException.class
-    )
-    public ResponseEntity<ErrorResponse>
-    handleIllegalState(
-            IllegalStateException exception,
-            HttpServletRequest request) {
-
-        return buildResponse(
-                HttpStatus.CONFLICT,
-                exception.getMessage(),
-                request,
-                null
-        );
-    }
-
-    @ExceptionHandler(
-            DataIntegrityViolationException.class
-    )
-    public ResponseEntity<ErrorResponse>
-    handleDataIntegrityViolation(
-            DataIntegrityViolationException exception,
-            HttpServletRequest request) {
-
-        LOGGER.error(
-                "Database constraint violation",
-                exception
-        );
-
-        return buildResponse(
-                HttpStatus.CONFLICT,
-                "Database constraint violation occurred",
-                request,
-                null
-        );
-    }
-
-    @ExceptionHandler(
-            FeignException.class
-    )
-    public ResponseEntity<ErrorResponse>
-    handleFeignException(
-            FeignException exception,
-            HttpServletRequest request) {
-
-        LOGGER.error(
-                "Communication with another service failed",
-                exception
-        );
-
-        return buildResponse(
-                HttpStatus.BAD_GATEWAY,
-                "Communication with dependent service failed",
-                request,
-                null
-        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ErrorResponse.builder()
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                        .error("Payment Processing Failed")
+                        .message(ex.getMessage())
+                        .build());
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse>
-    handleUnexpectedException(
-            Exception exception,
-            HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleGenericException(
+            Exception ex) {
 
-        LOGGER.error(
-                "Unexpected payment-service error",
-                exception
-        );
-
-        return buildResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "An unexpected internal server error occurred",
-                request,
-                null
-        );
-    }
-
-    private ResponseEntity<ErrorResponse> buildResponse(
-            HttpStatus httpStatus,
-            String message,
-            HttpServletRequest request,
-            Map<String, String> validationErrors) {
-
-        String safeMessage =
-                message == null || message.isBlank()
-                        ? httpStatus.getReasonPhrase()
-                        : message;
-
-        ErrorResponse response =
-                new ErrorResponse(
-                        LocalDateTime.now(),
-                        httpStatus.value(),
-                        httpStatus.getReasonPhrase(),
-                        safeMessage,
-                        request.getRequestURI(),
-                        validationErrors
-                );
-
-        return ResponseEntity
-                .status(httpStatus)
-                .body(response);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ErrorResponse.builder()
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                        .error("Internal Server Error")
+                        .message(ex.getMessage())
+                        .build());
     }
 }
