@@ -1,12 +1,12 @@
 package com.codecanvas.userservice.dto.request;
 
 
-
 public class UserUpdateRequest {
 
     private String fullName;
     private String mobileNumber;
     private String username;
+    private String bio;
 
     public UserUpdateRequest() {
     }
@@ -14,11 +14,12 @@ public class UserUpdateRequest {
     public UserUpdateRequest(
             String fullName,
             String mobileNumber,
-            String username) {
+            String username, String bio) {
 
         this.fullName = fullName;
         this.mobileNumber = mobileNumber;
         this.username = username;
+        this.bio = bio;
     }
 
     public String getFullName() {
@@ -44,4 +45,13 @@ public class UserUpdateRequest {
     public void setUsername(String username) {
         this.username = username;
     }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
 }

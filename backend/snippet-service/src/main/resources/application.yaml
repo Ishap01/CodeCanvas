@@ -8,7 +8,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/codecanvas
     username: postgres
-    password: root
+    password: Yash@123
 
   jpa:
     hibernate:
@@ -25,3 +25,13 @@ management:
     web:
       exposure:
         include: health
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:3600000}
+
+
+cloudinary:
+  cloud-name: wqxaugxx
+  api-key: 916333465954846
+  api-secret: O3wWyyinEI4MWawHlxuj3mrJtaY

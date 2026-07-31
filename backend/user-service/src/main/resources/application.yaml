@@ -5,10 +5,10 @@ spring:
   application:
     name: user-service
   mail:
-    host: smtp.gmail.com
+    h ost: smtp.gmail.com
     port: 587
-    username: codecanvas.team05@gmail.com
-    password: sjgesvcvzhvzecin
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
 
     properties:
       mail:
@@ -21,35 +21,57 @@ spring:
           writetimeout: 5000
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/codecanvas
-    username: postgres
-    password: root
-    driver-class-name: org.postgresql.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
 
   jpa:
     hibernate:
       ddl-auto: update
 
     show-sql: true
-    open-in-view: false
 
     properties:
       hibernate:
         format_sql: true
 
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: user-service
+      auto-offset-reset: earliest
+
+subscription:
+  plans:
+    free:
+      tier: FREE
+      maxSnippetsPerMonth: 20
+      aiRequestsPerMonth: 5
+    basicPremium:
+      tier: BASIC_PREMIUM
+      maxSnippetsPerMonth: 100
+      aiRequestsPerMonth: 100
+    proPremium:
+      tier: PRO_PREMIUM
+      maxSnippetsPerMonth: 1000
+      aiRequestsPerMonth: 1000
+
 eureka:
   client:
-    register-with-eureka: true
-    fetch-registry: true
-
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://localhost:8761/eureka
 
 logging:
-    level:
-      org.springframework.security: INFO
+  level:
+    org.springframework.security: INFO
 
 
 jwt:
-  secret: 4v7x9Q2LmN8PqR5TsY1ZwE6UfJ3KaH8BcD0XeLr
-  expiration: 3600000
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION}
+
+cloudinary:
+  cloud-name: wqxaugxx
+  api-key: 916333465954846
+  api-secret: O3wWyyinEI4MWawHlxuj3mrJtaY

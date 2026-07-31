@@ -30,7 +30,7 @@ import com.codecanvas.userservice.repository.UserRepository;
 import com.codecanvas.userservice.repository.UserStatisticsRepository;
 import com.codecanvas.userservice.service.AuthService;
 import com.codecanvas.userservice.service.EmailService;
-import com.codecanvas.userservice.service.JwtService;
+import com.codecanvas.userservice.security.JwtService;
 import com.codecanvas.userservice.util.OtpGenerator;
 
 import lombok.RequiredArgsConstructor;
@@ -171,6 +171,7 @@ public class AuthServiceImpl implements AuthService {
             user.setUsername(username);
             user.setMobileNumber(mobileNumber);
 
+
             user.setPassword(
                     passwordEncoder.encode(
                             request.getPassword()
@@ -299,39 +300,26 @@ public class AuthServiceImpl implements AuthService {
     public void forgotPassword(ForgotPasswordRequest request) {
 
         User user = userRepository
-                .findByEmail(
-                        request.getEmail()
-                                .trim()
-                                .toLowerCase()
-                )
-                .orElseThrow(() ->
-                        new UserNotFoundException(
-                                "User not found"
-                        )
-                );
-
-        // Purana OTP delete
-        otpRepository.deleteByEmail(user.getEmail());
+                .findByEmail(request.getEmail().trim().toLowerCase())
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         String otp = OtpGenerator.generateOtp();
 
-        PasswordResetOtp passwordResetOtp =
-                PasswordResetOtp.builder()
-                        .email(user.getEmail())
-                        .otp(otp)
-                        .expiryTime(
-                                LocalDateTime.now()
-                                        .plusMinutes(5)
-                        )
-                        .verified(false)
-                        .build();
+        PasswordResetOtp passwordResetOtp = otpRepository
+                .findByEmail(user.getEmail())
+                .orElse(
+                        PasswordResetOtp.builder()
+                                .email(user.getEmail())
+                                .build()
+                );
+
+        passwordResetOtp.setOtp(otp);
+        passwordResetOtp.setExpiryTime(LocalDateTime.now().plusMinutes(5));
+        passwordResetOtp.setVerified(false);
 
         otpRepository.save(passwordResetOtp);
 
-        emailService.sendOtpEmail(
-                user.getEmail(),
-                otp
-        );
+        emailService.sendOtpEmail(user.getEmail(), otp);
     }
 
     // =========================================================
