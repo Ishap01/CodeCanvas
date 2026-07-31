@@ -30,4 +30,6 @@ public interface SnippetRepository extends JpaRepository<Snippet, UUID> {
             UUID userId
     );
 
+    List<Snippet> findBySnippetIdIn(List<UUID> snippetIds);
+
 }
