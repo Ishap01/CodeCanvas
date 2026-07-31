@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Entity
 @Table(
-        name = "bookmarks",
+        name = "snippet_views",
         uniqueConstraints = {
                 @UniqueConstraint(
                         columnNames = {
@@ -23,12 +23,12 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Bookmark {
+public class SnippetView {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "bookmark_id")
-    private UUID bookmarkId;
+    @Column(name = "view_id")
+    private UUID viewId;
 
     @Column(name = "snippet_id", nullable = false)
     private UUID snippetId;
@@ -36,15 +36,11 @@ public class Bookmark {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
-    @Column(
-            name = "bookmarked_at",
-            nullable = false,
-            updatable = false
-    )
-    private LocalDateTime bookmarkedAt;
+    @Column(name = "viewed_at", nullable = false, updatable = false)
+    private LocalDateTime viewedAt;
 
     @PrePersist
     public void prePersist() {
-        bookmarkedAt = LocalDateTime.now();
+        viewedAt = LocalDateTime.now();
     }
 }

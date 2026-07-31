@@ -90,6 +90,7 @@ public class SnippetMapper {
         snippet.setLikeCount(0L);
         snippet.setBookmarkCount(0L);
         snippet.setForkCount(0L);
+        snippet.setCommentCount(0L);
 
         return snippet;
     }
@@ -278,6 +279,10 @@ public class SnippetMapper {
                 snippet.getBookmarkCount()
         );
 
+        response.setCommentCount(
+                snippet.getCommentCount()
+        );
+
         response.setForkCount(
                 snippet.getForkCount()
         );
@@ -341,4 +346,6 @@ public class SnippetMapper {
 
         return value.trim();
     }
+
+
 }

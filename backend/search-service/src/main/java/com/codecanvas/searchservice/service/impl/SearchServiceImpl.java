@@ -76,7 +76,6 @@ public class SearchServiceImpl implements SearchService {
     private Long safeCount(Long value) {
         return value == null ? 0L : value;
     }
-
     @Override
     public void indexSnippet(IndexSnippetRequest request) {
 
@@ -97,6 +96,10 @@ public class SearchServiceImpl implements SearchService {
                         .createdAt(request.getCreatedAt())
                         .previewImageUrl(request.getPreviewImageUrl())
                         .build();
+
+        System.out.println("Request createdAt  : " + request.getCreatedAt());
+        System.out.println("Document createdAt : " + document.getCreatedAt());
+
 
         searchDocumentRepository.save(document);
     }

@@ -57,42 +57,16 @@ public class SnippetController {
     public ResponseEntity<SnippetResponse>
 
 
-//    createSnippet(
-//            Authentication authentication,
-//            @Valid
-//            @RequestBody
-//            CreateSnippetRequest request) {
-//
-//        UUID userId =
-//                extractRequiredUserId(
-//                        authentication
-//                );
-//
-//        SnippetResponse response =
-//                snippetService.createSnippet(
-//                        userId,
-//                        request
-//                );
-//
-//        return ResponseEntity
-//                .status(HttpStatus.CREATED)
-//                .body(response);
-
     createSnippet(
             Authentication authentication,
             @Valid
             @RequestBody
             CreateSnippetRequest request) {
 
-        UUID userId;
-
-        if (authentication == null) {
-            userId = UUID.fromString(
-                    "11111111-1111-1111-1111-111111111111"
-            );
-        } else {
-            userId = extractRequiredUserId(authentication);
-        }
+        UUID userId =
+                extractRequiredUserId(
+                        authentication
+                );
 
         SnippetResponse response =
                 snippetService.createSnippet(
@@ -103,6 +77,9 @@ public class SnippetController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(response);
+
+
+
     }
 
     /*Get all snippets*/
@@ -123,16 +100,14 @@ public class SnippetController {
      * Owner ka valid token required.
      */
     @GetMapping("/{snippetId}")
-    public ResponseEntity<SnippetResponse>
-    getSnippetById(
-            @PathVariable
-            UUID snippetId,
+    public ResponseEntity<SnippetResponse> getSnippetById(
+            @PathVariable UUID snippetId,
             Authentication authentication) {
 
+        System.out.println("INSIDE CONTROLLER");
+
         UUID currentUserId =
-                extractOptionalUserId(
-                        authentication
-                );
+                extractOptionalUserId(authentication);
 
         SnippetResponse response =
                 snippetService.getSnippetById(

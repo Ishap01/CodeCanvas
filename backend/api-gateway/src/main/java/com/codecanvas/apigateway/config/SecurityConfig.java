@@ -3,6 +3,7 @@ package com.codecanvas.apigateway.config;
 import com.codecanvas.apigateway.filter.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -36,14 +37,37 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
+
+                        // Public APIs
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/eureka/**"
                         ).permitAll()
 
+                        // Public snippet APIs
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/snippets/**"
+                        ).permitAll()
+
+                        // Protected snippet APIs
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/snippets/**"
+                        ).authenticated()
+
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/snippets/**"
+                        ).authenticated()
+
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/api/snippets/**"
+                        ).authenticated()
+
                         .anyRequest().authenticated()
                 )
-
                 .httpBasic(httpBasic -> httpBasic.disable())
 
                 .formLogin(form -> form.disable())

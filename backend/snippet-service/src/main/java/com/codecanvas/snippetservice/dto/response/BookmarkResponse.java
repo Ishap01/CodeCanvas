@@ -9,10 +9,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class LikeResponse {
+public class BookmarkResponse {
 
     private boolean success;
     private String message;
-    private long likeCount;
-    private boolean liked;
+    private long bookmarkCount;
+    private boolean bookmarked;
 }

@@ -79,6 +79,8 @@ public class SecurityConfig {
                         /*
                          * Browser preflight request.
                          */
+
+
                         .requestMatchers(
                                 HttpMethod.OPTIONS,
                                 "/**"
@@ -104,7 +106,6 @@ public class SecurityConfig {
                                 HttpMethod.GET,
                                 "/api/snippets/*"
                         ).permitAll()
-
                         /*
                          * Create, update, delete aur user snippets
                          * ke liye valid JWT required hai.
@@ -112,7 +113,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/snippets/**"
-                        ).permitAll()
+                        ).authenticated()
 
                         .requestMatchers(
                                 HttpMethod.PUT,
@@ -126,6 +127,29 @@ public class SecurityConfig {
 
                         .requestMatchers(
                                 "/api/snippets/user/**"
+                        ).authenticated()
+
+
+
+
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/comments/**"
+                        ).authenticated()
+
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/comments/**"
+                        ).authenticated()
+
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/api/comments/**"
+                        ).authenticated()
+
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/comments/**"
                         ).authenticated()
 
                         /*

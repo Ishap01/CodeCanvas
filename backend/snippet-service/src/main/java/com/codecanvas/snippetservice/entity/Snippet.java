@@ -69,6 +69,13 @@ public class Snippet {
     )
     private String code;
 
+
+    @Column(
+            name = "comment_count",
+            nullable = false
+    )
+    private long commentCount;
+
     @Column(
             name = "language",
             nullable = false,
@@ -205,6 +212,7 @@ public class Snippet {
         likeCount = Math.max(likeCount, 0);
         bookmarkCount = Math.max(bookmarkCount, 0);
         forkCount = Math.max(forkCount, 0);
+        commentCount = Math.max(commentCount, 0);
     }
 
     @PreUpdate
