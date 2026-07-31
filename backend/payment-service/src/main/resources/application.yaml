@@ -6,9 +6,9 @@ spring:
     name: payment-service
 
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/codecanvas}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:root}
+    url: jdbc:postgresql://localhost:5432/codecanvas
+    username: postgres
+    password: root
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -33,16 +33,10 @@ spring:
             read-timeout: 10000
             logger-level: basic
 
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          secret-key: ${JWT_SECRET}
-
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+      defaultZone: http://localhost:8761/eureka
     register-with-eureka: true
     fetch-registry: true
 
@@ -50,16 +44,18 @@ eureka:
     prefer-ip-address: true
 
 razorpay:
-  key-id: ${RAZORPAY_KEY_ID}
-  key-secret: ${RAZORPAY_KEY_SECRET}
-  webhook-secret: ${RAZORPAY_WEBHOOK_SECRET}
+  key-id: rzp_test_TJoxqhkx81Tjcg
+  key-secret: P0uGFcG0VFDAA5kBz3F4LgV0
+  webhook-secret: codecanvasWebhookSecret2026
 
 jwt:
-  secret: ${JWT_SECRET}
+  # IMPORTANT:
+  # User Service wala EXACT same JWT secret yaha paste karo
+  secret: YOUR_USER_SERVICE_JWT_SECRET
 
 payment:
   premium-plan:
-    amount: ${PREMIUM_PLAN_AMOUNT:499.00}
+    amount: 499.00
 
   scheduler:
     pending-expiry-minutes: 30
