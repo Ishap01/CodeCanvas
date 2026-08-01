@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.codecanvas.paymentservice.entity.Payment;
 import com.codecanvas.paymentservice.entity.WebhookEvent;
@@ -22,6 +23,8 @@ public class WebhookServiceImpl implements WebhookService {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(WebhookServiceImpl.class);
 
+    private static final int MAXIMUM_FAILURE_REASON_LENGTH = 1000;
+
     private final RazorpayService razorpayService;
     private final WebhookEventRepository webhookEventRepository;
     private final PaymentRepository paymentRepository;
@@ -32,12 +35,12 @@ public class WebhookServiceImpl implements WebhookService {
             PaymentRepository paymentRepository) {
 
         this.razorpayService = razorpayService;
-        this.webhookEventRepository =
-                webhookEventRepository;
+        this.webhookEventRepository = webhookEventRepository;
         this.paymentRepository = paymentRepository;
     }
 
     @Override
+    @Transactional
     public void processRazorpayWebhook(
             String payload,
             String webhookSignature,
@@ -57,13 +60,12 @@ public class WebhookServiceImpl implements WebhookService {
 
         if (!signatureValid) {
             throw new SecurityException(
-                    "Invalid Razorpay webhook signature"
+                    "Invalid Razorpay webhook signature."
             );
         }
 
         if (webhookEventRepository
-                .existsByRazorpayEventId(
-                        razorpayEventId)) {
+                .existsByRazorpayEventId(razorpayEventId)) {
 
             LOGGER.info(
                     "Duplicate Razorpay webhook ignored. razorpayEventId={}",
@@ -88,9 +90,7 @@ public class WebhookServiceImpl implements WebhookService {
 
             webhookEvent.setEventType(eventType);
 
-            webhookEventRepository.save(
-                    webhookEvent
-            );
+            webhookEventRepository.save(webhookEvent);
 
             processEvent(
                     eventType,
@@ -107,12 +107,11 @@ public class WebhookServiceImpl implements WebhookService {
 
             webhookEvent.setFailureReason(null);
 
-            webhookEventRepository.save(
-                    webhookEvent
-            );
+            webhookEventRepository.save(webhookEvent);
 
             LOGGER.info(
-                    "Razorpay webhook processed. razorpayEventId={}, eventType={}",
+                    "Razorpay webhook processed successfully. "
+                            + "razorpayEventId={}, eventType={}",
                     razorpayEventId,
                     eventType
             );
@@ -133,18 +132,17 @@ public class WebhookServiceImpl implements WebhookService {
                     LocalDateTime.now()
             );
 
-            webhookEventRepository.save(
-                    webhookEvent
-            );
+            webhookEventRepository.save(webhookEvent);
 
             LOGGER.error(
-                    "Razorpay webhook processing failed. razorpayEventId={}",
+                    "Razorpay webhook processing failed. "
+                            + "razorpayEventId={}",
                     razorpayEventId,
                     exception
             );
 
             throw new IllegalStateException(
-                    "Unable to process Razorpay webhook",
+                    "Unable to process Razorpay webhook.",
                     exception
             );
         }
@@ -202,7 +200,8 @@ public class WebhookServiceImpl implements WebhookService {
 
             default ->
                     LOGGER.info(
-                            "Webhook event currently requires no payment update. eventType={}",
+                            "Webhook event ignored because no handler is configured. "
+                                    + "eventType={}",
                             eventType
                     );
         }
@@ -235,18 +234,32 @@ public class WebhookServiceImpl implements WebhookService {
                                     razorpayPaymentId
                             );
 
-                            payment.setPaymentStatus(
-                                    PaymentStatus.AUTHORIZED
-                            );
+                            /*
+                             * SUCCESS payment ko webhook ke late arrival
+                             * ke karan AUTHORIZED mein downgrade nahi karna.
+                             */
+                            if (payment.getPaymentStatus()
+                                    != PaymentStatus.SUCCESS) {
+
+                                payment.setPaymentStatus(
+                                        PaymentStatus.AUTHORIZED
+                                );
+                            }
 
                             payment.setFailureReason(null);
 
-                            paymentRepository.save(
-                                    payment
+                            paymentRepository.save(payment);
+
+                            LOGGER.info(
+                                    "Payment authorized through webhook. "
+                                            + "paymentId={}, razorpayOrderId={}",
+                                    payment.getPaymentId(),
+                                    orderId
                             );
                         },
                         () -> LOGGER.warn(
-                                "Payment not found for authorized webhook. razorpayOrderId={}",
+                                "Payment not found for payment.authorized webhook. "
+                                        + "razorpayOrderId={}",
                                 orderId
                         )
                 );
@@ -279,9 +292,18 @@ public class WebhookServiceImpl implements WebhookService {
                                     razorpayPaymentId
                             );
 
-                            payment.setPaymentStatus(
-                                    PaymentStatus.CAPTURED
-                            );
+                            /*
+                             * Frontend verify API already SUCCESS kar chuki ho
+                             * to webhook us status ko CAPTURED mein downgrade
+                             * nahi karega.
+                             */
+                            if (payment.getPaymentStatus()
+                                    != PaymentStatus.SUCCESS) {
+
+                                payment.setPaymentStatus(
+                                        PaymentStatus.CAPTURED
+                                );
+                            }
 
                             payment.setFailureReason(null);
 
@@ -291,12 +313,20 @@ public class WebhookServiceImpl implements WebhookService {
                                 );
                             }
 
-                            paymentRepository.save(
-                                    payment
+                            paymentRepository.save(payment);
+
+                            LOGGER.info(
+                                    "Payment captured through webhook. "
+                                            + "paymentId={}, razorpayOrderId={}, "
+                                            + "razorpayPaymentId={}",
+                                    payment.getPaymentId(),
+                                    orderId,
+                                    razorpayPaymentId
                             );
                         },
                         () -> LOGGER.warn(
-                                "Payment not found for captured webhook. razorpayOrderId={}",
+                                "Payment not found for captured webhook. "
+                                        + "razorpayOrderId={}",
                                 orderId
                         )
                 );
@@ -331,9 +361,28 @@ public class WebhookServiceImpl implements WebhookService {
                 .ifPresentOrElse(
                         payment -> {
 
+                            /*
+                             * Successful payment ko late/out-of-order failed
+                             * webhook se FAILED nahi banana.
+                             */
+                            if (payment.getPaymentStatus()
+                                    == PaymentStatus.SUCCESS
+                                    || payment.getPaymentStatus()
+                                    == PaymentStatus.CAPTURED) {
+
+                                LOGGER.warn(
+                                        "Failed webhook ignored because payment "
+                                                + "is already successful. "
+                                                + "paymentId={}, razorpayOrderId={}",
+                                        payment.getPaymentId(),
+                                        orderId
+                                );
+
+                                return;
+                            }
+
                             if (razorpayPaymentId != null
-                                    && !razorpayPaymentId
-                                    .isBlank()) {
+                                    && !razorpayPaymentId.isBlank()) {
 
                                 payment.setRazorpayPaymentId(
                                         razorpayPaymentId
@@ -348,12 +397,18 @@ public class WebhookServiceImpl implements WebhookService {
                                     failureReason
                             );
 
-                            paymentRepository.save(
-                                    payment
+                            paymentRepository.save(payment);
+
+                            LOGGER.info(
+                                    "Payment marked FAILED through webhook. "
+                                            + "paymentId={}, razorpayOrderId={}",
+                                    payment.getPaymentId(),
+                                    orderId
                             );
                         },
                         () -> LOGGER.warn(
-                                "Payment not found for failed webhook. razorpayOrderId={}",
+                                "Payment not found for payment.failed webhook. "
+                                        + "razorpayOrderId={}",
                                 orderId
                         )
                 );
@@ -395,7 +450,19 @@ public class WebhookServiceImpl implements WebhookService {
             return reason;
         }
 
-        return "Razorpay marked payment as failed";
+        String code =
+                paymentEntity.optString(
+                        "error_code",
+                        null
+                );
+
+        if (code != null
+                && !code.isBlank()) {
+
+            return code;
+        }
+
+        return "Razorpay marked payment as failed.";
     }
 
     private void validateWebhookRequest(
@@ -407,7 +474,7 @@ public class WebhookServiceImpl implements WebhookService {
                 || payload.isBlank()) {
 
             throw new IllegalArgumentException(
-                    "Webhook payload is required"
+                    "Webhook payload is required."
             );
         }
 
@@ -415,7 +482,7 @@ public class WebhookServiceImpl implements WebhookService {
                 || webhookSignature.isBlank()) {
 
             throw new IllegalArgumentException(
-                    "Razorpay webhook signature is required"
+                    "Razorpay webhook signature is required."
             );
         }
 
@@ -423,7 +490,7 @@ public class WebhookServiceImpl implements WebhookService {
                 || razorpayEventId.isBlank()) {
 
             throw new IllegalArgumentException(
-                    "Razorpay event ID is required"
+                    "Razorpay event ID is required."
             );
         }
     }
@@ -434,20 +501,18 @@ public class WebhookServiceImpl implements WebhookService {
         if (failureReason == null
                 || failureReason.isBlank()) {
 
-            return "Webhook processing failed";
+            return "Webhook processing failed.";
         }
 
-        int maximumLength = 1000;
-
         if (failureReason.length()
-                <= maximumLength) {
+                <= MAXIMUM_FAILURE_REASON_LENGTH) {
 
             return failureReason;
         }
 
         return failureReason.substring(
                 0,
-                maximumLength
+                MAXIMUM_FAILURE_REASON_LENGTH
         );
     }
 }

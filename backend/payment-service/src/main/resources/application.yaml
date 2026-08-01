@@ -33,12 +33,6 @@ spring:
             read-timeout: 10000
             logger-level: basic
 
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          secret-key: ${JWT_SECRET}
-
 eureka:
   client:
     service-url:
