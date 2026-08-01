@@ -13,7 +13,7 @@ import {
   FaArrowRight,
 } from "react-icons/fa";
 
-import heroImage from "../../assets/hero.png";
+import heroImage from "../../assets/images/hero.png";
 
 function Dashboard() {
   const snippets = [

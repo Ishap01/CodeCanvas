@@ -2,6 +2,7 @@ import React from "react";
 import "./MainNavbar.css";
 
 import { NavLink, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import {
     FaCode,
@@ -12,24 +13,29 @@ import {
 } from "react-icons/fa";
 
 export default function MainNavbar() {
+
+    const navigate = useNavigate();
+    
     return (
         <>
             {/* TOP NAVBAR */}
 
             <header className="globalTopNavbar">
-                <Link to="/dashboard" className="globalBrand">
+
+                <Link to="/" className="globalBrand">
                     <span className="globalBrandDot"></span>
                     CODECANVAS
                 </Link>
 
                 <nav className="globalTopLinks">
+
                     <NavLink to="/">LANDING</NavLink>
 
                     <NavLink to="/login">LOGIN</NavLink>
 
                     <NavLink to="/register">REGISTER</NavLink>
 
-                    <NavLink to="/user-dashboard">DASHBOARD</NavLink>
+                    <NavLink to="/dashboard">DASHBOARD</NavLink>
 
                     <NavLink to="/search">SEARCH</NavLink>
 
@@ -42,36 +48,53 @@ export default function MainNavbar() {
                     <NavLink to="/premium">PREMIUM</NavLink>
 
                     <NavLink to="/admin">ADMIN</NavLink>
+
                 </nav>
+
             </header>
 
             {/* SECOND NAVBAR */}
 
             <header className="globalMainNavbar">
-                <Link to="/dashboard" className="globalLogo">
-          <span className="globalLogoBox">
-            <FaCode />
-          </span>
+
+                <Link to="/" className="globalLogo">
+
+                    <span className="globalLogoBox">
+                        <FaCode />
+                    </span>
 
                     <span>CodeCanvas</span>
+
                 </Link>
 
                 <div className="globalSearch">
+
                     <FaSearch />
 
                     <input
                         type="text"
                         placeholder="Search snippets..."
                     />
+
                 </div>
 
                 <div className="globalNavbarActions">
-                    <button type="button" aria-label="Notifications">
+
+                    <button
+                        type="button"
+                        aria-label="Notifications"
+                    >
                         <FaBell />
                     </button>
 
-                    <button type="button" aria-label="Settings">
-                        <FaCog />
+                    <button
+                        type="button"
+                        aria-label="Settings"
+                    >
+                        <FaCog
+                            className="navIcon"
+                            onClick={() => navigate("/settings")}
+                        />
                     </button>
 
                     <Link
@@ -81,7 +104,9 @@ export default function MainNavbar() {
                     >
                         <FaUser />
                     </Link>
+
                 </div>
+
             </header>
         </>
     );

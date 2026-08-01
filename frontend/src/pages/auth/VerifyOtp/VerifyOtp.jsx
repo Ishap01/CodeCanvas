@@ -10,7 +10,7 @@ import {
   FaArrowLeft,
 } from "react-icons/fa";
 
-import bg from "../../assets/login-bg.jpg";
+import bg from "../../../assets/images/login-bg.jpg";
 
 import { verifyOtp } from "../../../services/authService";
 

@@ -11,7 +11,7 @@ import {
     FaRegBookmark,
 } from "react-icons/fa";
 
-import profileBanner from "../../assets/hero.png";
+import profileBanner from "../../../assets/images/hero.png";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
