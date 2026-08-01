@@ -3,10 +3,12 @@ package com.codecanvas.snippetservice.controller;
 import java.util.List;
 import java.util.UUID;
 
+import com.codecanvas.snippetservice.service.ForkService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,11 +34,13 @@ import jakarta.validation.Valid;
 public class SnippetController {
 
     private final SnippetService snippetService;
+    private final ForkService forkService;
 
     public SnippetController(
-            SnippetService snippetService) {
+            SnippetService snippetService, ForkService forkService) {
 
         this.snippetService = snippetService;
+        this.forkService = forkService;
     }
 
     /*
@@ -436,5 +440,23 @@ public class SnippetController {
                 (AuthenticatedUser) principal;
 
         return authenticatedUser.getUserId();
+    }
+
+    @PostMapping("/{snippetId}/fork")
+    public ResponseEntity<SnippetResponse> forkSnippet(
+
+            @PathVariable UUID snippetId,
+
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser
+    ) {
+
+        SnippetResponse response =
+                forkService.forkSnippet(
+                        snippetId,
+                        authenticatedUser.getUserId()
+                );
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(response);
     }
 }
