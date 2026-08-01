@@ -1,100 +1,101 @@
-import { Routes, Route } from "react-router-dom";
+import React from "react";
+
+import {
+    Routes,
+    Route,
+    Navigate,
+} from "react-router-dom";
 
 import MainLayout from "./components/layout/MainLayout";
 
-import Login from "./pages/auth/Login/Login";
-import Register from "./pages/auth/Register/Register";
-import LandingPage from "./pages/LandingPage/LandingPage";
-import UserDashboard from "./pages/user/UserDashboard/UserDashboard";
-import Profile from "./pages/user/Profile/Profile";
-import EditProfile from "./pages/user/EditProfile/EditProfile";
-import ForgotPassword from "./pages/auth/ForgotPassword/ForgotPassword";
-import VerifyOtp from "./pages/auth/VerifyOtp/VerifyOtp";
-import ResetPassword from "./pages/auth/ResetPassword/ResetPassword";
-import ChangePassword from "./pages/auth/ChangePassword/ChangePassword";
-import Settings from "./pages/user/settings/Settings";
+import Login from "./pages/Login/Login";
+import Register from "./pages/Register/Register";
+import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword/ResetPassword";
 
-import ProtectedRoute from "./routes/ProtectedRoute";
+import Dashboard from "./pages/Dashboard/Dashboard";
+import UserDashboard from "./pages/UserDashboard/UserDashboard";
+import Profile from "./pages/Profile/Profile";
 
 function App() {
     return (
         <Routes>
+            {/* ================================
+          AUTH PAGES
+          Navbar nahi dikhega
+      ================================= */}
 
-            {/* Public pages without Navbar */}
             <Route path="/login" element={<Login />} />
+
             <Route path="/register" element={<Register />} />
 
+            <Route
+                path="/forgot-password"
+                element={<ForgotPassword />}
+            />
 
-            <Route path="/" element={<LandingPage />} />
+            <Route
+                path="/reset-password"
+                element={<ResetPassword />}
+            />
 
-            {/* Pages with Main Layout */}
+            {/* ================================
+          NORMAL PAGES
+          Permanent navbar dikhega
+      ================================= */}
+
             <Route element={<MainLayout />}>
+                <Route path="/" element={<Dashboard />} />
 
                 <Route
                     path="/dashboard"
-                    element={
-                        <ProtectedRoute>
-                            <UserDashboard />
-                        </ProtectedRoute>
-                    }
+                    element={<Dashboard />}
                 />
 
                 <Route
-                    path="/forgot-password"
-                    element={<ForgotPassword />}
+                    path="/user-dashboard"
+                    element={<UserDashboard />}
                 />
 
                 <Route
-                    path="/verify-otp"
-                    element={<VerifyOtp />}
+                    path="/search"
+                    element={<div>Search Page</div>}
                 />
 
                 <Route
-                    path="/reset-password"
-                    element={<ResetPassword />}
+                    path="/snippet"
+                    element={<div>Snippet Page</div>}
                 />
 
                 <Route
-                    path="/change-password"
-                    element={<ChangePassword />}
+                    path="/upload"
+                    element={<div>Upload Page</div>}
                 />
 
-                <Route
-                    path="/settings"
-                    element={<Settings />}
-                />
+                {/* Actual Profile component */}
 
                 <Route
                     path="/profile"
-                    element={
-                        <ProtectedRoute>
-                            <Profile />
-                        </ProtectedRoute>
-                    }
+                    element={<Profile />}
                 />
 
                 <Route
-                    path="/edit-profile"
-                    element={
-                        <ProtectedRoute>
-                            <EditProfile />
-                        </ProtectedRoute>
-                    }
+                    path="/premium"
+                    element={<div>Premium Page</div>}
                 />
 
-                {/* Other routes */}
-
-
-                {/* Placeholder Routes (Modules to be developed) */}
-                <Route path="/search" element={<h1>Search Page</h1>} />
-                <Route path="/snippet" element={<h1>Snippet Page</h1>} />
-                <Route path="/upload" element={<h1>Upload Page</h1>} />
-
-                <Route path="/premium" element={<h1>Premium Page</h1>} />
-                <Route path="/admin" element={<h1>Admin Page</h1>} />
-
+                <Route
+                    path="/admin"
+                    element={<div>Admin Page</div>}
+                />
             </Route>
 
+            {/* Unknown URL redirect */}
+
+            <Route
+                path="*"
+                element={<Navigate to="/dashboard" replace />}
+            />
         </Routes>
     );
 }

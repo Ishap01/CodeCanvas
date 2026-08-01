@@ -2,12 +2,13 @@ package com.codecanvas.snippetservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
+@EnableDiscoveryClient
 @SpringBootApplication
 public class SnippetServiceApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(SnippetServiceApplication.class, args);
-	}
-
+  public static void main(String[] args) {
+    SpringApplication.run(SnippetServiceApplication.class, args);
+  }
 }
