@@ -9,6 +9,8 @@ import com.codecanvas.notificationservice.mapper.NotificationMapper;
 import com.codecanvas.notificationservice.repository.NotificationRepository;
 import com.codecanvas.notificationservice.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,6 +24,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     
     @Override
+    @CacheEvict(value = {"user_notifications", "unread_notifications_count"}, allEntries = true)
     public ApiResponse createNotification(CreateNotificationRequest request) {
 
         Notification notification = Notification.builder()
@@ -37,6 +40,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Cacheable(value = "user_notifications", key = "#userId")
     public List<NotificationResponse> getNotifications(UUID userId) {
 
         return notificationRepository
@@ -47,6 +51,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @CacheEvict(value = {"user_notifications", "unread_notifications_count"}, allEntries = true)
     public ApiResponse markAsRead(UUID notificationId) {
 
         Notification notification = notificationRepository.findById(notificationId)
@@ -61,6 +66,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @CacheEvict(value = {"user_notifications", "unread_notifications_count"}, allEntries = true)
     public ApiResponse deleteNotification(UUID notificationId) {
 
         Notification notification = notificationRepository.findById(notificationId)
@@ -73,6 +79,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Cacheable(value = "unread_notifications_count", key = "#userId")
     public long getUnreadCount(UUID userId) {
 
         return notificationRepository.countByUserIdAndIsReadFalse(userId);

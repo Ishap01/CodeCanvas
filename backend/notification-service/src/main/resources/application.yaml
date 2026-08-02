@@ -6,15 +6,29 @@ spring:
     name: notification-service
 
   datasource:
+    #    url: ${DB_URL}
+    #    username: ${DB_USERNAME}
+    #    password: ${DB_PASSWORD}
     url: jdbc:postgresql://localhost:5432/codecanvas
     username: postgres
-    password: root
+    password: Yash@123
 
   jpa:
     hibernate:
       ddl-auto: update
-
     show-sql: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000
+      use-key-prefix: true
+      key-prefix: "notification-service::"
 
 jwt:
   secret: ${JWT_SECRET}
