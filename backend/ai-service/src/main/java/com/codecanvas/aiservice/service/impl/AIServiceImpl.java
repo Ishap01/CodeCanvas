@@ -11,6 +11,7 @@ import com.codecanvas.aiservice.repository.AIHistoryRepository;
 import com.codecanvas.aiservice.service.AIService;
 import com.codecanvas.aiservice.util.PromptBuilder;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,6 +28,7 @@ public class AIServiceImpl implements AIService {
     private final GroqClient groqClient;
 
     @Override
+    @Cacheable(value = "ai_explains", key = "#request.code.hashCode()")
     public AIResponse explainCode(UUID userId, ExplainCodeRequest request) {
 
         String prompt = PromptBuilder.buildExplainPrompt(request.getCode());
@@ -49,6 +51,7 @@ public class AIServiceImpl implements AIService {
 
 
     @Override
+    @Cacheable(value = "ai_summaries", key = "#request.code.hashCode()")
     public AIResponse summarizeCode(UUID userId,
                                     SummarizeCodeRequest request) {
 
@@ -71,6 +74,7 @@ public class AIServiceImpl implements AIService {
     }
 
     @Override
+    @Cacheable(value = "ai_tags", key = "#request.code.hashCode()")
     public AIResponse generateTags(UUID userId,
                                    GenerateTagsRequest request) {
 

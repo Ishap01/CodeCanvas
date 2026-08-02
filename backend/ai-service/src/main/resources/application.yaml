@@ -6,14 +6,26 @@ spring:
     name: ai-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/codecanvas
-    username: postgres
-    password: root
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000
+      use-key-prefix: true
+      key-prefix: "ai-service::"
 
 eureka:
   client:
