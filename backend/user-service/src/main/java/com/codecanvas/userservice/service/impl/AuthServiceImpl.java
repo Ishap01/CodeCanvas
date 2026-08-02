@@ -2,6 +2,7 @@ package com.codecanvas.userservice.service.impl;
 
 import java.time.LocalDateTime;
 
+import com.codecanvas.userservice.event.UserRegisteredEvent;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,7 @@ import com.codecanvas.userservice.service.AuthService;
 import com.codecanvas.userservice.service.EmailService;
 import com.codecanvas.userservice.security.JwtService;
 import com.codecanvas.userservice.util.OtpGenerator;
+import com.codecanvas.userservice.producer.UserEventProducer;
 
 import lombok.RequiredArgsConstructor;
 
@@ -45,6 +47,7 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final UserEventProducer userEventProducer;
 
     // =========================================================
     // REGISTER
@@ -201,6 +204,17 @@ public class AuthServiceImpl implements AuthService {
             statistics.setFollowing(0);
 
             userStatisticsRepository.save(statistics);
+
+            // publish event
+            UserRegisteredEvent event =
+                    new UserRegisteredEvent(
+                            savedUser.getUserId(),
+                            savedUser.getFullName(),
+                            savedUser.getUsername(),
+                            savedUser.getEmail()
+                    );
+
+            userEventProducer.publishUserRegisteredEvent(event);
 
             return new ApiResponse(
                     true,
