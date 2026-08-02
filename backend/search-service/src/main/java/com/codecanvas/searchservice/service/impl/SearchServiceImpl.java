@@ -12,7 +12,8 @@ import com.codecanvas.searchservice.service.search.ElasticSearchQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.codecanvas.searchservice.service.search.SearchPage;
-
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
 import java.util.UUID;
@@ -27,6 +28,7 @@ public class SearchServiceImpl implements SearchService {
 
 
     @Override
+    @Cacheable(value = "search_queries", key = "#request.keyword + '_' + #request.page")
     public SearchPageResponse search(SearchRequest request, UUID userId) {
 
         // Save search history
@@ -77,6 +79,7 @@ public class SearchServiceImpl implements SearchService {
         return value == null ? 0L : value;
     }
     @Override
+    @CacheEvict(value = "search_queries", allEntries = true)
     public void indexSnippet(IndexSnippetRequest request) {
 
         SearchDocument document =
@@ -117,6 +120,7 @@ public class SearchServiceImpl implements SearchService {
                 .toList();
     }
     @Override
+    @Cacheable(value = "popular_searches")
     public List<PopularSearchResponse> getPopularSearches() {
 
         return searchHistoryRepository.findPopularSearches()
@@ -161,6 +165,7 @@ public class SearchServiceImpl implements SearchService {
     }
 
     @Override
+    @CacheEvict(value = "search_queries", allEntries = true)
     public void deleteSnippet(UUID snippetId) {
 
         searchDocumentRepository.deleteById(

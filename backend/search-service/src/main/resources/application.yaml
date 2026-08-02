@@ -6,9 +6,9 @@ spring:
     name: search-service
 
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://localhost:5432/codecanvas
+    username: postgres
+    password: Yash@123
 
   jpa:
     hibernate:
@@ -17,6 +17,18 @@ spring:
 
   elasticsearch:
     uris: http://localhost:9200
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000
+      use-key-prefix: true
+      key-prefix: "search-service::"
 
 eureka:
   client:
