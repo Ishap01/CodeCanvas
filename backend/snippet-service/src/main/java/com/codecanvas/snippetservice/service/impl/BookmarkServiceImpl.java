@@ -11,6 +11,8 @@ import com.codecanvas.snippetservice.security.AuthenticatedUser;
 import com.codecanvas.snippetservice.service.BookmarkService;
 import com.codecanvas.snippetservice.service.SearchIndexService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +51,7 @@ public class BookmarkServiceImpl
     }
 
     @Override
+    @CacheEvict(value = {"bookmarks", "user_bookmarks", "bookmark_count", "snippets"}, allEntries = true)
     public BookmarkResponse bookmarkSnippet(UUID snippetId) {
 
         UUID userId = getCurrentUserId();
@@ -93,6 +96,7 @@ public class BookmarkServiceImpl
     }
 
     @Override
+    @CacheEvict(value = {"bookmarks", "user_bookmarks", "bookmark_count", "snippets"}, allEntries = true)
     public BookmarkResponse removeBookmark(UUID snippetId) {
 
         UUID userId = getCurrentUserId();
@@ -139,6 +143,7 @@ public class BookmarkServiceImpl
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "bookmark_count", key = "#snippetId")
     public BookmarkResponse getBookmarkCount(
             UUID snippetId) {
 
@@ -154,6 +159,7 @@ public class BookmarkServiceImpl
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "bookmarks", key = "#snippetId")
     public BookmarkResponse hasBookmarked(
             UUID snippetId) {
 
@@ -178,6 +184,7 @@ public class BookmarkServiceImpl
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "user_bookmarks")
     public List<SnippetListResponse> getMyBookmarks() {
 
         UUID userId = getCurrentUserId();

@@ -6,9 +6,7 @@ import com.codecanvas.snippetservice.dto.response.CloudinaryUploadResponse;
 
 public interface CloudinaryService {
 
-    CloudinaryUploadResponse uploadImage(
-            MultipartFile file);
+  CloudinaryUploadResponse uploadImage(MultipartFile file);
 
-    void deleteImage(
-            String publicId);
+  void deleteImage(String publicId);
 }

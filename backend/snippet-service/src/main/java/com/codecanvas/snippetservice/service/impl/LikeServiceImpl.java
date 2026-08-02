@@ -10,6 +10,8 @@ import com.codecanvas.snippetservice.security.AuthenticatedUser;
 import com.codecanvas.snippetservice.service.LikeService;
 import com.codecanvas.snippetservice.service.SearchIndexService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +48,7 @@ public class LikeServiceImpl implements LikeService {
     }
 
     @Override
+    @CacheEvict(value = {"likes", "like_count", "snippets"}, allEntries = true)
     public LikeResponse likeSnippet(UUID snippetId) {
 
         UUID userId = getCurrentUserId();
@@ -90,6 +93,7 @@ public class LikeServiceImpl implements LikeService {
     }
 
     @Override
+    @CacheEvict(value = {"likes", "like_count", "snippets"}, allEntries = true)
     public LikeResponse unlikeSnippet(UUID snippetId) {
 
         UUID userId = getCurrentUserId();
@@ -133,6 +137,7 @@ public class LikeServiceImpl implements LikeService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "like_count", key = "#snippetId")
     public LikeResponse getLikeCount(UUID snippetId) {
 
         Snippet snippet = getSnippet(snippetId);
@@ -147,6 +152,7 @@ public class LikeServiceImpl implements LikeService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "likes", key = "#snippetId")
     public LikeResponse hasLikedSnippet(UUID snippetId) {
 
         UUID userId = getCurrentUserId();

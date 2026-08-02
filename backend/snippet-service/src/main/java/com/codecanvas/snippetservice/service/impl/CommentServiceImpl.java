@@ -12,6 +12,8 @@ import com.codecanvas.snippetservice.security.AuthenticatedUser;
 import com.codecanvas.snippetservice.service.CommentService;
 import com.codecanvas.snippetservice.service.SearchIndexService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,6 +78,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @CacheEvict(value = {"comments", "replies", "snippets"}, allEntries = true)
     public CommentResponse addComment(
             UUID snippetId,
             CreateCommentRequest request) {
@@ -114,6 +117,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "comments", key = "#snippetId")
     public List<CommentResponse> getComments(UUID snippetId) {
 
         Snippet snippet = getSnippet(snippetId);
@@ -126,6 +130,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @CacheEvict(value = {"comments", "replies", "snippets"}, allEntries = true)
     public CommentResponse updateComment(
             UUID commentId,
             UpdateCommentRequest request) {
@@ -156,6 +161,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @CacheEvict(value = {"comments", "replies", "snippets"}, allEntries = true)
     public CommentResponse deleteComment(UUID commentId) {
 
         Comment comment = getComment(commentId);
@@ -190,6 +196,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @CacheEvict(value = {"comments", "replies", "snippets"}, allEntries = true)
     public CommentResponse replyToComment(
             UUID commentId,
             CreateCommentRequest request) {
@@ -230,6 +237,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "replies", key = "#commentId")
     public List<CommentResponse> getReplies(
             UUID commentId) {
 

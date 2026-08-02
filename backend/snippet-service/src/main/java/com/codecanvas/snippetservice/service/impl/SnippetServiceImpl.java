@@ -1,22 +1,5 @@
 package com.codecanvas.snippetservice.service.impl;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.UUID;
-import java.time.LocalDateTime;
-
-import com.codecanvas.snippetservice.repository.SnippetViewRepository;
-import com.codecanvas.snippetservice.service.SearchIndexService;
-import com.codecanvas.snippetservice.service.ViewService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.codecanvas.snippetservice.dto.request.CreateSnippetRequest;
 import com.codecanvas.snippetservice.dto.request.UpdateSnippetRequest;
 import com.codecanvas.snippetservice.dto.response.ApiResponse;
@@ -33,11 +16,25 @@ import com.codecanvas.snippetservice.exception.UnauthorizedActionException;
 import com.codecanvas.snippetservice.mapper.SnippetMapper;
 import com.codecanvas.snippetservice.repository.CategoryRepository;
 import com.codecanvas.snippetservice.repository.SnippetRepository;
+import com.codecanvas.snippetservice.repository.SnippetViewRepository;
 import com.codecanvas.snippetservice.repository.TagRepository;
 import com.codecanvas.snippetservice.service.CloudinaryService;
+import com.codecanvas.snippetservice.service.SearchIndexService;
 import com.codecanvas.snippetservice.service.SnippetService;
-import com.codecanvas.snippetservice.dto.request.IndexSnippetRequest;
-import com.codecanvas.snippetservice.client.SearchServiceClient;
+import com.codecanvas.snippetservice.service.ViewService;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Transactional
@@ -55,6 +52,7 @@ public class SnippetServiceImpl implements SnippetService {
 
 
     @Override
+    @CacheEvict(value = {"snippets", "public_snippets", "user_snippets"}, allEntries = true)
     public SnippetResponse createSnippet(
             UUID userId,
             CreateSnippetRequest request) {
@@ -118,6 +116,7 @@ public class SnippetServiceImpl implements SnippetService {
 
     @Override
     @Transactional
+    @Cacheable(value = "snippets", key = "#snippetId")
     public SnippetResponse getSnippetById(
             UUID snippetId,
             UUID currentUserId) {
@@ -152,6 +151,7 @@ public class SnippetServiceImpl implements SnippetService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "public_snippets")
     public List<SnippetResponse> getPublicSnippets() {
 
         List<Snippet> snippets =
@@ -166,6 +166,7 @@ public class SnippetServiceImpl implements SnippetService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "public_snippets")
     public List<SnippetResponse> getAllSnippets() {
 
         List<Snippet> snippets =
@@ -179,6 +180,7 @@ public class SnippetServiceImpl implements SnippetService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "user_snippets", key = "#userId")
     public List<SnippetResponse> getSnippetsByUserId(
             UUID userId) {
 
@@ -199,6 +201,7 @@ public class SnippetServiceImpl implements SnippetService {
     }
 
     @Override
+    @CacheEvict(value = {"snippets", "public_snippets", "user_snippets"}, allEntries = true)
     public SnippetResponse updateSnippet(
             UUID snippetId,
             UUID userId,
@@ -252,6 +255,7 @@ public class SnippetServiceImpl implements SnippetService {
     }
 
     @Override
+    @CacheEvict(value = {"snippets", "public_snippets", "user_snippets"}, allEntries = true)
     public SnippetResponse uploadOrReplacePreviewImage(
             UUID snippetId,
             UUID userId,
@@ -362,6 +366,7 @@ public class SnippetServiceImpl implements SnippetService {
     }
 
     @Override
+    @CacheEvict(value = {"snippets", "public_snippets", "user_snippets"}, allEntries = true)
     public ApiResponse deletePreviewImage(
             UUID snippetId,
             UUID userId) {
@@ -418,6 +423,7 @@ public class SnippetServiceImpl implements SnippetService {
     }
 
     @Override
+    @CacheEvict(value = {"snippets", "public_snippets", "user_snippets"}, allEntries = true)
     public ApiResponse deleteSnippet(
             UUID snippetId,
             UUID userId) {
