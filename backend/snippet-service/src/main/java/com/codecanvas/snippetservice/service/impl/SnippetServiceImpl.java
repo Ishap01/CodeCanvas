@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.time.LocalDateTime;
 
+import com.codecanvas.snippetservice.client.UserServiceClient;
 import com.codecanvas.snippetservice.repository.SnippetViewRepository;
 import com.codecanvas.snippetservice.service.SearchIndexService;
 import com.codecanvas.snippetservice.service.ViewService;
@@ -52,6 +53,7 @@ public class SnippetServiceImpl implements SnippetService {
     private final SearchIndexService searchIndexService;
     private final SnippetViewRepository snippetViewRepository;
     private final ViewService viewService;
+    private final UserServiceClient userServiceClient;
 
 
     @Override
@@ -131,24 +133,67 @@ public class SnippetServiceImpl implements SnippetService {
                         snippet.getUserId()
                 );
 
-        boolean publiclyVisible =
-                snippet.getVisibility()
-                        == Visibility.PUBLIC;
+        /*
+         * Owner can always view.
+         */
+        if (owner) {
 
-        if (!owner && !publiclyVisible) {
-            System.out.println("Visibility = " + snippet.getVisibility());
-            throw new UnauthorizedActionException(
-                    "You are not allowed to view this private snippet"
+            viewService.recordView(
+                    snippet,
+                    currentUserId
             );
+
+            return snippetMapper.toResponse(snippet);
         }
 
-        viewService.recordView(
-                snippet,
-                currentUserId
-        );
+        /*
+         * Public snippet
+         */
+        if (snippet.getVisibility() == Visibility.PUBLIC) {
 
-        return snippetMapper.toResponse(snippet);
+            viewService.recordView(
+                    snippet,
+                    currentUserId
+            );
+
+            return snippetMapper.toResponse(snippet);
+        }
+
+        /*
+         * Premium snippet
+         */
+        if (snippet.getVisibility() == Visibility.PREMIUM) {
+
+            if (currentUserId == null) {
+
+                throw new UnauthorizedActionException(
+                        "Premium subscription required."
+                );
+            }
+
+            if (!userServiceClient.isPremiumUser(currentUserId)) {
+
+                throw new UnauthorizedActionException(
+                        "Premium subscription required."
+                );
+            }
+
+            viewService.recordView(
+                    snippet,
+                    currentUserId
+            );
+
+            return snippetMapper.toResponse(snippet);
+        }
+
+        /*
+         * Private snippet
+         */
+        throw new UnauthorizedActionException(
+                "You are not allowed to view this private snippet."
+        );
     }
+
 
     @Override
     @Transactional(readOnly = true)
