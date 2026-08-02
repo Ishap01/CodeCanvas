@@ -83,4 +83,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(response);
     }
+
+    @ExceptionHandler(PremiumFeatureException.class)
+    public ResponseEntity<ErrorResponse> handlePremiumFeatureException(
+            PremiumFeatureException ex,
+            HttpServletRequest request) {
+
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.FORBIDDEN.value())
+                .error(HttpStatus.FORBIDDEN.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(response);
+    }
 }
