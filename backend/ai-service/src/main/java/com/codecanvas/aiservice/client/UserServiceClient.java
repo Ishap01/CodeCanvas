@@ -1,4 +1,4 @@
-package com.codecanvas.snippetservice.client;
+package com.codecanvas.aiservice.client;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,12 +17,11 @@ public class UserServiceClient {
 
     public boolean isPremiumUser(UUID userId) {
 
-        Boolean response =
-                restTemplate.getForObject(
-                        USER_SERVICE_URL,
-                        Boolean.class,
-                        userId
-                );
+        Boolean response = restTemplate.getForObject(
+                USER_SERVICE_URL,
+                Boolean.class,
+                userId
+        );
 
         return Boolean.TRUE.equals(response);
     }

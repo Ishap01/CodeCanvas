@@ -7,6 +7,7 @@ import com.codecanvas.aiservice.dto.request.SummarizeCodeRequest;
 import com.codecanvas.aiservice.dto.response.AIResponse;
 import com.codecanvas.aiservice.entity.AIHistory;
 import com.codecanvas.aiservice.enums.AIOperation;
+import com.codecanvas.aiservice.exception.PremiumFeatureException;
 import com.codecanvas.aiservice.repository.AIHistoryRepository;
 import com.codecanvas.aiservice.service.AIService;
 import com.codecanvas.aiservice.util.PromptBuilder;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import com.codecanvas.aiservice.client.UserServiceClient;
 
 @Slf4j
 @Service
@@ -25,13 +27,26 @@ public class AIServiceImpl implements AIService {
 
     private final AIHistoryRepository historyRepository;
     private final GroqClient groqClient;
+    private final UserServiceClient userServiceClient;
 
     @Override
-    public AIResponse explainCode(UUID userId, ExplainCodeRequest request) {
+    public AIResponse explainCode(
+            UUID userId,
+            ExplainCodeRequest request) {
 
-        String prompt = PromptBuilder.buildExplainPrompt(request.getCode());
+        if (!userServiceClient.isPremiumUser(userId)) {
+            throw new PremiumFeatureException(
+                    "Code explanation is available only for Premium users."
+            );
+        }
 
-        String result = groqClient.generateContent(prompt);
+        String prompt =
+                PromptBuilder.buildExplainPrompt(
+                        request.getCode()
+                );
+
+        String result =
+                groqClient.generateContent(prompt);
 
         saveHistory(
                 userId,
