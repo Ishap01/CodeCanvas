@@ -9,6 +9,8 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -78,6 +80,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @CacheEvict(value = {"payments", "user_payments"}, allEntries = true)
     public RazorpayOrderResponse createOrder(
             CreateOrderRequest request) {
 
@@ -185,6 +188,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @CacheEvict(value = {"payments", "user_payments"}, allEntries = true)
     public PaymentResponse verifyPayment(
             VerifyPaymentRequest request) {
 
@@ -248,6 +252,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "payments", key = "#paymentId")
     public PaymentResponse getPaymentById(
             UUID paymentId) {
 
@@ -275,6 +280,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "user_payments")
     public List<PaymentResponse> getMyPayments() {
 
         UUID currentUserId =
