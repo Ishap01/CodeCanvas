@@ -5,6 +5,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.codecanvas.userservice.service.CloudinaryService;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.http.HttpStatus;
@@ -32,6 +34,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable(value = "users_all")
     public List<UserResponse> getAllUsers() {
 
         return userRepository.findAll()
@@ -41,6 +44,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable(value = "users", key = "#userId")
     public UserResponse getUserById(UUID userId) {
 
         User user = userRepository.findById(userId)
@@ -75,6 +79,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"users", "users_all"}, allEntries = true)
     public ApiResponse updateProfile(UserUpdateRequest request) {
 
         Authentication authentication = SecurityContextHolder

@@ -6,6 +6,8 @@ import com.codecanvas.userservice.repository.*;
 import com.codecanvas.userservice.service.SubscriptionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,6 +33,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     private final UserRepository userRepository;
 
     @Override
+    @CacheEvict(value = {"user_subscriptions", "subscription_plans"}, allEntries = true)
     public UserSubscription createSubscription(
             UUID userId,
             Long planId,
@@ -109,6 +112,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     }
 
     @Override
+    @CacheEvict(value = {"user_subscriptions", "subscription_plans"}, allEntries = true)
     public UserSubscription upgradePlan(Long subscriptionId, Long newPlanId) {
         UserSubscription subscription = subscriptionRepository.findById(subscriptionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subscription not found: " + subscriptionId));
@@ -137,6 +141,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     }
 
     @Override
+    @CacheEvict(value = {"user_subscriptions", "subscription_plans"}, allEntries = true)
     public UserSubscription cancelSubscription(Long subscriptionId, String cancellationReason) {
         UserSubscription subscription = subscriptionRepository.findById(subscriptionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subscription not found: " + subscriptionId));
@@ -165,6 +170,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "user_subscriptions", key = "#userId")
     public Optional<UserSubscription> getActiveSubscription(UUID userId) {
         return subscriptionRepository.findActiveSubscriptionByUserId(userId);
     }
@@ -189,6 +195,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "subscription_plans")
     public List<SubscriptionPlan> getAllActivePlans() {
         return planRepository.findAllByIsActiveTrue();
     }
@@ -200,6 +207,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     }
 
     @Override
+    @CacheEvict(value = "subscription_plans", allEntries = true)
     public SubscriptionPlan createPlan(SubscriptionPlanDTO dto, String createdBy) {
         SubscriptionPlan plan = SubscriptionPlan.builder()
                 .name(dto.getName())
