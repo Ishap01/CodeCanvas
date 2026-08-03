@@ -1,18 +1,12 @@
 package com.codecanvas.snippetservice.config;
 
-import java.util.List;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.codecanvas.snippetservice.security.JwtAuthenticationEntryPoint;
 import com.codecanvas.snippetservice.security.JwtAuthenticationFilter;
@@ -20,11 +14,9 @@ import com.codecanvas.snippetservice.security.JwtAuthenticationFilter;
 @Configuration
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter
-            jwtAuthenticationFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    private final JwtAuthenticationEntryPoint
-            jwtAuthenticationEntryPoint;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
@@ -43,21 +35,13 @@ public class SecurityConfig {
 
         http
                 /*
-                 * REST API JWT use kar rahi hai.
-                 * Browser session-based CSRF token use nahi ho raha.
+                 * JWT-based REST API mein CSRF token use nahi hota.
                  */
                 .csrf(csrf -> csrf.disable())
 
                 /*
-                 * React frontend se requests allow hongi.
-                 */
-                .cors(cors -> cors.configurationSource(
-                        corsConfigurationSource()
-                ))
-
-                /*
-                 * JWT stateless authentication:
-                 * server HTTP session create nahi karega.
+                 * CORS yahan configure nahi karna.
+                 * API Gateway CORS handle karega.
                  */
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
@@ -66,7 +50,8 @@ public class SecurityConfig {
                 )
 
                 /*
-                 * Unauthorized request par custom JSON response.
+                 * Invalid ya missing JWT ke liye
+                 * custom unauthorized response.
                  */
                 .exceptionHandling(exception ->
                         exception.authenticationEntryPoint(
@@ -79,15 +64,13 @@ public class SecurityConfig {
                         /*
                          * Browser preflight request.
                          */
-
-
                         .requestMatchers(
                                 HttpMethod.OPTIONS,
                                 "/**"
                         ).permitAll()
 
                         /*
-                         * Public snippets ki listing.
+                         * Public snippet listing.
                          */
                         .requestMatchers(
                                 HttpMethod.GET,
@@ -95,72 +78,79 @@ public class SecurityConfig {
                         ).permitAll()
 
                         /*
-                         * Individual public snippet service layer
-                         * visibility check ke through accessible hai.
+                         * GET /api/snippets currently
+                         * public active snippets return karta hai.
+                         */
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/snippets"
+                        ).permitAll()
+
+                        /*
+                         * Single snippet details.
                          *
-                         * Lekin private snippet owner ko token ki
-                         * requirement hogi. Is endpoint ko permitAll
-                         * rakhne par optional authentication possible hai.
+                         * Token optional hai. Service layer
+                         * PUBLIC, PREMIUM aur PRIVATE access
+                         * decide karegi.
                          */
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/snippets/*"
                         ).permitAll()
+
                         /*
-                         * Create, update, delete aur user snippets
-                         * ke liye valid JWT required hai.
+                         * Public comment list.
                          */
                         .requestMatchers(
-                                HttpMethod.POST,
-                                "/api/snippets/**"
-                        ).authenticated()
+                                HttpMethod.GET,
+                                "/api/snippets/*/comments"
+                        ).permitAll()
 
+                        /*
+                         * Public comment replies.
+                         */
                         .requestMatchers(
-                                HttpMethod.PUT,
-                                "/api/snippets/**"
-                        ).authenticated()
+                                HttpMethod.GET,
+                                "/api/comments/*/replies"
+                        ).permitAll()
 
+                        /*
+                         * Public engagement counts.
+                         */
                         .requestMatchers(
-                                HttpMethod.DELETE,
-                                "/api/snippets/**"
-                        ).authenticated()
-
-                        .requestMatchers(
-                                "/api/snippets/user/**"
-                        ).authenticated()
-
-
-
-
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/api/comments/**"
-                        ).authenticated()
-
-                        .requestMatchers(
-                                HttpMethod.PUT,
-                                "/api/comments/**"
-                        ).authenticated()
-
-                        .requestMatchers(
-                                HttpMethod.DELETE,
-                                "/api/comments/**"
-                        ).authenticated()
+                                HttpMethod.GET,
+                                "/api/snippets/*/likes"
+                        ).permitAll()
 
                         .requestMatchers(
                                 HttpMethod.GET,
-                                "/api/comments/**"
-                        ).authenticated()
+                                "/api/snippets/*/bookmarks"
+                        ).permitAll()
 
                         /*
-                         * Baaki endpoints protected.
+                         * Health endpoints.
                          */
-                        .anyRequest().authenticated()
+                        .requestMatchers(
+                                "/actuator/health",
+                                "/actuator/info",
+                                "/error"
+                        ).permitAll()
+
+                        /*
+                         * Baaki sab protected:
+                         *
+                         * create snippet
+                         * update/delete snippet
+                         * image upload/delete
+                         * my snippets
+                         * like/bookmark status
+                         * add/update/delete comment
+                         * fork
+                         */
+                        .anyRequest()
+                        .authenticated()
                 )
 
-                /*
-                 * Form login aur basic auth ki zarurat nahi.
-                 */
                 .formLogin(form ->
                         form.disable()
                 )
@@ -170,7 +160,8 @@ public class SecurityConfig {
                 )
 
                 /*
-                 * JWT filter username/password filter se pehle chalega.
+                 * JWT filter authentication chain mein
+                 * username/password filter se pehle chalega.
                  */
                 .addFilterBefore(
                         jwtAuthenticationFilter,
@@ -178,55 +169,5 @@ public class SecurityConfig {
                 );
 
         return http.build();
-    }
-
-    @Bean
-    public CorsConfigurationSource
-    corsConfigurationSource() {
-
-        CorsConfiguration configuration =
-                new CorsConfiguration();
-
-        configuration.setAllowedOrigins(
-                List.of(
-                        "http://localhost:5173"
-                )
-        );
-
-        configuration.setAllowedMethods(
-                List.of(
-                        "GET",
-                        "POST",
-                        "PUT",
-                        "DELETE",
-                        "OPTIONS"
-                )
-        );
-
-        configuration.setAllowedHeaders(
-                List.of(
-                        "Authorization",
-                        "Content-Type",
-                        "Accept"
-                )
-        );
-
-        configuration.setExposedHeaders(
-                List.of(
-                        "Authorization"
-                )
-        );
-
-        configuration.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
-
-        source.registerCorsConfiguration(
-                "/**",
-                configuration
-        );
-
-        return source;
     }
 }

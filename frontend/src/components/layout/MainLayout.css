@@ -1,0 +1,14 @@
+.main-application {
+  width: 100%;
+  min-height: 100vh;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.main-page-content {
+  width: 100%;
+  min-height: calc(100vh - 120px);
+  height: auto;
+  overflow: visible;
+}

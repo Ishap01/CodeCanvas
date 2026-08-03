@@ -1,8 +1,11 @@
 import React from "react";
 import "./MainNavbar.css";
 
-import { NavLink, Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import {
+    NavLink,
+    Link,
+    useNavigate,
+} from "react-router-dom";
 
 import {
     FaCode,
@@ -15,68 +18,119 @@ import {
 export default function MainNavbar() {
 
     const navigate = useNavigate();
-    
+
+    const handleSearchSubmit = (event) => {
+        event.preventDefault();
+
+        const formData = new FormData(
+            event.currentTarget
+        );
+
+        const searchText = formData
+            .get("search")
+            ?.trim();
+
+        if (!searchText) {
+            navigate("/snippets");
+            return;
+        }
+
+        navigate(
+            `/snippets?search=${encodeURIComponent(
+                searchText
+            )}`
+        );
+    };
+
     return (
         <>
-            {/* TOP NAVBAR */}
-
             <header className="globalTopNavbar">
 
-                <Link to="/" className="globalBrand">
-                    <span className="globalBrandDot"></span>
+                <Link
+                    to="/"
+                    className="globalBrand"
+                >
+                    <span className="globalBrandDot" />
+
                     CODECANVAS
                 </Link>
 
                 <nav className="globalTopLinks">
 
-                    <NavLink to="/">LANDING</NavLink>
+                    <NavLink to="/">
+                        LANDING
+                    </NavLink>
 
-                    <NavLink to="/login">LOGIN</NavLink>
+                    <NavLink to="/login">
+                        LOGIN
+                    </NavLink>
 
-                    <NavLink to="/register">REGISTER</NavLink>
+                    <NavLink to="/register">
+                        REGISTER
+                    </NavLink>
 
-                    <NavLink to="/dashboard">DASHBOARD</NavLink>
+                    <NavLink to="/dashboard">
+                        DASHBOARD
+                    </NavLink>
 
-                    <NavLink to="/search">SEARCH</NavLink>
+                    <NavLink to="/snippets">
+                        SNIPPETS
+                    </NavLink>
 
-                    <NavLink to="/snippet">SNIPPET</NavLink>
+                    <NavLink to="/snippets/my">
+                        MY SNIPPETS
+                    </NavLink>
 
-                    <NavLink to="/upload">UPLOAD</NavLink>
+                    <NavLink to="/snippets/create">
+                        CREATE
+                    </NavLink>
 
-                    <NavLink to="/profile">PROFILE</NavLink>
+                    <NavLink to="/snippets/bookmarks">
+                        BOOKMARKS
+                    </NavLink>
 
-                    <NavLink to="/premium">PREMIUM</NavLink>
+                    <NavLink to="/profile">
+                        PROFILE
+                    </NavLink>
 
-                    <NavLink to="/admin">ADMIN</NavLink>
+                    <NavLink to="/premium">
+                        PREMIUM
+                    </NavLink>
+
+                    <NavLink to="/admin">
+                        ADMIN
+                    </NavLink>
 
                 </nav>
 
             </header>
 
-            {/* SECOND NAVBAR */}
-
             <header className="globalMainNavbar">
 
-                <Link to="/" className="globalLogo">
-
+                <Link
+                    to="/"
+                    className="globalLogo"
+                >
                     <span className="globalLogoBox">
                         <FaCode />
                     </span>
 
                     <span>CodeCanvas</span>
-
                 </Link>
 
-                <div className="globalSearch">
-
+                <form
+                    className="globalSearch"
+                    onSubmit={handleSearchSubmit}
+                >
                     <FaSearch />
 
                     <input
                         type="text"
+                        name="search"
                         placeholder="Search snippets..."
+                        autoComplete="off"
                     />
-
-                </div>
+                </form>
 
                 <div className="globalNavbarActions">
 
@@ -90,11 +144,11 @@ export default function MainNavbar() {
                     <button
                         type="button"
                         aria-label="Settings"
+                        onClick={() =>
+                            navigate("/settings")
+                        }
                     >
-                        <FaCog
-                            className="navIcon"
-                            onClick={() => navigate("/settings")}
-                        />
+                        <FaCog className="navIcon" />
                     </button>
 
                     <Link

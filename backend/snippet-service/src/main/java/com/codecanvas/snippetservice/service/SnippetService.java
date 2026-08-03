@@ -22,7 +22,16 @@ public interface SnippetService {
             UUID currentUserId
     );
 
-    List<SnippetResponse> getPublicSnippets();
+    /*
+     * Anonymous or normal user:
+     * PUBLIC snippets
+     *
+     * Premium user:
+     * PUBLIC + PREMIUM snippets
+     */
+    List<SnippetResponse> getPublicSnippets(
+            UUID currentUserId
+    );
 
     List<SnippetResponse> getSnippetsByUserId(
             UUID userId

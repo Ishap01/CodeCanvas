@@ -7,17 +7,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
-import java.time.LocalDateTime;
 
-import com.codecanvas.snippetservice.client.UserServiceClient;
-import com.codecanvas.snippetservice.repository.SnippetViewRepository;
-import com.codecanvas.snippetservice.service.SearchIndexService;
-import com.codecanvas.snippetservice.service.ViewService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.codecanvas.snippetservice.client.UserServiceClient;
 import com.codecanvas.snippetservice.dto.request.CreateSnippetRequest;
 import com.codecanvas.snippetservice.dto.request.UpdateSnippetRequest;
 import com.codecanvas.snippetservice.dto.response.ApiResponse;
@@ -34,11 +29,14 @@ import com.codecanvas.snippetservice.exception.UnauthorizedActionException;
 import com.codecanvas.snippetservice.mapper.SnippetMapper;
 import com.codecanvas.snippetservice.repository.CategoryRepository;
 import com.codecanvas.snippetservice.repository.SnippetRepository;
+import com.codecanvas.snippetservice.repository.SnippetViewRepository;
 import com.codecanvas.snippetservice.repository.TagRepository;
 import com.codecanvas.snippetservice.service.CloudinaryService;
+import com.codecanvas.snippetservice.service.SearchIndexService;
 import com.codecanvas.snippetservice.service.SnippetService;
-import com.codecanvas.snippetservice.dto.request.IndexSnippetRequest;
-import com.codecanvas.snippetservice.client.SearchServiceClient;
+import com.codecanvas.snippetservice.service.ViewService;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @Transactional
@@ -54,7 +52,6 @@ public class SnippetServiceImpl implements SnippetService {
     private final SnippetViewRepository snippetViewRepository;
     private final ViewService viewService;
     private final UserServiceClient userServiceClient;
-
 
     @Override
     public SnippetResponse createSnippet(
@@ -147,9 +144,10 @@ public class SnippetServiceImpl implements SnippetService {
         }
 
         /*
-         * Public snippet
+         * Public snippet.
          */
-        if (snippet.getVisibility() == Visibility.PUBLIC) {
+        if (snippet.getVisibility()
+                == Visibility.PUBLIC) {
 
             viewService.recordView(
                     snippet,
@@ -160,9 +158,10 @@ public class SnippetServiceImpl implements SnippetService {
         }
 
         /*
-         * Premium snippet
+         * Premium snippet.
          */
-        if (snippet.getVisibility() == Visibility.PREMIUM) {
+        if (snippet.getVisibility()
+                == Visibility.PREMIUM) {
 
             if (currentUserId == null) {
 
@@ -171,7 +170,8 @@ public class SnippetServiceImpl implements SnippetService {
                 );
             }
 
-            if (!userServiceClient.isPremiumUser(currentUserId)) {
+            if (!userServiceClient.isPremiumUser(
+                    currentUserId)) {
 
                 throw new UnauthorizedActionException(
                         "Premium subscription required."
@@ -187,26 +187,95 @@ public class SnippetServiceImpl implements SnippetService {
         }
 
         /*
-         * Private snippet
+         * Private snippet.
          */
         throw new UnauthorizedActionException(
                 "You are not allowed to view this private snippet."
         );
     }
 
-
     @Override
     @Transactional(readOnly = true)
-    public List<SnippetResponse> getPublicSnippets() {
+    public List<SnippetResponse> getPublicSnippets(
+            UUID currentUserId) {
 
-        List<Snippet> snippets =
+        /*
+         * Public snippets har user ko milengi.
+         */
+        List<Snippet> accessibleSnippets =
+                new ArrayList<>(
+                        snippetRepository
+                                .findByVisibilityAndStatus(
+                                        Visibility.PUBLIC,
+                                        Status.ACTIVE
+                                )
+                );
+
+        /*
+         * Anonymous user:
+         * sirf public snippets.
+         */
+        if (currentUserId == null) {
+
+            return convertToResponseList(
+                    accessibleSnippets
+            );
+        }
+
+        boolean premiumUser;
+
+        try {
+
+            /*
+             * Current logged-in user ka premium status
+             * User Service se check hoga.
+             */
+            premiumUser =
+                    userServiceClient.isPremiumUser(
+                            currentUserId
+                    );
+
+        } catch (RuntimeException exception) {
+
+            /*
+             * User Service temporarily fail ho jaye toh
+             * complete public listing fail nahi hogi.
+             *
+             * Safe fallback:
+             * sirf public snippets return hongi.
+             */
+            premiumUser = false;
+        }
+
+        /*
+         * Normal user:
+         * sirf public snippets.
+         */
+        if (!premiumUser) {
+
+            return convertToResponseList(
+                    accessibleSnippets
+            );
+        }
+
+        /*
+         * Premium user:
+         * public ke saath premium snippets bhi.
+         */
+        List<Snippet> premiumSnippets =
                 snippetRepository
                         .findByVisibilityAndStatus(
-                                Visibility.PUBLIC,
+                                Visibility.PREMIUM,
                                 Status.ACTIVE
                         );
 
-        return convertToResponseList(snippets);
+        accessibleSnippets.addAll(
+                premiumSnippets
+        );
+
+        return convertToResponseList(
+                accessibleSnippets
+        );
     }
 
     @Override
@@ -214,10 +283,11 @@ public class SnippetServiceImpl implements SnippetService {
     public List<SnippetResponse> getAllSnippets() {
 
         List<Snippet> snippets =
-                snippetRepository.findByVisibilityAndStatus(
-                        Visibility.PUBLIC,
-                        Status.ACTIVE
-                );
+                snippetRepository
+                        .findByVisibilityAndStatus(
+                                Visibility.PUBLIC,
+                                Status.ACTIVE
+                        );
 
         return convertToResponseList(snippets);
     }
@@ -292,8 +362,13 @@ public class SnippetServiceImpl implements SnippetService {
         Snippet updatedSnippet =
                 snippetRepository.save(snippet);
 
-        searchIndexService.indexSnippet(updatedSnippet);
-        return snippetMapper.toResponse(updatedSnippet);
+        searchIndexService.indexSnippet(
+                updatedSnippet
+        );
+
+        return snippetMapper.toResponse(
+                updatedSnippet
+        );
     }
 
     @Override
@@ -344,7 +419,9 @@ public class SnippetServiceImpl implements SnippetService {
         }
 
         String newImageUrl =
-                uploadResponse.getImageUrl().trim();
+                uploadResponse
+                        .getImageUrl()
+                        .trim();
 
         String newPublicId =
                 uploadResponse
@@ -364,14 +441,17 @@ public class SnippetServiceImpl implements SnippetService {
             Snippet updatedSnippet =
                     snippetRepository.save(snippet);
 
-            searchIndexService.indexSnippet(updatedSnippet);
+            searchIndexService.indexSnippet(
+                    updatedSnippet
+            );
 
             /*
              * New image and database update successful hone ke baad
              * previous Cloudinary image delete karenge.
              */
             if (oldPublicId != null
-                    && !oldPublicId.equals(newPublicId)) {
+                    && !oldPublicId.equals(
+                    newPublicId)) {
 
                 cloudinaryService.deleteImage(
                         oldPublicId
@@ -392,9 +472,11 @@ public class SnippetServiceImpl implements SnippetService {
              * delete karne ki koshish karenge.
              */
             try {
+
                 cloudinaryService.deleteImage(
                         newPublicId
                 );
+
             } catch (RuntimeException cleanupException) {
 
                 exception.addSuppressed(
@@ -430,9 +512,12 @@ public class SnippetServiceImpl implements SnippetService {
             snippet.setPreviewImageUrl(null);
             snippet.setPreviewImagePublicId(null);
 
-            Snippet updatedSnippet = snippetRepository.save(snippet);
+            Snippet updatedSnippet =
+                    snippetRepository.save(snippet);
 
-            searchIndexService.indexSnippet(updatedSnippet);
+            searchIndexService.indexSnippet(
+                    updatedSnippet
+            );
 
             return new ApiResponse(
                     true,
@@ -454,7 +539,9 @@ public class SnippetServiceImpl implements SnippetService {
         Snippet updatedSnippet =
                 snippetRepository.save(snippet);
 
-        searchIndexService.indexSnippet(updatedSnippet);
+        searchIndexService.indexSnippet(
+                updatedSnippet
+        );
 
         return new ApiResponse(
                 true,
@@ -485,7 +572,9 @@ public class SnippetServiceImpl implements SnippetService {
 
         snippetRepository.save(snippet);
 
-        searchIndexService.deleteSnippet(snippetId);
+        searchIndexService.deleteSnippet(
+                snippetId
+        );
 
         return new ApiResponse(
                 true,
@@ -493,12 +582,11 @@ public class SnippetServiceImpl implements SnippetService {
         );
     }
 
-
-
     private Snippet findActiveSnippetById(
             UUID snippetId) {
 
         if (snippetId == null) {
+
             throw new IllegalArgumentException(
                     "Snippet id is required"
             );
@@ -531,12 +619,14 @@ public class SnippetServiceImpl implements SnippetService {
             UUID userId) {
 
         if (snippet == null) {
+
             throw new ResourceNotFoundException(
                     "Snippet not found"
             );
         }
 
         if (userId == null) {
+
             throw new UnauthorizedActionException(
                     "Authenticated user is required"
             );
@@ -585,6 +675,7 @@ public class SnippetServiceImpl implements SnippetService {
             List<String> tagNames) {
 
         if (snippet == null) {
+
             throw new IllegalArgumentException(
                     "Snippet is required"
             );
@@ -605,6 +696,7 @@ public class SnippetServiceImpl implements SnippetService {
 
             if (tagName == null
                     || tagName.isBlank()) {
+
                 continue;
             }
 
@@ -612,9 +704,10 @@ public class SnippetServiceImpl implements SnippetService {
                     tagName.trim();
 
             String lowercaseTagName =
-                    normalizedTagName.toLowerCase(
-                            Locale.ROOT
-                    );
+                    normalizedTagName
+                            .toLowerCase(
+                                    Locale.ROOT
+                            );
 
             /*
              * React, react aur REACT ko same
@@ -626,9 +719,10 @@ public class SnippetServiceImpl implements SnippetService {
                 continue;
             }
 
-            Tag tag = findOrCreateTag(
-                    normalizedTagName
-            );
+            Tag tag =
+                    findOrCreateTag(
+                            normalizedTagName
+                    );
 
             snippet.addTag(tag);
         }
@@ -648,6 +742,7 @@ public class SnippetServiceImpl implements SnippetService {
             List<String> requestedTagNames) {
 
         if (snippet == null) {
+
             throw new IllegalArgumentException(
                     "Snippet is required"
             );
@@ -669,6 +764,7 @@ public class SnippetServiceImpl implements SnippetService {
 
             if (tagName == null
                     || tagName.isBlank()) {
+
                 continue;
             }
 
@@ -768,9 +864,10 @@ public class SnippetServiceImpl implements SnippetService {
                     requestedTagName.trim();
 
             String lowercaseTagName =
-                    normalizedTagName.toLowerCase(
-                            Locale.ROOT
-                    );
+                    normalizedTagName
+                            .toLowerCase(
+                                    Locale.ROOT
+                            );
 
             if (!processedRequestTags.add(
                     lowercaseTagName)) {
@@ -784,9 +881,10 @@ public class SnippetServiceImpl implements SnippetService {
                 continue;
             }
 
-            Tag tag = findOrCreateTag(
-                    normalizedTagName
-            );
+            Tag tag =
+                    findOrCreateTag(
+                            normalizedTagName
+                    );
 
             snippet.addTag(tag);
 
@@ -845,6 +943,7 @@ public class SnippetServiceImpl implements SnippetService {
         for (Snippet snippet : snippets) {
 
             if (snippet == null) {
+
                 continue;
             }
 
@@ -857,8 +956,6 @@ public class SnippetServiceImpl implements SnippetService {
 
         return responses;
     }
-
-
 
     private String normalizeRequiredText(
             String value,
@@ -886,7 +983,4 @@ public class SnippetServiceImpl implements SnippetService {
 
         return value.trim();
     }
-
-
-
 }
