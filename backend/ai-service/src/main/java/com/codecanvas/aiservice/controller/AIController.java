@@ -1,5 +1,6 @@
 package com.codecanvas.aiservice.controller;
 
+import com.codecanvas.aiservice.client.UserServiceClient;
 import com.codecanvas.aiservice.dto.request.ExplainCodeRequest;
 import com.codecanvas.aiservice.dto.request.GenerateTagsRequest;
 import com.codecanvas.aiservice.dto.request.SummarizeCodeRequest;
@@ -21,6 +22,7 @@ import java.util.UUID;
 public class AIController {
 
     private final AIService aiService;
+    private final UserServiceClient userServiceClient;
 
     @PostMapping("/explain")
     public AIResponse explain(
@@ -104,6 +106,15 @@ public class AIController {
         }
 
         return userId;
+    }
+
+    @GetMapping("/test-premium/{userId}")
+    public ResponseEntity<Boolean> testPremium(
+            @PathVariable UUID userId) {
+
+        return ResponseEntity.ok(
+                userServiceClient.isPremiumUser(userId)
+        );
     }
 
 }
