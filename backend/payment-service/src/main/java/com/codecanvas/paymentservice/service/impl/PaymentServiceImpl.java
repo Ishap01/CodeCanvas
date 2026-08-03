@@ -95,6 +95,8 @@ public class PaymentServiceImpl implements PaymentService {
             throw new UserServiceIntegrationException(
                     "Unable to fetch subscription plan from User Service.",
                     exception
+
+
             );
         }
 
