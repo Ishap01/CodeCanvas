@@ -1,0 +1,111 @@
+.cc-btn{
+
+    border:none;
+
+    border-radius:var(--radius-md);
+
+    font-weight:600;
+
+    transition:var(--transition);
+
+    display:inline-flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:.5rem;
+
+    cursor:pointer;
+
+}
+
+/* ---------- Sizes ---------- */
+
+.cc-btn-sm{
+
+    padding:.6rem 1rem;
+
+    font-size:.875rem;
+
+}
+
+.cc-btn-md{
+
+    padding:.85rem 1.5rem;
+
+    font-size:1rem;
+
+}
+
+.cc-btn-lg{
+
+    padding:1rem 2rem;
+
+    font-size:1.05rem;
+
+}
+
+/* ---------- Primary ---------- */
+
+.cc-btn-primary{
+
+    background:var(--primary);
+
+    color:white;
+
+}
+
+.cc-btn-primary:hover{
+
+    background:var(--primary-hover);
+
+    transform:translateY(-2px);
+
+}
+
+/* ---------- Secondary ---------- */
+
+.cc-btn-secondary{
+
+    background:var(--surface-light);
+
+    color:var(--text-primary);
+
+    border:1px solid var(--border);
+
+}
+
+.cc-btn-secondary:hover{
+
+    background:#273247;
+
+}
+
+/* ---------- Danger ---------- */
+
+.cc-btn-danger{
+
+    background:#dc2626;
+
+    color:white;
+
+}
+
+.cc-btn-danger:hover{
+
+    background:#b91c1c;
+
+}
+
+/* ---------- Disabled ---------- */
+
+.cc-btn:disabled{
+
+    opacity:.6;
+
+    cursor:not-allowed;
+
+    transform:none;
+
+}

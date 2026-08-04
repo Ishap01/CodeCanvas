@@ -15,6 +15,7 @@ import UserDashboard from "./pages/user/UserDashboard/UserDashboard";
 import Profile from "./pages/user/Profile/Profile";
 import EditProfile from "./pages/user/EditProfile/EditProfile";
 import Settings from "./pages/user/settings/Settings";
+import PublicProfile from "./pages/user/PublicProfile/PublicProfile";
 
 import PricingPage from "./pages/Pricing/PricingPage";
 
@@ -96,6 +97,11 @@ function App() {
                             <Profile />
                         </ProtectedRoute>
                     }
+                />
+
+                <Route
+                    path="/users/:username"
+                    element={<PublicProfile />}
                 />
 
                 <Route

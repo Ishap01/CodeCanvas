@@ -48,3 +48,12 @@ export const deleteProfile = async () => {
 
   return response.data;
 };
+
+// Get public profile by username
+export const getPublicProfile = async (username) => {
+  const response = await axiosInstance.get(
+    `/api/users/public/${username}`
+  );
+
+  return response.data;
+};

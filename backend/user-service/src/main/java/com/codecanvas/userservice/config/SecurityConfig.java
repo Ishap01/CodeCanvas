@@ -52,6 +52,10 @@ public class SecurityConfig {
                         ).permitAll()
 
                         .requestMatchers(
+                                "/api/users/public/**"
+                        ).permitAll()
+
+                        .requestMatchers(
                                 "/api/subscriptions/internal/**"
                         ).permitAll()
 

@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.codecanvas.userservice.service.CloudinaryService;
+import com.codecanvas.userservice.service.FollowService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.http.HttpStatus;
@@ -20,15 +21,20 @@ import com.codecanvas.userservice.entity.User;
 import com.codecanvas.userservice.repository.UserRepository;
 import com.codecanvas.userservice.service.UserService;
 
+import com.codecanvas.userservice.dto.response.PublicProfileResponse;
+import com.codecanvas.userservice.service.FollowService;
+
 @Service
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final CloudinaryService cloudinaryService;
+    private final FollowService followService;
 
-    public UserServiceImpl(UserRepository userRepository, CloudinaryService cloudinaryService) {
+    public UserServiceImpl(UserRepository userRepository, CloudinaryService cloudinaryService, FollowService followService) {
         this.userRepository = userRepository;
         this.cloudinaryService = cloudinaryService;
+        this.followService = followService;
     }
 
     @Override
@@ -72,6 +78,58 @@ public class UserServiceImpl implements UserService {
 
         return convertToUserResponse(user);
     }
+
+    @Override
+    public PublicProfileResponse getPublicProfile(String username) {
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "User not found"
+                        )
+                );
+
+        boolean ownProfile = false;
+
+        Authentication authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && !"anonymousUser".equals(authentication.getName())) {
+
+            String email = authentication.getName();
+
+            User loggedInUser = userRepository.findByEmail(email)
+                    .orElse(null);
+
+            if (loggedInUser != null) {
+                ownProfile = loggedInUser.getUserId().equals(user.getUserId());
+            }
+        }
+
+        return PublicProfileResponse.builder()
+                .userId(user.getUserId())
+                .fullName(user.getFullName())
+                .username(user.getUsername())
+                .profileImage(user.getProfileImage())
+                .bio(user.getBio())
+                .createdAt(user.getCreatedAt())
+                .followersCount(
+                        followService.getFollowersCount(user.getUserId())
+                )
+                .followingCount(
+                        followService.getFollowingCount(user.getUserId())
+                )
+                .following(
+                        followService.isFollowing(user.getUserId())
+                )
+                .ownProfile(ownProfile)
+                .build();
+    }
+
 
     @Override
     @Transactional

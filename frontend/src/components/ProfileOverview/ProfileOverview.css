@@ -1,0 +1,78 @@
+.profile-overview{
+    display:flex;
+    flex-direction:column;
+    gap:24px;
+}
+
+.overview-card{
+    padding:30px;
+
+    border:1px solid rgba(148,157,201,.12);
+
+    border-radius:18px;
+
+    background:
+    linear-gradient(
+        145deg,
+        rgba(17,20,39,.95),
+        rgba(10,12,24,.95)
+    );
+}
+
+.overview-card h2{
+    margin:0 0 18px;
+
+    color:white;
+
+    font-size:1.35rem;
+
+    font-weight:700;
+}
+
+.overview-card p{
+    margin:0;
+
+    color:#98a2c1;
+
+    line-height:1.8;
+}
+
+.overview-grid{
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(220px,1fr)
+        );
+
+    gap:20px;
+
+}
+
+.overview-item{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:6px;
+
+}
+
+.overview-item span{
+
+    color:#7f89a5;
+
+    font-size:.82rem;
+
+}
+
+.overview-item strong{
+
+    color:white;
+
+    font-size:1rem;
+
+}

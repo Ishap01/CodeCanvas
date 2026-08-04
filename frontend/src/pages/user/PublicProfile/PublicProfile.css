@@ -1,0 +1,161 @@
+.public-profile-page {
+    width: 100%;
+    height: calc(100vh - 118px);
+    min-height: 0;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    background:
+        radial-gradient(
+            circle at 7% 4%,
+            rgba(109, 76, 238, 0.13),
+            transparent 28%
+        ),
+        radial-gradient(
+            circle at 92% 8%,
+            rgba(36, 155, 224, 0.09),
+            transparent 26%
+        ),
+        #070912;
+
+    color: #f3f5ff;
+
+    scrollbar-width: thin;
+    scrollbar-color:
+        rgba(139, 109, 255, 0.7)
+        rgba(15, 18, 35, 0.8);
+
+    -webkit-overflow-scrolling: touch;
+}
+
+.public-profile-page::-webkit-scrollbar {
+    width: 8px;
+}
+
+.public-profile-page::-webkit-scrollbar-track {
+    background: rgba(15, 18, 35, 0.8);
+}
+
+.public-profile-page::-webkit-scrollbar-thumb {
+    border: 2px solid rgba(15, 18, 35, 0.8);
+    border-radius: 999px;
+    background: rgba(139, 109, 255, 0.7);
+}
+
+.public-profile-page::-webkit-scrollbar-thumb:hover {
+    background: rgba(160, 137, 255, 0.9);
+}
+
+.profile-content-area {
+    width: min(1240px, 100%);
+    margin: 0 auto;
+    padding: 34px 24px 90px;
+}
+
+.publicProfilePanel {
+    padding: 28px;
+    border: 1px solid rgba(145, 154, 195, 0.13);
+    border-radius: 18px;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(17, 20, 39, 0.9),
+            rgba(10, 12, 26, 0.92)
+        );
+}
+
+.publicProfilePanelTitle {
+    margin: 0 0 8px;
+    color: #eff1fa;
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.publicProfilePanelText {
+    margin: 0;
+    color: #7d859e;
+    font-size: 0.87rem;
+    line-height: 1.65;
+}
+
+.publicProfileLoadingState,
+.publicProfileErrorState,
+.publicProfileEmptyState {
+    display: flex;
+    min-height: 360px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 40px 20px;
+    border: 1px dashed rgba(144, 153, 195, 0.18);
+    border-radius: 18px;
+    background: rgba(13, 16, 31, 0.63);
+    text-align: center;
+}
+
+.publicProfileStateIcon {
+    display: grid;
+    width: 58px;
+    height: 58px;
+    margin-bottom: 18px;
+    place-items: center;
+    border: 1px solid rgba(139, 109, 255, 0.27);
+    border-radius: 17px;
+    background: rgba(110, 76, 225, 0.12);
+    color: #a18bff;
+    font-size: 1.4rem;
+    font-weight: 900;
+}
+
+.publicProfileErrorState
+.publicProfileStateIcon {
+    border-color: rgba(255, 92, 124, 0.3);
+    background: rgba(185, 38, 69, 0.1);
+    color: #ff8ca3;
+}
+
+.publicProfileLoadingState p,
+.publicProfileErrorState h2,
+.publicProfileEmptyState h2 {
+    margin: 0 0 9px;
+    color: #eff1fa;
+    font-size: 1.35rem;
+}
+
+.publicProfileLoadingState p,
+.publicProfileErrorState p,
+.publicProfileEmptyState p {
+    max-width: 500px;
+    margin: 0;
+    color: #7d859e;
+    font-size: 0.87rem;
+    line-height: 1.65;
+}
+
+.publicProfileSpinner {
+    width: 34px;
+    height: 34px;
+    margin-bottom: 16px;
+    border: 3px solid rgba(139, 109, 255, 0.18);
+    border-top-color: #917aff;
+    border-radius: 50%;
+    animation: publicProfileSpin 0.75s linear infinite;
+}
+
+@keyframes publicProfileSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 768px) {
+    .profile-content-area {
+        padding: 24px 16px 70px;
+    }
+
+    .publicProfilePanel {
+        padding: 20px 16px;
+    }
+}
