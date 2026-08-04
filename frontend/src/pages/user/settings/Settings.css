@@ -1,88 +1,641 @@
-.settingsPage{
-    min-height:100vh;
-    background:#0f0f10;
-    color:white;
-    padding:50px 20px;
+html,
+body,
+#root {
+    width: 100%;
+    min-height: 100%;
+    height: auto;
+
+    margin: 0;
+    padding: 0;
 }
 
-.settingsContainer{
-    max-width:850px;
-    margin:auto;
+html {
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: #6c5ce7 #09090b;
 }
 
-.settingsContainer h1{
-    font-size:38px;
-    margin-bottom:8px;
+body {
+    min-height: 100vh;
+    height: auto;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    background: #050506;
 }
 
-.settingsSubtitle{
-    color:#9ca3af;
-    margin-bottom:40px;
+#root {
+    min-height: 100vh;
+    height: auto;
+
+    overflow-x: hidden;
+    overflow-y: visible;
 }
 
-.settingsSection{
-    margin-bottom:40px;
+/* =====================================
+   SETTINGS PAGE
+===================================== */
+
+.settingsPage {
+    position: relative;
+
+    width: 100%;
+    min-height: 100vh;
+    height: auto;
+
+    box-sizing: border-box;
+
+    padding: 72px 24px 120px;
+
+    overflow-x: hidden;
+    overflow-y: visible;
+
+    background:
+        radial-gradient(
+            circle at 12% 5%,
+            rgba(108, 92, 231, 0.16),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 88% 20%,
+            rgba(124, 58, 237, 0.09),
+            transparent 32%
+        ),
+        linear-gradient(
+            180deg,
+            #08080b 0%,
+            #050506 55%,
+            #030304 100%
+        );
+
+    color: #f9fafb;
+
+    font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
 }
 
-.settingsSection h3{
-    margin-bottom:18px;
-    color:#b5b5b5;
-    font-size:15px;
-    text-transform:uppercase;
-    letter-spacing:1px;
+.settingsPage::before {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+
+    width: 100%;
+    min-height: 100%;
+
+    pointer-events: none;
+
+    opacity: 0.15;
+
+    background-image:
+        linear-gradient(
+            rgba(255, 255, 255, 0.025) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.025) 1px,
+            transparent 1px
+        );
+
+    background-size: 42px 42px;
+
+    content: "";
 }
 
-.settingsItem{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-
-    padding:20px 24px;
-
-    background:#18181b;
-
-    border:1px solid #2d2d30;
-
-    border-radius:14px;
-
-    margin-bottom:15px;
-
-    cursor:pointer;
-
-    transition:.25s;
+.settingsPage > * {
+    position: relative;
+    z-index: 1;
 }
 
-.settingsItem:hover{
-    transform:translateY(-2px);
-    border-color:#6c63ff;
+/* =====================================
+   SETTINGS CONTAINER
+===================================== */
+
+.settingsContainer {
+    width: 100%;
+    max-width: 900px;
+
+    box-sizing: border-box;
+
+    margin: 0 auto;
 }
 
-.settingsLeft{
-    display:flex;
-    align-items:center;
-    gap:18px;
+.settingsContainer h1 {
+    margin: 0 0 10px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ffffff 0%,
+            #e5e7eb 60%,
+            #a78bfa 100%
+        );
+
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    color: #ffffff;
+
+    font-size: clamp(34px, 5vw, 52px);
+    font-weight: 850;
+    line-height: 1.08;
+    letter-spacing: -1.8px;
 }
 
-.settingsLeft svg{
-    font-size:20px;
-    color:#7c6cff;
+.settingsSubtitle {
+    max-width: 650px;
+
+    margin: 0 0 46px;
+
+    color: #9ca3af;
+
+    font-size: 16px;
+    line-height: 1.7;
 }
 
-.settingsLeft h4{
-    margin:0;
-    font-size:17px;
+/* =====================================
+   SETTINGS SECTION
+===================================== */
+
+.settingsSection {
+    width: 100%;
+
+    margin-bottom: 42px;
 }
 
-.settingsLeft p{
-    margin-top:5px;
-    color:#a1a1aa;
-    font-size:14px;
+.settingsSection:last-child {
+    margin-bottom: 0;
 }
 
-.logout .settingsLeft svg{
-    color:#ef4444;
+.settingsSection h3 {
+    display: inline-flex;
+    align-items: center;
+
+    margin: 0 0 18px;
+    padding: 7px 12px;
+
+    border: 1px solid rgba(139, 92, 246, 0.28);
+    border-radius: 999px;
+
+    background: rgba(108, 92, 231, 0.08);
+
+    color: #a78bfa;
+
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    line-height: 1.4;
+    text-transform: uppercase;
 }
 
-.logout:hover{
-    border-color:#ef4444;
+/* =====================================
+   SETTINGS ITEM
+===================================== */
+
+.settingsItem {
+    position: relative;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    width: 100%;
+    min-height: 94px;
+
+    box-sizing: border-box;
+
+    gap: 24px;
+
+    margin-bottom: 16px;
+    padding: 22px 24px;
+
+    overflow: visible;
+
+    border: 1px solid #2d2d36;
+    border-radius: 15px;
+
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(108, 92, 231, 0.07),
+            transparent 38%
+        ),
+        linear-gradient(
+            145deg,
+            rgba(23, 23, 29, 0.98),
+            rgba(12, 12, 16, 0.98)
+        );
+
+    box-shadow:
+        0 18px 48px rgba(0, 0, 0, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.03);
+
+    cursor: pointer;
+
+    transition:
+        transform 0.24s ease,
+        border-color 0.24s ease,
+        background-color 0.24s ease,
+        box-shadow 0.24s ease;
+}
+
+.settingsItem:last-child {
+    margin-bottom: 0;
+}
+
+.settingsItem::before {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 1px;
+
+    border-radius: 15px 15px 0 0;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(139, 124, 246, 0.34),
+            transparent
+        );
+
+    pointer-events: none;
+
+    content: "";
+}
+
+.settingsItem:hover {
+    border-color: rgba(124, 108, 242, 0.7);
+
+    transform: translateY(-4px);
+
+    box-shadow:
+        0 26px 60px rgba(0, 0, 0, 0.34),
+        0 0 0 1px rgba(108, 92, 231, 0.08);
+}
+
+.settingsItem:active {
+    transform: translateY(-1px);
+}
+
+/* =====================================
+   SETTINGS LEFT
+===================================== */
+
+.settingsLeft {
+    display: flex;
+    align-items: center;
+
+    min-width: 0;
+
+    gap: 18px;
+}
+
+.settingsLeft svg {
+    width: 44px;
+    height: 44px;
+
+    box-sizing: border-box;
+
+    flex-shrink: 0;
+
+    padding: 11px;
+
+    border: 1px solid rgba(139, 124, 246, 0.3);
+    border-radius: 12px;
+
+    background: rgba(108, 92, 231, 0.1);
+
+    color: #a78bfa;
+
+    font-size: 20px;
+
+    box-shadow:
+        0 10px 24px rgba(108, 92, 231, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+    transition:
+        transform 0.22s ease,
+        border-color 0.22s ease,
+        background-color 0.22s ease,
+        color 0.22s ease;
+}
+
+.settingsItem:hover .settingsLeft svg {
+    border-color: rgba(139, 124, 246, 0.55);
+
+    background: rgba(108, 92, 231, 0.16);
+
+    color: #c4b5fd;
+
+    transform: scale(1.04);
+}
+
+.settingsLeft > div {
+    min-width: 0;
+}
+
+.settingsLeft h4 {
+    margin: 0;
+
+    color: #f3f4f6;
+
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 1.35;
+}
+
+.settingsLeft p {
+    margin: 6px 0 0;
+
+    color: #92929d;
+
+    font-size: 13px;
+    line-height: 1.6;
+
+    overflow-wrap: anywhere;
+}
+
+/* =====================================
+   OPTIONAL RIGHT-SIDE ICONS / CONTROLS
+===================================== */
+
+.settingsItem > svg:last-child {
+    flex-shrink: 0;
+
+    color: #72727e;
+
+    font-size: 15px;
+
+    transition:
+        transform 0.2s ease,
+        color 0.2s ease;
+}
+
+.settingsItem:hover > svg:last-child {
+    color: #a78bfa;
+
+    transform: translateX(3px);
+}
+
+.settingsItem button,
+.settingsItem select,
+.settingsItem input {
+    font-family: inherit;
+}
+
+/* =====================================
+   LOGOUT ITEM
+===================================== */
+
+.logout {
+    border-color: rgba(239, 68, 68, 0.22);
+
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(239, 68, 68, 0.06),
+            transparent 38%
+        ),
+        linear-gradient(
+            145deg,
+            rgba(24, 20, 23, 0.98),
+            rgba(12, 10, 13, 0.98)
+        );
+}
+
+.logout::before {
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(248, 113, 113, 0.34),
+            transparent
+        );
+}
+
+.logout .settingsLeft svg {
+    border-color: rgba(239, 68, 68, 0.3);
+
+    background: rgba(239, 68, 68, 0.09);
+
+    color: #f87171;
+
+    box-shadow:
+        0 10px 24px rgba(239, 68, 68, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.logout:hover {
+    border-color: rgba(239, 68, 68, 0.72);
+
+    box-shadow:
+        0 26px 60px rgba(0, 0, 0, 0.34),
+        0 0 0 1px rgba(239, 68, 68, 0.08);
+}
+
+.logout:hover .settingsLeft svg {
+    border-color: rgba(239, 68, 68, 0.6);
+
+    background: rgba(239, 68, 68, 0.14);
+
+    color: #fca5a5;
+}
+
+.logout:hover > svg:last-child {
+    color: #f87171;
+}
+
+/* =====================================
+   KEYBOARD FOCUS
+===================================== */
+
+.settingsItem:focus-visible,
+.settingsItem button:focus-visible,
+.settingsItem select:focus-visible,
+.settingsItem input:focus-visible {
+    outline: 3px solid rgba(139, 124, 246, 0.28);
+    outline-offset: 3px;
+}
+
+.logout:focus-visible {
+    outline-color: rgba(239, 68, 68, 0.32);
+}
+
+/* =====================================
+   GLOBAL SCROLLBAR
+===================================== */
+
+body::-webkit-scrollbar {
+    width: 9px;
+}
+
+body::-webkit-scrollbar-track {
+    background: #09090b;
+}
+
+body::-webkit-scrollbar-thumb {
+    border: 2px solid #09090b;
+    border-radius: 999px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #806cff,
+            #5b4bd6
+        );
+}
+
+body::-webkit-scrollbar-thumb:hover {
+    background:
+        linear-gradient(
+            180deg,
+            #927fff,
+            #6c5ce7
+        );
+}
+
+/* =====================================
+   RESPONSIVE - TABLET
+===================================== */
+
+@media (max-width: 800px) {
+    .settingsPage {
+        padding: 56px 20px 100px;
+    }
+
+    .settingsContainer h1 {
+        font-size: 42px;
+    }
+
+    .settingsSubtitle {
+        margin-bottom: 38px;
+    }
+}
+
+/* =====================================
+   RESPONSIVE - MOBILE
+===================================== */
+
+@media (max-width: 600px) {
+    .settingsPage {
+        padding: 44px 15px 90px;
+    }
+
+    .settingsContainer h1 {
+        font-size: 36px;
+        letter-spacing: -1.2px;
+    }
+
+    .settingsSubtitle {
+        margin-bottom: 32px;
+
+        font-size: 14px;
+    }
+
+    .settingsSection {
+        margin-bottom: 34px;
+    }
+
+    .settingsSection h3 {
+        margin-bottom: 14px;
+
+        font-size: 10px;
+    }
+
+    .settingsItem {
+        align-items: flex-start;
+
+        min-height: auto;
+
+        gap: 16px;
+
+        margin-bottom: 13px;
+        padding: 19px 17px;
+
+        border-radius: 13px;
+    }
+
+    .settingsLeft {
+        align-items: flex-start;
+
+        gap: 14px;
+    }
+
+    .settingsLeft svg {
+        width: 40px;
+        height: 40px;
+
+        padding: 10px;
+
+        border-radius: 10px;
+
+        font-size: 18px;
+    }
+
+    .settingsLeft h4 {
+        font-size: 15px;
+    }
+
+    .settingsLeft p {
+        font-size: 12px;
+    }
+}
+
+/* =====================================
+   RESPONSIVE - SMALL MOBILE
+===================================== */
+
+@media (max-width: 420px) {
+    .settingsPage {
+        padding-right: 11px;
+        padding-left: 11px;
+    }
+
+    .settingsContainer h1 {
+        font-size: 32px;
+    }
+
+    .settingsItem {
+        padding: 17px 14px;
+    }
+
+    .settingsLeft {
+        gap: 12px;
+    }
+
+    .settingsLeft svg {
+        width: 38px;
+        height: 38px;
+
+        padding: 9px;
+    }
+}
+
+/* =====================================
+   REDUCED MOTION
+===================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    .settingsItem,
+    .settingsLeft svg,
+    .settingsItem > svg:last-child {
+        transition: none;
+    }
 }

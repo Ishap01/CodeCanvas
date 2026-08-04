@@ -1,17 +1,18 @@
 import React from "react";
+
 import "./MainNavbar.css";
 
 import {
-    NavLink,
     Link,
+    NavLink,
     useNavigate,
 } from "react-router-dom";
 
 import {
-    FaCode,
-    FaSearch,
     FaBell,
+    FaCode,
     FaCog,
+    FaSearch,
     FaUser,
 } from "react-icons/fa";
 
@@ -20,23 +21,26 @@ export default function MainNavbar() {
     const navigate = useNavigate();
 
     const handleSearchSubmit = (event) => {
+
         event.preventDefault();
 
-        const formData = new FormData(
-            event.currentTarget
-        );
+        const formData =
+            new FormData(
+                event.currentTarget
+            );
 
-        const searchText = formData
-            .get("search")
-            ?.trim();
+        const searchText =
+            formData
+                .get("search")
+                ?.trim();
 
         if (!searchText) {
-            navigate("/snippets");
+            navigate("/search");
             return;
         }
 
         navigate(
-            `/snippets?search=${encodeURIComponent(
+            `/search?q=${encodeURIComponent(
                 searchText
             )}`
         );
@@ -71,6 +75,10 @@ export default function MainNavbar() {
 
                     <NavLink to="/dashboard">
                         DASHBOARD
+                    </NavLink>
+
+                    <NavLink to="/search">
+                        SEARCH
                     </NavLink>
 
                     <NavLink to="/snippets">
@@ -115,14 +123,24 @@ export default function MainNavbar() {
                         <FaCode />
                     </span>
 
-                    <span>CodeCanvas</span>
+                    <span>
+                        CodeCanvas
+                    </span>
                 </Link>
 
                 <form
                     className="globalSearch"
-                    onSubmit={handleSearchSubmit}
+                    onSubmit={
+                        handleSearchSubmit
+                    }
                 >
-                    <FaSearch />
+                    <button
+                        type="submit"
+                        className="globalSearchSubmit"
+                        aria-label="Search snippets"
+                    >
+                        <FaSearch />
+                    </button>
 
                     <input
                         type="text"
@@ -134,9 +152,23 @@ export default function MainNavbar() {
 
                 <div className="globalNavbarActions">
 
+                    {/* Separate Search icon */}
+
+                    <button
+                        type="button"
+                        aria-label="Open search page"
+                        title="Search"
+                        onClick={() =>
+                            navigate("/search")
+                        }
+                    >
+                        <FaSearch />
+                    </button>
+
                     <button
                         type="button"
                         aria-label="Notifications"
+                        title="Notifications"
                     >
                         <FaBell />
                     </button>
@@ -144,17 +176,21 @@ export default function MainNavbar() {
                     <button
                         type="button"
                         aria-label="Settings"
+                        title="Settings"
                         onClick={() =>
-                            navigate("/settings")
+                            navigate(
+                                "/settings"
+                            )
                         }
                     >
-                        <FaCog className="navIcon" />
+                        <FaCog />
                     </button>
 
                     <Link
                         to="/profile"
                         className="globalProfileButton"
                         aria-label="Profile"
+                        title="Profile"
                     >
                         <FaUser />
                     </Link>
