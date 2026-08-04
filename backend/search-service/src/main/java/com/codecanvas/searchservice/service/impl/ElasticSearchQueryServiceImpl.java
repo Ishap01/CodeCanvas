@@ -7,6 +7,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import com.codecanvas.searchservice.document.SearchDocument;
 import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType;
+import com.codecanvas.searchservice.document.UserDocument;
 import com.codecanvas.searchservice.dto.request.SearchRequest;
 import com.codecanvas.searchservice.service.search.ElasticSearchQueryService;
 import com.codecanvas.searchservice.service.search.SearchPage;
@@ -196,6 +197,79 @@ public class ElasticSearchQueryServiceImpl
                 elasticsearchOperations.search(
                         nativeQuery,
                         SearchDocument.class
+                );
+
+        return hits.stream()
+                .map(SearchHit::getContent)
+                .distinct()
+                .toList();
+    }
+
+    /*
+     * =========================================================
+     * USER AUTOCOMPLETE
+     * Search users by full name and username
+     * =========================================================
+     */
+    @Override
+    public List<UserDocument> autocompleteUsers(String keyword) {
+
+        Query query = Query.of(q ->
+                q.multiMatch(mm -> mm
+                        .query(keyword)
+                        .fields(
+                                "fullName",
+                                "username"
+                        )
+                        .type(TextQueryType.BoolPrefix)
+                        .fuzziness("AUTO")
+                )
+        );
+
+        NativeQuery nativeQuery = NativeQuery.builder()
+                .withQuery(query)
+                .build();
+
+        SearchHits<UserDocument> hits =
+                elasticsearchOperations.search(
+                        nativeQuery,
+                        UserDocument.class
+                );
+
+        return hits.stream()
+                .map(SearchHit::getContent)
+                .distinct()
+                .toList();
+    }
+
+    /*
+     * =========================================================
+     * USER FUZZY SEARCH
+     * =========================================================
+     */
+    @Override
+    public List<UserDocument> searchUsers(String keyword) {
+
+        Query query = Query.of(q ->
+                q.multiMatch(mm -> mm
+                        .query(keyword)
+                        .fields(
+                                "fullName",
+                                "username",
+                                "bio"
+                        )
+                        .fuzziness("AUTO")
+                )
+        );
+
+        NativeQuery nativeQuery = NativeQuery.builder()
+                .withQuery(query)
+                .build();
+
+        SearchHits<UserDocument> hits =
+                elasticsearchOperations.search(
+                        nativeQuery,
+                        UserDocument.class
                 );
 
         return hits.stream()
