@@ -1,414 +1,1190 @@
-.userDashboardPage {
-  width: 100%;
-  min-height: calc(100vh - 96px);
+html,
+body,
+#root {
+    width: 100%;
+    min-height: 100%;
+    height: auto;
 
-  display: grid;
-  grid-template-columns: 170px 1fr;
-
-  background: #090909;
-  color: #eeeeee;
-
-  font-family: "Courier New", Courier, monospace;
+    margin: 0;
+    padding: 0;
 }
 
-/* =====================================
+html {
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: #6c5ce7 #09090b;
+}
+
+body {
+    min-height: 100vh;
+    height: auto;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    background: #050506;
+}
+
+#root {
+    min-height: 100vh;
+    height: auto;
+
+    overflow-x: hidden;
+    overflow-y: visible;
+}
+
+/* =========================================================
+   USER DASHBOARD PAGE
+   ========================================================= */
+
+.userDashboardPage {
+    position: relative;
+
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+
+    width: 100%;
+    min-height: calc(100vh - 96px);
+    height: auto;
+
+    box-sizing: border-box;
+
+    overflow-x: hidden;
+    overflow-y: visible;
+
+    background:
+        radial-gradient(
+            circle at 10% 5%,
+            rgba(108, 92, 231, 0.15),
+            transparent 28%
+        ),
+        radial-gradient(
+            circle at 88% 20%,
+            rgba(124, 58, 237, 0.09),
+            transparent 32%
+        ),
+        linear-gradient(
+            180deg,
+            #08080b 0%,
+            #050506 55%,
+            #030304 100%
+        );
+
+    color: #f9fafb;
+
+    font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+}
+
+.userDashboardPage::before {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+
+    width: 100%;
+    min-height: 100%;
+
+    pointer-events: none;
+
+    opacity: 0.14;
+
+    background-image:
+        linear-gradient(
+            rgba(255, 255, 255, 0.025) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.025) 1px,
+            transparent 1px
+        );
+
+    background-size: 42px 42px;
+
+    content: "";
+}
+
+.userDashboardPage > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* =========================================================
    SIDEBAR
-===================================== */
+   ========================================================= */
 
 .userSidebar {
-  min-height: calc(100vh - 96px);
+    position: sticky;
+    top: 0;
 
-  padding: 22px 10px;
+    align-self: start;
 
-  background: #0b0b0b;
-  border-right: 1px solid #222222;
+    width: 100%;
+    min-height: calc(100vh - 96px);
+    height: calc(100vh - 96px);
+
+    box-sizing: border-box;
+
+    padding: 28px 18px;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    border-right: 1px solid #24242c;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(17, 17, 22, 0.98),
+            rgba(8, 8, 12, 0.98)
+        );
+
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+
+    box-shadow:
+        12px 0 40px rgba(0, 0, 0, 0.18),
+        inset -1px 0 0 rgba(255, 255, 255, 0.015);
+}
+
+.userSidebar::-webkit-scrollbar {
+    width: 5px;
+}
+
+.userSidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.userSidebar::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #4d426f;
 }
 
 .sidebarHeading {
-  margin-bottom: 16px;
+    margin: 0 0 18px;
+    padding: 0 10px;
 
-  color: #555b64;
-  font-size: 9px;
-  letter-spacing: 1px;
+    color: #777783;
+
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    line-height: 1.4;
+    text-transform: uppercase;
 }
 
 .sidebarNavigation {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+    display: flex;
+    flex-direction: column;
+
+    gap: 7px;
 }
 
 .sidebarNavigation a {
-  display: flex;
-  align-items: center;
-  gap: 11px;
+    display: flex;
+    align-items: center;
 
-  color: #626262;
-  text-decoration: none;
+    width: 100%;
+    min-height: 40px;
 
-  font-size: 9px;
+    box-sizing: border-box;
 
-  transition: color 0.2s ease;
+    gap: 12px;
+
+    padding: 10px 11px;
+
+    border: 1px solid transparent;
+    border-radius: 9px;
+
+    color: #85858f;
+
+    text-decoration: none;
+
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        color 0.2s ease;
 }
 
 .sidebarNavigation a svg {
-  width: 12px;
+    width: 16px;
+    min-width: 16px;
+
+    color: #716882;
+
+    font-size: 14px;
+
+    transition: color 0.2s ease;
 }
 
 .sidebarNavigation a:hover {
-  color: #eeeeee;
+    border-color: rgba(139, 124, 246, 0.18);
+
+    background: rgba(108, 92, 231, 0.08);
+
+    color: #d8d5f5;
+
+    transform: translateX(3px);
+}
+
+.sidebarNavigation a:hover svg {
+    color: #a78bfa;
+}
+
+.sidebarNavigation a.active,
+.sidebarNavigation a.activeSidebarLink {
+    border-color: rgba(139, 124, 246, 0.32);
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(108, 92, 231, 0.18),
+            rgba(108, 92, 231, 0.05)
+        );
+
+    color: #c4b5fd;
+}
+
+.sidebarNavigation a.active svg,
+.sidebarNavigation a.activeSidebarLink svg {
+    color: #a78bfa;
 }
 
 .sidebarDivider {
-  height: 1px;
+    width: 100%;
+    height: 1px;
 
-  margin: 27px 0;
+    margin: 27px 0;
 
-  background: #222222;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        #2a2a33,
+        transparent
+    );
 }
 
-/* =====================================
+/* =========================================================
    MAIN CONTENT
-===================================== */
+   ========================================================= */
 
 .userDashboardContent {
-  min-width: 0;
+    width: 100%;
+    min-width: 0;
+    min-height: calc(100vh - 96px);
+    height: auto;
 
-  padding: 24px 22px 80px;
+    box-sizing: border-box;
 
-  overflow: hidden;
+    padding: 34px 34px 110px;
+
+    overflow-x: hidden;
+    overflow-y: visible;
 }
 
-/* =====================================
+/* =========================================================
    FILTERS
-===================================== */
+   ========================================================= */
 
 .dashboardFilters {
-  margin-bottom: 21px;
+    width: 100%;
+
+    box-sizing: border-box;
+
+    margin-bottom: 26px;
+    padding: 18px 20px;
+
+    border: 1px solid #2b2b34;
+    border-radius: 14px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(22, 22, 28, 0.96),
+            rgba(12, 12, 16, 0.96)
+        );
+
+    box-shadow:
+        0 16px 45px rgba(0, 0, 0, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.025);
 }
 
 .filterRow {
-  min-height: 40px;
+    display: flex;
+    align-items: center;
 
-  display: flex;
-  align-items: center;
-  gap: 17px;
+    width: 100%;
+    min-height: 42px;
+
+    gap: 18px;
+}
+
+.filterRow + .filterRow {
+    margin-top: 8px;
+    padding-top: 14px;
+
+    border-top: 1px solid #26262f;
 }
 
 .filterLabel {
-  width: 70px;
+    width: 85px;
+    min-width: 85px;
 
-  color: #626873;
-  font-size: 9px;
-  letter-spacing: 1px;
+    color: #7f7f8b;
+
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    line-height: 1.4;
+    text-transform: uppercase;
 }
 
 .filterOptions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+
+    gap: 9px;
 }
 
 .filterOptions button {
-  height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 
-  padding: 0 13px;
+    min-height: 32px;
 
-  background: #0f0f0f;
-  border: 1px solid #292929;
+    box-sizing: border-box;
 
-  color: #626262;
-  font-family: inherit;
-  font-size: 9px;
+    padding: 7px 14px;
 
-  cursor: pointer;
+    border: 1px solid #34343d;
+    border-radius: 999px;
+
+    background: #141419;
+
+    color: #898994;
+
+    cursor: pointer;
+
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.3;
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
-.filterOptions button:hover,
+.filterOptions button:hover {
+    border-color: rgba(124, 108, 242, 0.7);
+
+    background: rgba(108, 92, 231, 0.1);
+
+    color: #c4b5fd;
+
+    transform: translateY(-1px);
+}
+
 .filterOptions .activeFilter {
-  color: #eeeeee;
-  border-color: #5a5a5a;
+    border-color: rgba(124, 108, 242, 0.85);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(116, 92, 242, 0.92),
+            rgba(91, 75, 214, 0.92)
+        );
+
+    color: #ffffff;
+
+    box-shadow:
+        0 8px 20px rgba(108, 92, 231, 0.23),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
-/* =====================================
+/* =========================================================
    WELCOME BANNER
-===================================== */
+   ========================================================= */
 
 .userWelcomeBanner {
-  width: 100%;
-  min-height: 98px;
+    position: relative;
 
-  position: relative;
-  overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 
-  display: flex;
-  align-items: center;
+    width: 100%;
+    min-height: 135px;
 
-  margin-bottom: 19px;
-  padding: 20px;
+    box-sizing: border-box;
 
-  background: #202020;
-  border: 1px solid #343434;
+    gap: 30px;
+
+    margin-bottom: 26px;
+    padding: 28px 30px;
+
+    overflow: hidden;
+
+    border: 1px solid rgba(124, 108, 242, 0.42);
+    border-radius: 17px;
+
+    background:
+        radial-gradient(
+            circle at 10% 45%,
+            rgba(139, 92, 246, 0.2),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 90% 20%,
+            rgba(108, 92, 231, 0.13),
+            transparent 35%
+        ),
+        linear-gradient(
+            135deg,
+            rgba(31, 27, 51, 0.98),
+            rgba(14, 14, 20, 0.98)
+        );
+
+    box-shadow:
+        0 24px 65px rgba(0, 0, 0, 0.32),
+        0 0 0 1px rgba(108, 92, 231, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.userWelcomeBanner::before {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 1px;
+
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(167, 139, 250, 0.7),
+        transparent
+    );
+
+    content: "";
 }
 
 .welcomeGradient {
-  position: absolute;
-  inset: 0;
+    position: absolute;
+    inset: 0;
 
-  background:
-    radial-gradient(
-      circle at 12% 50%,
-      rgba(255, 255, 255, 0.12),
-      transparent 25%
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent 0,
-      transparent 70px,
-      rgba(255, 255, 255, 0.025) 71px,
-      transparent 72px
-    );
+    background:
+        radial-gradient(
+            circle at 12% 50%,
+            rgba(255, 255, 255, 0.08),
+            transparent 25%
+        ),
+        repeating-linear-gradient(
+            90deg,
+            transparent 0,
+            transparent 70px,
+            rgba(255, 255, 255, 0.018) 71px,
+            transparent 72px
+        );
 
-  opacity: 0.75;
+    opacity: 0.85;
+
+    pointer-events: none;
 }
 
 .welcomeUser,
 .welcomeStats {
-  position: relative;
-  z-index: 2;
+    position: relative;
+    z-index: 2;
 }
 
 .welcomeUser {
-  min-width: 145px;
+    min-width: 180px;
 }
 
 .welcomeUser span {
-  display: block;
+    display: block;
 
-  margin-bottom: 7px;
+    margin-bottom: 8px;
 
-  color: #676767;
-  font-size: 8px;
-  letter-spacing: 1px;
+    color: #a78bfa;
+
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    line-height: 1.4;
+    text-transform: uppercase;
 }
 
 .welcomeUser h1 {
-  margin: 0;
+    margin: 0;
 
-  color: #f1f1f1;
-  font-family: inherit;
-  font-size: 14px;
+    background: linear-gradient(
+        135deg,
+        #ffffff,
+        #d8d5f5
+    );
+
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    color: #ffffff;
+
+    font-family: inherit;
+    font-size: clamp(21px, 2.4vw, 30px);
+    font-weight: 850;
+    line-height: 1.25;
+    letter-spacing: -0.7px;
 }
 
 .welcomeStats {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
 
-  color: #626262;
-  font-size: 9px;
+    gap: 10px;
+}
+
+.welcomeStats span {
+    display: inline-flex;
+    align-items: center;
+
+    min-height: 34px;
+
+    box-sizing: border-box;
+
+    gap: 5px;
+
+    padding: 8px 12px;
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+
+    background: rgba(6, 6, 10, 0.36);
+
+    color: #90909b;
+
+    font-size: 10px;
+    font-weight: 600;
+
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .welcomeStats strong {
-  color: #eeeeee;
-  font-weight: 400;
+    color: #f3f4f6;
+
+    font-size: 11px;
+    font-weight: 800;
 }
 
-/* =====================================
+/* =========================================================
    SNIPPET GRID
-===================================== */
+   ========================================================= */
 
 .userSnippetGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 
-  gap: 15px;
+    width: 100%;
+
+    gap: 20px;
 }
 
 .userSnippetCard {
-  min-width: 0;
+    position: relative;
 
-  padding: 15px;
+    display: flex;
+    flex-direction: column;
 
-  background: #1c1c1c;
-  border: 1px solid #343434;
+    min-width: 0;
+    min-height: 230px;
 
-  transition: border-color 0.2s ease;
+    box-sizing: border-box;
+
+    padding: 20px;
+
+    overflow: visible;
+
+    border: 1px solid #303039;
+    border-radius: 15px;
+
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(108, 92, 231, 0.08),
+            transparent 38%
+        ),
+        linear-gradient(
+            145deg,
+            rgba(23, 23, 29, 0.98),
+            rgba(12, 12, 16, 0.98)
+        );
+
+    box-shadow:
+        0 18px 48px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.03);
+
+    transition:
+        transform 0.24s ease,
+        border-color 0.24s ease,
+        box-shadow 0.24s ease;
+}
+
+.userSnippetCard::before {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 1px;
+
+    border-radius: 15px 15px 0 0;
+
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(139, 124, 246, 0.35),
+        transparent
+    );
+
+    content: "";
 }
 
 .userSnippetCard:hover {
-  border-color: #555555;
+    border-color: rgba(124, 108, 242, 0.65);
+
+    transform: translateY(-5px);
+
+    box-shadow:
+        0 25px 58px rgba(0, 0, 0, 0.35),
+        0 0 0 1px rgba(108, 92, 231, 0.08);
 }
 
 .userSnippetHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
 
-  margin-bottom: 12px;
+    gap: 15px;
+
+    margin-bottom: 15px;
+}
+
+.userSnippetHeader > div {
+    min-width: 0;
 }
 
 .userSnippetHeader h2 {
-  margin: 0 0 6px;
+    margin: 0 0 8px;
 
-  color: #eeeeee;
-  font-family: inherit;
-  font-size: 10px;
-  font-weight: 400;
+    color: #f3f4f6;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.4;
+
+    overflow-wrap: anywhere;
 }
 
 .userLanguageBadge {
-  display: inline-flex;
+    display: inline-flex;
+    align-items: center;
 
-  padding: 3px 9px;
+    max-width: 100%;
 
-  background: #252525;
-  border: 1px solid #373737;
+    box-sizing: border-box;
 
-  color: #666666;
-  font-size: 8px;
+    padding: 5px 10px;
+
+    border: 1px solid rgba(139, 124, 246, 0.28);
+    border-radius: 999px;
+
+    background: rgba(108, 92, 231, 0.1);
+
+    color: #a78bfa;
+
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    line-height: 1.3;
+    text-transform: uppercase;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .dashboardStarButton {
-  width: 31px;
-  height: 26px;
+    display: grid;
+    place-items: center;
 
-  display: grid;
-  place-items: center;
+    width: 34px;
+    height: 32px;
 
-  background: #292929;
-  border: 1px solid #3a3a3a;
+    flex-shrink: 0;
 
-  color: #e2bf3b;
+    border: 1px solid #3b3b45;
+    border-radius: 8px;
 
-  cursor: pointer;
+    background: #1c1c22;
+
+    color: #f6c453;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.dashboardStarButton:hover {
+    border-color: rgba(246, 196, 83, 0.5);
+
+    background: rgba(246, 196, 83, 0.08);
+
+    transform: translateY(-1px);
+
+    box-shadow: 0 8px 20px rgba(246, 196, 83, 0.08);
 }
 
 .userCodePreview {
-  min-height: 55px;
+    flex: 1;
 
-  padding: 11px;
+    width: 100%;
+    min-height: 90px;
+    max-height: 150px;
 
-  background: #222222;
-  border: 1px solid #343434;
+    box-sizing: border-box;
 
-  overflow: hidden;
-  white-space: pre-wrap;
+    padding: 14px;
+
+    overflow: auto;
+
+    border: 1px solid #2d2d35;
+    border-radius: 10px;
+
+    background: #0c0c10;
+
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
 
 .userCodePreview code {
-  padding: 0;
+    padding: 0;
 
-  background: transparent;
-  color: #505050;
+    background: transparent;
 
-  font-family: inherit;
-  font-size: 8px;
-  line-height: 1.55;
+    color: #8b8b97;
+
+    font-family:
+        "Courier New",
+        Courier,
+        monospace;
+
+    font-size: 10px;
+    line-height: 1.65;
+}
+
+.userCodePreview::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+.userCodePreview::-webkit-scrollbar-track {
+    background: #0b0b0e;
+}
+
+.userCodePreview::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+
+    background: #4d426f;
 }
 
 .userSnippetFooter {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 
-  margin-top: 12px;
+    gap: 15px;
+
+    margin-top: 15px;
 }
 
 .userSnippetStats {
-  display: flex;
-  gap: 13px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+
+    gap: 14px;
 }
 
 .userSnippetStats span {
-  display: flex;
-  align-items: center;
-  gap: 5px;
+    display: inline-flex;
+    align-items: center;
 
-  color: #656565;
-  font-size: 8px;
+    gap: 5px;
+
+    color: #777783;
+
+    font-size: 9px;
+    font-weight: 600;
+}
+
+.userSnippetStats span svg {
+    color: #8b7cf6;
 }
 
 .userBookmarkButton {
-  border: none;
-  background: transparent;
+    display: grid;
+    place-items: center;
 
-  color: #666666;
+    width: 32px;
+    height: 32px;
 
-  cursor: pointer;
+    flex-shrink: 0;
+
+    border: 1px solid transparent;
+    border-radius: 8px;
+
+    background: transparent;
+
+    color: #777783;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        color 0.2s ease;
 }
 
-/* =====================================
-   RESPONSIVE
-===================================== */
+.userBookmarkButton:hover {
+    border-color: rgba(139, 124, 246, 0.3);
 
-@media (max-width: 1100px) {
-  .userSnippetGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+    background: rgba(108, 92, 231, 0.1);
+
+    color: #a78bfa;
+
+    transform: translateY(-1px);
 }
+
+/* =========================================================
+   KEYBOARD FOCUS
+   ========================================================= */
+
+.sidebarNavigation a:focus-visible,
+.filterOptions button:focus-visible,
+.dashboardStarButton:focus-visible,
+.userBookmarkButton:focus-visible {
+    outline: 3px solid rgba(139, 124, 246, 0.28);
+    outline-offset: 3px;
+}
+
+/* =========================================================
+   GLOBAL SCROLLBAR
+   ========================================================= */
+
+body::-webkit-scrollbar {
+    width: 9px;
+}
+
+body::-webkit-scrollbar-track {
+    background: #09090b;
+}
+
+body::-webkit-scrollbar-thumb {
+    border: 2px solid #09090b;
+    border-radius: 999px;
+
+    background: linear-gradient(
+        180deg,
+        #806cff,
+        #5b4bd6
+    );
+}
+
+body::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(
+        180deg,
+        #927fff,
+        #6c5ce7
+    );
+}
+
+/* =========================================================
+   RESPONSIVE - LARGE TABLET
+   ========================================================= */
+
+@media (max-width: 1200px) {
+    .userDashboardPage {
+        grid-template-columns: 200px minmax(0, 1fr);
+    }
+
+    .userDashboardContent {
+        padding-right: 25px;
+        padding-left: 25px;
+    }
+
+    .userSnippetGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* =========================================================
+   RESPONSIVE - TABLET
+   ========================================================= */
 
 @media (max-width: 800px) {
-  .userDashboardPage {
-    grid-template-columns: 1fr;
-  }
+    .userDashboardPage {
+        display: block;
 
-  .userSidebar {
-    min-height: auto;
+        min-height: 100vh;
+    }
 
-    padding: 12px;
+    .userSidebar {
+        position: relative;
+        top: auto;
 
-    border-right: none;
-    border-bottom: 1px solid #222222;
-  }
+        width: 100%;
+        min-height: auto;
+        height: auto;
 
-  .sidebarHeading,
-  .sidebarDivider {
-    display: none;
-  }
+        padding: 13px 16px;
 
-  .sidebarNavigation {
-    flex-direction: row;
-    overflow-x: auto;
+        overflow-x: auto;
+        overflow-y: hidden;
 
-    scrollbar-width: none;
-  }
+        border-right: none;
+        border-bottom: 1px solid #24242c;
 
-  .sidebarNavigation::-webkit-scrollbar {
-    display: none;
-  }
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.16);
+    }
 
-  .userSidebar .sidebarNavigation:nth-of-type(2) {
-    display: none;
-  }
+    .userSidebar::-webkit-scrollbar {
+        height: 4px;
+    }
 
-  .userDashboardContent {
-    padding: 20px 15px 60px;
-  }
+    .sidebarHeading,
+    .sidebarDivider {
+        display: none;
+    }
+
+    .sidebarNavigation {
+        flex-direction: row;
+
+        width: max-content;
+        min-width: 100%;
+
+        gap: 8px;
+    }
+
+    .sidebarNavigation a {
+        width: auto;
+        min-width: max-content;
+
+        padding-right: 14px;
+        padding-left: 14px;
+    }
+
+    .sidebarNavigation a:hover {
+        transform: translateY(-1px);
+    }
+
+    .userSidebar .sidebarNavigation:nth-of-type(2) {
+        display: none;
+    }
+
+    .userDashboardContent {
+        min-height: auto;
+
+        padding: 25px 18px 90px;
+
+        overflow: visible;
+    }
+
+    .dashboardFilters {
+        padding: 17px;
+    }
+
+    .userWelcomeBanner {
+        padding: 25px;
+    }
 }
 
+/* =========================================================
+   RESPONSIVE - MOBILE
+   ========================================================= */
+
 @media (max-width: 600px) {
-  .filterRow {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 8px;
+    .userDashboardContent {
+        padding: 20px 14px 80px;
+    }
 
-    margin-bottom: 15px;
-  }
+    .dashboardFilters {
+        margin-bottom: 20px;
+        padding: 15px;
 
-  .filterLabel {
-    width: auto;
-  }
+        border-radius: 12px;
+    }
 
-  .userWelcomeBanner {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 15px;
-  }
+    .filterRow {
+        align-items: flex-start;
+        flex-direction: column;
 
-  .userSnippetGrid {
-    grid-template-columns: 1fr;
-  }
+        gap: 9px;
+
+        margin-bottom: 14px;
+    }
+
+    .filterRow:last-child {
+        margin-bottom: 0;
+    }
+
+    .filterRow + .filterRow {
+        margin-top: 0;
+        padding-top: 14px;
+    }
+
+    .filterLabel {
+        width: auto;
+        min-width: auto;
+    }
+
+    .filterOptions {
+        width: 100%;
+    }
+
+    .filterOptions button {
+        min-height: 31px;
+
+        padding-right: 12px;
+        padding-left: 12px;
+    }
+
+    .userWelcomeBanner {
+        align-items: flex-start;
+        flex-direction: column;
+
+        min-height: auto;
+
+        gap: 20px;
+
+        padding: 24px 20px;
+
+        border-radius: 14px;
+    }
+
+    .welcomeUser {
+        min-width: 0;
+    }
+
+    .welcomeStats {
+        width: 100%;
+    }
+
+    .welcomeStats span {
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+
+    .userSnippetGrid {
+        grid-template-columns: 1fr;
+
+        gap: 16px;
+    }
+
+    .userSnippetCard {
+        min-height: auto;
+
+        padding: 18px;
+
+        border-radius: 13px;
+    }
+}
+
+/* =========================================================
+   RESPONSIVE - SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 420px) {
+    .userSidebar {
+        padding-right: 12px;
+        padding-left: 12px;
+    }
+
+    .userDashboardContent {
+        padding-right: 11px;
+        padding-left: 11px;
+    }
+
+    .dashboardFilters {
+        padding: 14px 12px;
+    }
+
+    .filterOptions button {
+        flex: 1 1 auto;
+    }
+
+    .welcomeUser h1 {
+        font-size: 22px;
+    }
+
+    .welcomeStats {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .welcomeStats span {
+        width: 100%;
+    }
+
+    .userSnippetHeader {
+        gap: 10px;
+    }
+
+    .userSnippetFooter {
+        align-items: flex-start;
+    }
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    .sidebarNavigation a,
+    .filterOptions button,
+    .userSnippetCard,
+    .dashboardStarButton,
+    .userBookmarkButton {
+        transition: none;
+    }
 }

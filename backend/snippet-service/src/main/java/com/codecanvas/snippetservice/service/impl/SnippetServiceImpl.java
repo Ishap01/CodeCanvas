@@ -131,27 +131,7 @@ public class SnippetServiceImpl implements SnippetService {
         Snippet savedSnippet =
                 snippetRepository.save(snippet);
 
-        /*
-         * Publish snippet creation event to Kafka.
-         *
-         * Existing RestTemplate based indexing
-         * is intentionally kept so that current
-         * functionality is not affected.
-         */
-        SnippetCreatedEvent event =
-                snippetEventMapper
-                        .toSnippetCreatedEvent(savedSnippet);
-
-        snippetEventProducer
-                .publishSnippetCreatedEvent(event);
-
-        /*
-         * Existing implementation.
-         *
-         * This will be removed after Kafka
-         * integration is fully verified.
-         */
-       // searchIndexService.indexSnippet(savedSnippet);
+        searchIndexService.indexSnippet(savedSnippet);
 
         return snippetMapper.toResponse(savedSnippet);
     }
@@ -235,16 +215,86 @@ public class SnippetServiceImpl implements SnippetService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<SnippetResponse> getPublicSnippets() {
+    public List<SnippetResponse> getPublicSnippets(
+            UUID currentUserId) {
 
-        List<Snippet> snippets =
+        /*
+         * Public snippets har user ko milengi.
+         */
+        List<Snippet> accessibleSnippets =
+                new ArrayList<>(
+                        snippetRepository
+                                .findByVisibilityAndStatus(
+                                        Visibility.PUBLIC,
+                                        Status.ACTIVE
+                                )
+                );
+
+        /*
+         * Anonymous user:
+         * sirf public snippets.
+         */
+        if (currentUserId == null) {
+
+            return convertToResponseList(
+                    accessibleSnippets
+            );
+        }
+
+        boolean premiumUser;
+
+        try {
+
+            /*
+             * Current logged-in user ka premium status
+             * User Service se check hoga.
+             */
+            premiumUser =
+                    userServiceClient.isPremiumUser(
+                            currentUserId
+                    );
+
+        } catch (RuntimeException exception) {
+
+            /*
+             * User Service temporarily fail ho jaye toh
+             * complete public listing fail nahi hogi.
+             *
+             * Safe fallback:
+             * sirf public snippets return hongi.
+             */
+            premiumUser = false;
+        }
+
+        /*
+         * Normal user:
+         * sirf public snippets.
+         */
+        if (!premiumUser) {
+
+            return convertToResponseList(
+                    accessibleSnippets
+            );
+        }
+
+        /*
+         * Premium user:
+         * public ke saath premium snippets bhi.
+         */
+        List<Snippet> premiumSnippets =
                 snippetRepository
                         .findByVisibilityAndStatus(
-                                Visibility.PUBLIC,
+                                Visibility.PREMIUM,
                                 Status.ACTIVE
                         );
 
-        return convertToResponseList(snippets);
+        accessibleSnippets.addAll(
+                premiumSnippets
+        );
+
+        return convertToResponseList(
+                accessibleSnippets
+        );
     }
 
     @Override
@@ -326,10 +376,6 @@ public class SnippetServiceImpl implements SnippetService {
                 snippet,
                 request.getTags()
         );
-
-
-
-        System.out.println("1. Before save");
 
         Snippet updatedSnippet =
                 snippetRepository.save(snippet);

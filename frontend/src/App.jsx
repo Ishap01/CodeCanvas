@@ -1,33 +1,56 @@
-import { Routes, Route } from "react-router-dom";
+import {
+    Route,
+    Routes,
+} from "react-router-dom";
 
 import MainLayout from "./components/layout/MainLayout";
 
 import Login from "./pages/auth/Login/Login";
 import Register from "./pages/auth/Register/Register";
-import LandingPage from "./pages/LandingPage/LandingPage";
-import UserDashboard from "./pages/user/UserDashboard/UserDashboard";
-import Profile from "./pages/user/Profile/Profile";
-import EditProfile from "./pages/user/EditProfile/EditProfile";
 import ForgotPassword from "./pages/auth/ForgotPassword/ForgotPassword";
 import VerifyOtp from "./pages/auth/VerifyOtp/VerifyOtp";
 import ResetPassword from "./pages/auth/ResetPassword/ResetPassword";
 import ChangePassword from "./pages/auth/ChangePassword/ChangePassword";
+
+import LandingPage from "./pages/LandingPage/LandingPage";
+
+import UserDashboard from "./pages/user/UserDashboard/UserDashboard";
+import Profile from "./pages/user/Profile/Profile";
+import EditProfile from "./pages/user/EditProfile/EditProfile";
 import Settings from "./pages/user/settings/Settings";
+
+import PricingPage from "./pages/Pricing/PricingPage";
+
+import PublicSnippets from "./pages/snippets/PublicSnippets/PublicSnippets";
+import CreateSnippet from "./pages/snippets/CreateSnippet/CreateSnippet";
+import MySnippets from "./pages/snippets/MySnippets/MySnippets";
+import SnippetDetails from "./pages/snippets/SnippetDetails/SnippetDetails";
+import EditSnippet from "./pages/snippets/EditSnippet/EditSnippet";
+
+import SearchPage from "./pages/Search/SearchPage";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 
 function App() {
+
     return (
         <Routes>
 
-            {/* Public pages without Navbar */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route
+                path="/"
+                element={<LandingPage />}
+            />
 
+            <Route
+                path="/login"
+                element={<Login />}
+            />
 
-            <Route path="/" element={<LandingPage />} />
+            <Route
+                path="/register"
+                element={<Register />}
+            />
 
-            {/* Pages with Main Layout */}
             <Route element={<MainLayout />}>
 
                 <Route
@@ -41,7 +64,9 @@ function App() {
 
                 <Route
                     path="/forgot-password"
-                    element={<ForgotPassword />}
+                    element={
+                        <ForgotPassword />
+                    }
                 />
 
                 <Route
@@ -51,17 +76,27 @@ function App() {
 
                 <Route
                     path="/reset-password"
-                    element={<ResetPassword />}
+                    element={
+                        <ResetPassword />
+                    }
                 />
 
                 <Route
                     path="/change-password"
-                    element={<ChangePassword />}
+                    element={
+                        <ProtectedRoute>
+                            <ChangePassword />
+                        </ProtectedRoute>
+                    }
                 />
 
                 <Route
                     path="/settings"
-                    element={<Settings />}
+                    element={
+                        <ProtectedRoute>
+                            <Settings />
+                        </ProtectedRoute>
+                    }
                 />
 
                 <Route
@@ -82,18 +117,89 @@ function App() {
                     }
                 />
 
-                {/* Other routes */}
+                <Route
+                    path="/premium"
+                    element={
+                        <ProtectedRoute>
+                            <PricingPage />
+                        </ProtectedRoute>
+                    }
+                />
 
+                <Route
+                    path="/search"
+                    element={<SearchPage />}
+                />
 
-                {/* Placeholder Routes (Modules to be developed) */}
-                <Route path="/search" element={<h1>Search Page</h1>} />
-                <Route path="/snippet" element={<h1>Snippet Page</h1>} />
-                <Route path="/upload" element={<h1>Upload Page</h1>} />
+                <Route
+                    path="/snippets"
+                    element={
+                        <PublicSnippets />
+                    }
+                />
 
-                <Route path="/premium" element={<h1>Premium Page</h1>} />
-                <Route path="/admin" element={<h1>Admin Page</h1>} />
+                <Route
+                    path="/snippets/create"
+                    element={
+                        <ProtectedRoute>
+                            <CreateSnippet />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/snippets/my"
+                    element={
+                        <ProtectedRoute>
+                            <MySnippets />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/snippets/:snippetId/edit"
+                    element={
+                        <ProtectedRoute>
+                            <EditSnippet />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/snippets/:snippetId"
+                    element={
+                        <SnippetDetails />
+                    }
+                />
+
+                <Route
+                    path="/admin"
+                    element={
+                        <main className="snippetTemporaryPage">
+                            <h1>
+                                Admin Page
+                            </h1>
+                        </main>
+                    }
+                />
 
             </Route>
+
+            <Route
+                path="*"
+                element={
+                    <main className="snippetNotFoundPage">
+
+                        <h1>404</h1>
+
+                        <p>
+                            The requested page was
+                            not found.
+                        </p>
+
+                    </main>
+                }
+            />
 
         </Routes>
     );
