@@ -26,10 +26,6 @@ public class PublicProfileResponse {
 
     private LocalDateTime createdAt;
 
-    private long followersCount;
-
-    private long followingCount;
-
     private boolean following;
 
     private boolean ownProfile;

@@ -126,12 +126,6 @@ public class UserServiceImpl implements UserService {
                 .profileImage(user.getProfileImage())
                 .bio(user.getBio())
                 .createdAt(user.getCreatedAt())
-                .followersCount(
-                        followService.getFollowersCount(user.getUserId())
-                )
-                .followingCount(
-                        followService.getFollowingCount(user.getUserId())
-                )
                 .following(
                         followService.isFollowing(user.getUserId())
                 )

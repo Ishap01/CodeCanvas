@@ -60,4 +60,10 @@ public interface SnippetService {
     );
 
     List<SnippetResponse> getAllSnippets();
+
+
+    List<SnippetResponse> getProfileSnippets(
+            UUID profileUserId,
+            UUID currentUserId
+    );
 }

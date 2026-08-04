@@ -312,6 +312,120 @@ public class SnippetServiceImpl implements SnippetService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<SnippetResponse> getProfileSnippets(
+            UUID profileUserId,
+            UUID currentUserId) {
+
+        if (profileUserId == null) {
+            throw new IllegalArgumentException(
+                    "Profile user id is required"
+            );
+        }
+
+        /*
+         * Owner viewing own profile.
+         * Show PUBLIC + PRIVATE + PREMIUM.
+         */
+        if (currentUserId != null
+                && currentUserId.equals(profileUserId)) {
+
+            return convertToResponseList(
+                    snippetRepository.findByUserIdAndStatus(
+                            profileUserId,
+                            Status.ACTIVE
+                    )
+            );
+        }
+
+        /*
+         * Check whether viewer is premium.
+         */
+        boolean premiumUser = false;
+
+        if (currentUserId != null) {
+
+            try {
+
+                premiumUser =
+                        userServiceClient.isPremiumUser(
+                                currentUserId
+                        );
+
+            } catch (RuntimeException exception) {
+
+                premiumUser = false;
+
+            }
+
+        }
+
+        List<Snippet> snippets =
+                snippetRepository.findByUserIdAndStatus(
+                        profileUserId,
+                        Status.ACTIVE
+                );
+
+        List<Snippet> visibleSnippets =
+                new ArrayList<>();
+
+        for (Snippet snippet : snippets) {
+
+            if (snippet.getVisibility()
+                    == Visibility.PRIVATE) {
+
+                // Never show private snippets
+                continue;
+            }
+
+            /*
+             * For now:
+             * Show PREMIUM snippets to everyone.
+             *
+             * Next step:
+             * We'll lock premium code for free users.
+             */
+            visibleSnippets.add(snippet);
+        }
+
+        List<SnippetResponse> responses =
+                convertToResponseList(
+                        visibleSnippets
+                );
+
+        /*
+         * Free users should not receive
+         * premium code.
+         */
+        if (!premiumUser) {
+
+            for (SnippetResponse response : responses) {
+
+                if (response.getVisibility()
+                        == Visibility.PREMIUM) {
+
+                    lockPremiumSnippet(response);
+                }
+
+            }
+
+        }
+
+        return responses;
+    }
+
+    private void lockPremiumSnippet(
+            SnippetResponse response) {
+
+        response.setCode(null);
+
+        response.setDescription(
+                "🔒 Upgrade to Premium to view this snippet."
+        );
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
     public List<SnippetResponse> getSnippetsByUserId(
             UUID userId) {
 

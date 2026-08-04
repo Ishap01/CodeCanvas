@@ -325,6 +325,10 @@ function SnippetCard({
             }
             : undefined;
 
+    const isPremiumLocked =
+        snippet.visibility === "PREMIUM" &&
+        !snippet.code;
+
     return (
         <>
             <article className="instagramSnippetCard">
@@ -348,7 +352,7 @@ function SnippetCard({
 
                             <span>
                                 {snippet.language ||
-                                "Code"}
+                                    "Code"}
 
                                 {snippet.framework
                                     ? ` • ${snippet.framework}`
@@ -365,7 +369,7 @@ function SnippetCard({
                             className={`instagramSnippetVisibility instagramSnippetVisibility${snippet.visibility}`}
                         >
                             {snippet.visibility ===
-                            "PRIVATE" ? (
+                                "PRIVATE" ? (
                                 <FaLock />
                             ) : (
                                 <FaEye />
@@ -432,38 +436,112 @@ function SnippetCard({
 
                 <button
                     type="button"
-                    className={`instagramSnippetPreview ${
-                        snippet.previewImageUrl
+                    className={`instagramSnippetPreview
+    ${snippet.previewImageUrl
                             ? "instagramSnippetHasImage"
                             : "instagramSnippetCodePreview"
-                    }`}
+                        }
+    ${isPremiumLocked
+                            ? "instagramPremiumLocked"
+                            : ""
+                        }
+`}
                     style={previewStyle}
-                    onClick={() =>
-                        setCodeModalOpen(true)
-                    }
+                    onClick={() => {
+
+                        if (isPremiumLocked) {
+
+                            navigate("/premium");
+
+                            return;
+
+                        }
+
+                        setCodeModalOpen(true);
+
+                    }}
                     aria-label={`Open code for ${snippet.title}`}
                 >
 
                     {!snippet.previewImageUrl && (
+
                         <>
+
                             <span className="instagramSnippetCodeIcon">
                                 <FaCode />
                             </span>
 
-                            <pre>
+                            <pre
+                                className={
+                                    isPremiumLocked
+                                        ? "instagramLockedCode"
+                                        : ""
+                                }
+                            >
                                 <code>
                                     {createCodePreview(
-                                        snippet.code
+                                        snippet.code ||
+                                        `public class ${snippet.title.replaceAll(" ", "")} {
+
+    // Premium code hidden...
+
+}`
                                     )}
                                 </code>
                             </pre>
+
                         </>
+
                     )}
 
-                    <span className="instagramSnippetPreviewOverlay">
-                        <FaCode />
+                    {isPremiumLocked && (
 
-                        Click to view code
+                        <div className="instagramPremiumOverlay">
+
+                            <FaLock />
+
+                            <h3>
+                                Premium Snippet
+                            </h3>
+
+                            <p>
+                                Upgrade to Premium to unlock this snippet.
+                            </p>
+
+                            <button
+                                type="button"
+                                onClick={(event) => {
+
+                                    event.stopPropagation();
+
+                                    navigate("/premium");
+
+                                }}
+                            >
+                                Upgrade Now
+                            </button>
+
+                        </div>
+
+                    )}
+                    <span className="instagramSnippetPreviewOverlay">
+
+                        {isPremiumLocked ? (
+
+                            <>
+                                <FaLock />
+                                Premium Snippet
+                            </>
+
+                        ) : (
+
+                            <>
+                                <FaCode />
+                                Click to view code
+                            </>
+
+                        )}
+
                     </span>
 
                 </button>
@@ -521,11 +599,10 @@ function SnippetCard({
 
                     <button
                         type="button"
-                        className={`instagramSnippetBookmarkButton ${
-                            bookmarked
-                                ? "instagramSnippetBookmarked"
-                                : ""
-                        }`}
+                        className={`instagramSnippetBookmarkButton ${bookmarked
+                            ? "instagramSnippetBookmarked"
+                            : ""
+                            }`}
                         onClick={handleBookmark}
                         disabled={
                             actionLoading ===
@@ -603,15 +680,15 @@ function SnippetCard({
 
                             {snippet.tags.length >
                                 tags.length && (
-                                <span>
-                                    +
-                                    {
-                                        snippet.tags
-                                            .length -
-                                        tags.length
-                                    }
-                                </span>
-                            )}
+                                    <span>
+                                        +
+                                        {
+                                            snippet.tags
+                                                .length -
+                                            tags.length
+                                        }
+                                    </span>
+                                )}
 
                         </div>
                     )}

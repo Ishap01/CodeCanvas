@@ -38,9 +38,9 @@ public interface SearchService {
      * =========================================================
      */
 
-    void indexUser(UserRegisteredEvent event);
+    //void indexUser(UserRegisteredEvent event);
 
-    void updateUser(UserUpdatedEvent event);
+    //void updateUser(UserUpdatedEvent event);
 
-    void deleteUser(UUID userId);
+    //void deleteUser(UUID userId);
 }

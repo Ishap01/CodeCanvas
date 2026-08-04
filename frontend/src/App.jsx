@@ -28,6 +28,7 @@ import MySnippets from "./pages/snippets/MySnippets/MySnippets";
 import SnippetDetails from "./pages/snippets/SnippetDetails/SnippetDetails";
 import EditSnippet from "./pages/snippets/EditSnippet/EditSnippet";
 
+
 import SearchPage from "./pages/Search/SearchPage";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -108,6 +109,8 @@ function App() {
                         </ProtectedRoute>
                     }
                 />
+
+
 
                 <Route
                     path="/users/:username"
