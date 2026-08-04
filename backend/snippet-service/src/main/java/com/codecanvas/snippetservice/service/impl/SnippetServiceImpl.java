@@ -8,6 +8,11 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.time.LocalDateTime;
+import com.codecanvas.snippetservice.kafka.event.SnippetCreatedEvent;
+import com.codecanvas.snippetservice.kafka.event.SnippetDeletedEvent;
+import com.codecanvas.snippetservice.kafka.event.SnippetUpdatedEvent;
+import com.codecanvas.snippetservice.kafka.mapper.SnippetEventMapper;
+import com.codecanvas.snippetservice.kafka.producer.SnippetEventProducer;
 
 import com.codecanvas.snippetservice.client.UserServiceClient;
 import com.codecanvas.snippetservice.repository.SnippetViewRepository;
@@ -39,6 +44,7 @@ import com.codecanvas.snippetservice.service.CloudinaryService;
 import com.codecanvas.snippetservice.service.SnippetService;
 import com.codecanvas.snippetservice.dto.request.IndexSnippetRequest;
 import com.codecanvas.snippetservice.client.SearchServiceClient;
+import com.codecanvas.snippetservice.kafka.event.SnippetDeletedEvent;
 
 @Service
 @Transactional
@@ -54,6 +60,18 @@ public class SnippetServiceImpl implements SnippetService {
     private final SnippetViewRepository snippetViewRepository;
     private final ViewService viewService;
     private final UserServiceClient userServiceClient;
+
+
+
+     // Kafka Producer
+    private final SnippetEventProducer snippetEventProducer;
+
+
+     // Converts Snippet entity into Kafka event.
+
+    private final SnippetEventMapper snippetEventMapper;
+
+
 
 
     @Override
@@ -113,7 +131,27 @@ public class SnippetServiceImpl implements SnippetService {
         Snippet savedSnippet =
                 snippetRepository.save(snippet);
 
-        searchIndexService.indexSnippet(savedSnippet);
+        /*
+         * Publish snippet creation event to Kafka.
+         *
+         * Existing RestTemplate based indexing
+         * is intentionally kept so that current
+         * functionality is not affected.
+         */
+        SnippetCreatedEvent event =
+                snippetEventMapper
+                        .toSnippetCreatedEvent(savedSnippet);
+
+        snippetEventProducer
+                .publishSnippetCreatedEvent(event);
+
+        /*
+         * Existing implementation.
+         *
+         * This will be removed after Kafka
+         * integration is fully verified.
+         */
+       // searchIndexService.indexSnippet(savedSnippet);
 
         return snippetMapper.toResponse(savedSnippet);
     }
@@ -289,10 +327,32 @@ public class SnippetServiceImpl implements SnippetService {
                 request.getTags()
         );
 
+
+
+        System.out.println("1. Before save");
+
         Snippet updatedSnippet =
                 snippetRepository.save(snippet);
 
-        searchIndexService.indexSnippet(updatedSnippet);
+        // Existing REST logic
+      // searchIndexService.indexSnippet(updatedSnippet);
+
+
+        System.out.println("2. After save");
+
+        // New Kafka logic
+        SnippetUpdatedEvent event =
+                snippetEventMapper.toSnippetUpdatedEvent(
+                        updatedSnippet
+                );
+
+        System.out.println("3. Event created");
+
+        snippetEventProducer.publishSnippetUpdatedEvent(
+                event
+        );
+
+        System.out.println("4. Event published");
         return snippetMapper.toResponse(updatedSnippet);
     }
 
@@ -485,8 +545,19 @@ public class SnippetServiceImpl implements SnippetService {
 
         snippetRepository.save(snippet);
 
-        searchIndexService.deleteSnippet(snippetId);
+        // Existing REST call (keep for now)
+       // searchIndexService.deleteSnippet(snippetId);
 
+
+        // Publish Kafka event
+        SnippetDeletedEvent event =
+                new SnippetDeletedEvent(
+                        snippetId
+                );
+
+        snippetEventProducer.publishSnippetDeletedEvent(
+                event
+        );
         return new ApiResponse(
                 true,
                 "Snippet deleted successfully"

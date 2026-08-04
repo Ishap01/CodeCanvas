@@ -4,6 +4,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.codecanvas.userservice.kafka.event.UserDeletedEvent;
+import com.codecanvas.userservice.kafka.event.UserUpdatedEvent;
+import com.codecanvas.userservice.kafka.mapper.UserEventMapper;
+import com.codecanvas.userservice.kafka.producer.UserEventProducer;
+import com.codecanvas.userservice.repository.UserStatisticsRepository;
 import com.codecanvas.userservice.service.CloudinaryService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,17 +24,23 @@ import com.codecanvas.userservice.dto.response.UserResponse;
 import com.codecanvas.userservice.entity.User;
 import com.codecanvas.userservice.repository.UserRepository;
 import com.codecanvas.userservice.service.UserService;
+import lombok.RequiredArgsConstructor;
+
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final CloudinaryService cloudinaryService;
 
-    public UserServiceImpl(UserRepository userRepository, CloudinaryService cloudinaryService) {
-        this.userRepository = userRepository;
-        this.cloudinaryService = cloudinaryService;
-    }
+    private final UserEventProducer userEventProducer;
+
+    private final UserEventMapper userEventMapper;
+
+    private final UserStatisticsRepository userStatisticsRepository;
+
+
 
     @Override
     public List<UserResponse> getAllUsers() {
@@ -166,7 +177,25 @@ public class UserServiceImpl implements UserService {
         user.setMobileNumber(mobileNumber);
         user.setBio(request.getBio());
 
-        userRepository.save(user);
+        /*
+         * Existing Logic
+         * Save updated user details
+         */
+        User updatedUser = userRepository.save(user);
+
+
+
+        /*
+         * =========================================================
+         * KAFKA EVENT
+         * Publish User Updated Event
+         * =========================================================
+         */
+
+        UserUpdatedEvent event =
+                userEventMapper.toUserUpdatedEvent(updatedUser);
+
+        userEventProducer.publishUserUpdatedEvent(event);
 
         return new ApiResponse(
                 true,
@@ -194,7 +223,33 @@ public class UserServiceImpl implements UserService {
             );
         }
 
+        /*
+         * =========================================================
+         * Existing Functionality
+         * Delete user statistics first because it references User.
+         * =========================================================
+         */
+
+        userStatisticsRepository
+                .findByUser(user)
+                .ifPresent(userStatisticsRepository::delete);
+
+        /*
+         * Existing Functionality
+         * Delete user.
+         */
         userRepository.delete(user);
+
+        /*
+         * =========================================================
+         * KAFKA EVENT
+         * Publish User Deleted Event
+         * =========================================================
+         */
+        UserDeletedEvent event =
+                userEventMapper.toUserDeletedEvent(user);
+
+        userEventProducer.publishUserDeletedEvent(event);
 
         return new ApiResponse(
                 true,
@@ -272,7 +327,26 @@ public class UserServiceImpl implements UserService {
         // Save new image URL
         user.setProfileImage(newImage);
 
-        userRepository.save(user);
+        /*
+         * =========================================================
+         * Existing Logic
+         * Save updated profile image
+         * =========================================================
+         */
+        User updatedUser = userRepository.save(user);
+
+
+        /*
+         * =========================================================
+         * KAFKA EVENT
+         * Publish User Updated Event
+         * =========================================================
+         */
+        UserUpdatedEvent event =
+                userEventMapper.toUserUpdatedEvent(updatedUser);
+
+        userEventProducer.publishUserUpdatedEvent(event);
+
 
         // Delete old image only after successful save
         if (oldImage != null && !oldImage.isBlank()) {
@@ -284,7 +358,8 @@ public class UserServiceImpl implements UserService {
             }
         }
 
-        return convertToUserResponse(user);
+        //return convertToUserResponse(user);
+        return convertToUserResponse(updatedUser);
     }
 
 

@@ -2,7 +2,8 @@ package com.codecanvas.userservice.service.impl;
 
 import java.time.LocalDateTime;
 
-import com.codecanvas.userservice.event.UserRegisteredEvent;
+import com.codecanvas.userservice.kafka.event.UserRegisteredEvent;
+import com.codecanvas.userservice.kafka.mapper.UserEventMapper;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -33,7 +34,7 @@ import com.codecanvas.userservice.service.AuthService;
 import com.codecanvas.userservice.service.EmailService;
 import com.codecanvas.userservice.security.JwtService;
 import com.codecanvas.userservice.util.OtpGenerator;
-import com.codecanvas.userservice.producer.UserEventProducer;
+import com.codecanvas.userservice.kafka.producer.UserEventProducer;
 
 import lombok.RequiredArgsConstructor;
 
@@ -48,6 +49,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final UserEventProducer userEventProducer;
+    private final UserEventMapper userEventMapper;
 
     // =========================================================
     // REGISTER
@@ -205,14 +207,14 @@ public class AuthServiceImpl implements AuthService {
 
             userStatisticsRepository.save(statistics);
 
-            // publish event
+            /*
+             * =========================================================
+             * KAFKA EVENT
+             * Publish User Registered Event
+             * =========================================================
+             */
             UserRegisteredEvent event =
-                    new UserRegisteredEvent(
-                            savedUser.getUserId(),
-                            savedUser.getFullName(),
-                            savedUser.getUsername(),
-                            savedUser.getEmail()
-                    );
+                    userEventMapper.toUserRegisteredEvent(savedUser);
 
             userEventProducer.publishUserRegisteredEvent(event);
 

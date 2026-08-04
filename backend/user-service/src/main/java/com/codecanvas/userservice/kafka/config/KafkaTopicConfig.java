@@ -1,5 +1,6 @@
-package com.codecanvas.userservice.config;
+package com.codecanvas.userservice.kafka.config;
 
+import com.codecanvas.userservice.kafka.constant.KafkaTopics;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,7 +13,7 @@ public class KafkaTopicConfig {
     public NewTopic userRegistrationTopic() {
 
         return TopicBuilder
-                .name("user-registration")
+                .name(KafkaTopics.USER_REGISTERED)
                 .partitions(3)
                 .replicas(1)
                 .build();
