@@ -162,5 +162,36 @@ getSearchHistory(
         );
     }
 
+
+    /*
+     * =========================================================
+     * USER SEARCH
+     * Search users by full name, username or bio
+     * =========================================================
+     */
+    @GetMapping("/users")
+    public ResponseEntity<List<UserSearchResponse>> searchUsers(
+            @RequestParam String keyword) {
+
+        return ResponseEntity.ok(
+                searchService.searchUsers(keyword)
+        );
+    }
+
+    /*
+     * =========================================================
+     * USER AUTOCOMPLETE
+     * =========================================================
+     */
+    @GetMapping("/users/suggestions")
+    public ResponseEntity<List<UserAutocompleteResponse>>
+    autocompleteUsers(
+            @RequestParam String keyword) {
+
+        return ResponseEntity.ok(
+                searchService.autocompleteUsers(keyword)
+        );
+    }
+
 }
 
