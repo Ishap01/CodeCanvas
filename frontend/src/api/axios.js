@@ -9,9 +9,17 @@ axiosInstance.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem("token");
 
+        console.log("REQUEST URL:", config.url);
+        console.log("TOKEN BEFORE REQUEST:", token);
+
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+
+        console.log(
+            "AUTHORIZATION HEADER:",
+            config.headers.Authorization
+        );
 
         return config;
     },
@@ -21,23 +29,19 @@ axiosInstance.interceptors.request.use(
 );
 
 axiosInstance.interceptors.response.use(
-    (response) => {
-        return response;
-    },
+    (response) => response,
     (error) => {
-        /*
-         * Token invalid/expired hone par stored
-         * authentication remove kar denge.
-         *
-         * Automatic redirect abhi nahi kar rahe,
-         * kyunki public snippet APIs bhi isi Axios
-         * instance ko use karengi.
-         */
-        if (error.response?.status === 401) {
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
-        }
+        console.error(
+            "API ERROR:",
+            error.config?.url,
+            error.response?.status,
+            error.response?.data
+        );
 
+        /*
+         * Debugging ke time token automatically delete mat karo.
+         * Profile API ke 401 ka original reason pehle find karna hai.
+         */
         return Promise.reject(error);
     }
 );

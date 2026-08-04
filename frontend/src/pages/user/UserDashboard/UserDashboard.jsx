@@ -1,407 +1,806 @@
-import React, { useEffect, useState } from "react";
+import React, {
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
+
 import "./UserDashboard.css";
 
 import {
-  FaHome,
-  FaChartLine,
-  FaRegBookmark,
-  FaUsers,
-  FaHashtag,
-  FaStar,
-  FaRegHeart,
-  FaRegComment,
-  FaCodeBranch,
-  FaRegBookmark as FaBookmark,
+    FaChartLine,
+    FaCodeBranch,
+    FaHashtag,
+    FaHome,
+    FaRegBookmark,
+    FaRegComment,
+    FaRegHeart,
+    FaStar,
+    FaUsers,
 } from "react-icons/fa";
 
 import {
-  getProfile,
+    Link,
+    useNavigate,
+} from "react-router-dom";
+
+import {
+    getProfile,
 } from "../../../services/userService";
 
 import {
-  getUserStatistics,
+    getUserStatistics,
 } from "../../../services/statisticsService";
 
-
-const mockSnippets = [
-  {
-    id: 1,
-    title: "useLocalStorage Hook",
-    language: "TypeScript",
-    framework: "React",
-    likes: 312,
-    comments: 24,
-    forks: 93,
-    code: `const result = await api.fetch(
-  endpoint, { cache: true }
-);`,
-  },
-  {
-    id: 2,
-    title: "FastAPI Auth Middleware",
-    language: "Python",
-    framework: "FastAPI",
-    likes: 198,
-    comments: 17,
-    forks: 59,
-    code: `const result = await api.fetch(
-  endpoint, { cache: true }
-);`,
-  },
-  {
-    id: 3,
-    title: "Concurrent Worker Pool",
-    language: "Go",
-    framework: "Gin",
-    likes: 267,
-    comments: 31,
-    forks: 80,
-    code: `const result = await api.fetch(
-  endpoint, { cache: true }
-);`,
-  },
-  {
-    id: 4,
-    title: "Virtual Scroll List",
-    language: "React",
-    framework: "React",
-    likes: 445,
-    comments: 52,
-    forks: 133,
-    code: `const result = await api.fetch(
-  endpoint, { cache: true }
-);`,
-  },
-  {
-    id: 5,
-    title: "Safe String Parser",
-    language: "Rust",
-    framework: "All",
-    likes: 189,
-    comments: 11,
-    forks: 56,
-    code: `const result = await api.fetch(
-  endpoint, { cache: true }
-);`,
-  },
-  {
-    id: 6,
-    title: "Recursive CTE Pattern",
-    language: "SQL",
-    framework: "Spring",
-    likes: 223,
-    comments: 20,
-    forks: 66,
-    code: `const result = await api.fetch(
-  endpoint, { cache: true }
-);`,
-  },
-];
-
-const languageFilters = [
-  "All",
-  "TypeScript",
-  "Python",
-  "Go",
-  "Rust",
-  "React",
-  "SQL",
-];
-
-const frameworkFilters = [
-  "All",
-  "React",
-  "Next.js",
-  "FastAPI",
-  "Gin",
-  "Spring",
-];
+import {
+    getMySnippets,
+} from "../../../services/snippetService";
 
 export default function UserDashboard() {
-  const [profile, setProfile] = useState(null);
 
-const [statistics, setStatistics] = useState(null);
+    const navigate = useNavigate();
 
-const [snippets] = useState(mockSnippets);
+    const [profile, setProfile] =
+        useState(null);
 
-useEffect(() => {
+    const [statistics, setStatistics] =
+        useState(null);
 
-    const loadDashboard = async () => {
+    const [snippets, setSnippets] =
+        useState([]);
 
-        try {
+    const [
+        selectedLanguage,
+        setSelectedLanguage,
+    ] = useState("All");
 
-            setLoading(true);
+    const [
+        selectedFramework,
+        setSelectedFramework,
+    ] = useState("All");
 
-            const profileData =
-                await getProfile();
+    const [loading, setLoading] =
+        useState(true);
 
-            setProfile(profileData);
+    const [error, setError] =
+        useState("");
 
-            const statisticsData =
-                await getUserStatistics(
-                    profileData.userId
+    useEffect(() => {
+
+        const loadDashboard = async () => {
+
+            try {
+
+                setLoading(true);
+                setError("");
+
+                /*
+                 * Profile aur snippets independently
+                 * load ho sakte hain, isliye Promise.all.
+                 */
+                const [
+                    profileData,
+                    snippetData,
+                ] = await Promise.all([
+                    getProfile(),
+                    getMySnippets(),
+                ]);
+
+                setProfile(profileData);
+
+                setSnippets(
+                    Array.isArray(snippetData)
+                        ? snippetData
+                        : []
                 );
 
-            setStatistics(statisticsData);
+                /*
+                 * Statistics request profile userId
+                 * milne ke baad call hogi.
+                 */
+                try {
 
-        } catch (err) {
+                    const statisticsData =
+                        await getUserStatistics(
+                            profileData.userId
+                        );
 
-            setError(
-                err.response?.data?.message ||
-                "Unable to load dashboard."
+                    setStatistics(
+                        statisticsData
+                    );
+
+                } catch (
+                    statisticsError
+                ) {
+
+                    console.error(
+                        "Unable to load dashboard statistics:",
+                        statisticsError
+                    );
+
+                    /*
+                     * Statistics service fail hone par bhi
+                     * dashboard aur snippets dikhte rahenge.
+                     */
+                    setStatistics({
+                        totalSnippets: 0,
+                        totalViews: 0,
+                        totalLikes: 0,
+                        totalFavorites: 0,
+                        followers: 0,
+                        following: 0,
+                    });
+                }
+
+            } catch (requestError) {
+
+                console.error(
+                    "Unable to load dashboard:",
+                    requestError
+                );
+
+                setError(
+                    requestError?.response?.data
+                        ?.message ||
+                    requestError?.message ||
+                    "Unable to load dashboard."
+                );
+
+                setProfile(null);
+                setSnippets([]);
+
+            } finally {
+
+                setLoading(false);
+
+            }
+
+        };
+
+        loadDashboard();
+
+    }, []);
+
+    /*
+     * Real snippets se available languages
+     * automatically niklenge.
+     */
+    const languageFilters =
+        useMemo(() => {
+
+            const languages =
+                new Set();
+
+            snippets.forEach((snippet) => {
+
+                const language =
+                    snippet?.language?.trim();
+
+                if (language) {
+                    languages.add(language);
+                }
+
+            });
+
+            return [
+                "All",
+                ...Array.from(
+                    languages
+                ).sort(
+                    (
+                        firstLanguage,
+                        secondLanguage
+                    ) =>
+                        firstLanguage.localeCompare(
+                            secondLanguage
+                        )
+                ),
+            ];
+
+        }, [snippets]);
+
+    /*
+     * Real snippets se frameworks
+     * automatically niklenge.
+     */
+    const frameworkFilters =
+        useMemo(() => {
+
+            const frameworks =
+                new Set();
+
+            snippets.forEach((snippet) => {
+
+                const framework =
+                    snippet?.framework?.trim();
+
+                if (framework) {
+                    frameworks.add(framework);
+                }
+
+            });
+
+            return [
+                "All",
+                ...Array.from(
+                    frameworks
+                ).sort(
+                    (
+                        firstFramework,
+                        secondFramework
+                    ) =>
+                        firstFramework.localeCompare(
+                            secondFramework
+                        )
+                ),
+            ];
+
+        }, [snippets]);
+
+    /*
+     * My Snippets ke actual data se
+     * dashboard totals calculate honge.
+     */
+    const snippetStatistics =
+        useMemo(() => {
+
+            return snippets.reduce(
+                (
+                    calculatedStatistics,
+                    snippet
+                ) => {
+
+                    calculatedStatistics
+                        .totalSnippets += 1;
+
+                    calculatedStatistics
+                        .totalViews +=
+                        getNumberValue(
+                            snippet?.viewCount
+                        );
+
+                    calculatedStatistics
+                        .totalLikes +=
+                        getNumberValue(
+                            snippet?.likeCount
+                        );
+
+                    calculatedStatistics
+                        .totalBookmarks +=
+                        getNumberValue(
+                            snippet?.bookmarkCount
+                        );
+
+                    calculatedStatistics
+                        .totalComments +=
+                        getNumberValue(
+                            snippet?.commentCount
+                        );
+
+                    calculatedStatistics
+                        .totalForks +=
+                        getNumberValue(
+                            snippet?.forkCount
+                        );
+
+                    return calculatedStatistics;
+
+                },
+                {
+                    totalSnippets: 0,
+                    totalViews: 0,
+                    totalLikes: 0,
+                    totalBookmarks: 0,
+                    totalComments: 0,
+                    totalForks: 0,
+                }
             );
 
-        } finally {
+        }, [snippets]);
 
-            setLoading(false);
+    const filteredSnippets =
+        useMemo(() => {
 
-        }
+            return snippets.filter(
+                (snippet) => {
 
+                    const languageMatch =
+                        selectedLanguage ===
+                            "All" ||
+                        snippet?.language ===
+                            selectedLanguage;
+
+                    const frameworkMatch =
+                        selectedFramework ===
+                            "All" ||
+                        snippet?.framework ===
+                            selectedFramework;
+
+                    return (
+                        languageMatch &&
+                        frameworkMatch
+                    );
+
+                }
+            );
+
+        }, [
+            snippets,
+            selectedLanguage,
+            selectedFramework,
+        ]);
+
+    const clearFilters = () => {
+        setSelectedLanguage("All");
+        setSelectedFramework("All");
     };
 
-    loadDashboard();
+    if (loading) {
 
-}, []);
+        return (
+            <div className="userDashboardPage">
 
-const [loading, setLoading] = useState(true);
+                <main className="userDashboardContent">
 
-const [error, setError] = useState("");
+                    <div className="dashboardState">
 
-  const [selectedLanguage, setSelectedLanguage] = useState("All");
-  const [selectedFramework, setSelectedFramework] = useState("All");
+                        <h2>
+                            Loading dashboard...
+                        </h2>
 
-  const filteredSnippets = snippets.filter((snippet) => {
-    const languageMatch =
-      selectedLanguage === "All" ||
-      snippet.language === selectedLanguage;
+                        <p>
+                            Please wait while your
+                            profile and snippets are
+                            loaded.
+                        </p>
 
-    const frameworkMatch =
-      selectedFramework === "All" ||
-      snippet.framework === selectedFramework;
+                    </div>
 
-    return languageMatch && frameworkMatch;
-  });
+                </main>
 
-  if (loading) {
+            </div>
+        );
+
+    }
+
+    if (error) {
+
+        return (
+            <div className="userDashboardPage">
+
+                <main className="userDashboardContent">
+
+                    <div className="dashboardState">
+
+                        <h2>
+                            Unable to load dashboard
+                        </h2>
+
+                        <p>
+                            {error}
+                        </p>
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                window.location.reload()
+                            }
+                        >
+                            Try Again
+                        </button>
+
+                    </div>
+
+                </main>
+
+            </div>
+        );
+
+    }
+
+    if (!profile) {
+        return null;
+    }
 
     return (
-
         <div className="userDashboardPage">
 
-            Loading dashboard...
+            {/* ================= SIDEBAR ================= */}
+
+            <aside className="userSidebar">
+
+                <p className="sidebarHeading">
+                    NAVIGATION
+                </p>
+
+                <nav className="sidebarNavigation">
+
+                    <Link to="/dashboard">
+                        <FaHome />
+                        Home
+                    </Link>
+
+                    <Link to="/search">
+                        <FaChartLine />
+                        Explore
+                    </Link>
+
+                    <Link to="/snippets/bookmarks">
+                        <FaRegBookmark />
+                        Saved
+                    </Link>
+
+                    <Link to="/profile">
+                        <FaUsers />
+                        Profile
+                    </Link>
+
+                </nav>
+
+                <div className="sidebarDivider" />
+
+                <p className="sidebarHeading">
+                    CATEGORIES
+                </p>
+
+                <nav className="sidebarNavigation">
+
+                    {[
+                        "Frontend",
+                        "Backend",
+                        "DevOps",
+                        "Database",
+                        "Mobile",
+                    ].map((category) => (
+
+                        <Link
+                            to={`/search?q=${encodeURIComponent(
+                                category
+                            )}`}
+                            key={category}
+                        >
+                            <FaHashtag />
+
+                            {category}
+                        </Link>
+
+                    ))}
+
+                </nav>
+
+            </aside>
+
+            {/* ================= MAIN CONTENT ================= */}
+
+            <main className="userDashboardContent">
+
+                {/* ================= FILTERS ================= */}
+
+                <section className="dashboardFilters">
+
+                    <div className="filterRow">
+
+                        <span className="filterLabel">
+                            LANGUAGE:
+                        </span>
+
+                        <div className="filterOptions">
+
+                            {languageFilters.map(
+                                (language) => (
+
+                                    <button
+                                        key={language}
+                                        type="button"
+                                        className={
+                                            selectedLanguage ===
+                                            language
+                                                ? "activeFilter"
+                                                : ""
+                                        }
+                                        onClick={() =>
+                                            setSelectedLanguage(
+                                                language
+                                            )
+                                        }
+                                    >
+                                        {language}
+                                    </button>
+
+                                )
+                            )}
+
+                        </div>
+
+                    </div>
+
+                    <div className="filterRow">
+
+                        <span className="filterLabel">
+                            FRAMEWORK:
+                        </span>
+
+                        <div className="filterOptions">
+
+                            {frameworkFilters.map(
+                                (framework) => (
+
+                                    <button
+                                        key={framework}
+                                        type="button"
+                                        className={
+                                            selectedFramework ===
+                                            framework
+                                                ? "activeFilter"
+                                                : ""
+                                        }
+                                        onClick={() =>
+                                            setSelectedFramework(
+                                                framework
+                                            )
+                                        }
+                                    >
+                                        {framework}
+                                    </button>
+
+                                )
+                            )}
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+                {/* ================= WELCOME BANNER ================= */}
+
+                <section className="userWelcomeBanner">
+
+                    <div className="welcomeGradient" />
+
+                    <div className="welcomeUser">
+
+                        <span>
+                            Hello
+                        </span>
+
+                        <h1>
+                            {profile.fullName}
+                        </h1>
+
+                    </div>
+
+                    <div className="welcomeStats">
+
+                        <span>
+                            <strong>
+                                {
+                                    snippetStatistics
+                                        .totalSnippets
+                                }
+                            </strong>{" "}
+                            snippets
+                        </span>
+
+                        <span>•</span>
+
+                        <span>
+                            <strong>
+                                {getNumberValue(
+                                    statistics?.followers
+                                )}
+                            </strong>{" "}
+                            followers
+                        </span>
+
+                        <span>•</span>
+
+                        <span>
+                            <strong>
+                                {
+                                    snippetStatistics
+                                        .totalViews
+                                }
+                            </strong>{" "}
+                            total views
+                        </span>
+
+                        <span>•</span>
+
+                        <span>
+                            <strong>
+                                {
+                                    snippetStatistics
+                                        .totalLikes
+                                }
+                            </strong>{" "}
+                            total likes
+                        </span>
+
+                    </div>
+
+                </section>
+
+                {/* ================= EMPTY SNIPPET STATE ================= */}
+
+                {snippets.length === 0 && (
+
+                    <section className="dashboardState">
+
+                        <h2>
+                            No snippets yet
+                        </h2>
+
+                        <p>
+                            Create your first snippet
+                            to see it on your
+                            dashboard.
+                        </p>
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                navigate(
+                                    "/snippets/create"
+                                )
+                            }
+                        >
+                            Create Snippet
+                        </button>
+
+                    </section>
+
+                )}
+
+                {/* ================= FILTERED EMPTY STATE ================= */}
+
+                {snippets.length > 0 &&
+                    filteredSnippets.length ===
+                        0 && (
+
+                    <section className="dashboardState">
+
+                        <h2>
+                            No matching snippets
+                        </h2>
+
+                        <p>
+                            No snippets match the
+                            selected language and
+                            framework filters.
+                        </p>
+
+                        <button
+                            type="button"
+                            onClick={clearFilters}
+                        >
+                            Clear Filters
+                        </button>
+
+                    </section>
+
+                )}
+
+                {/* ================= REAL SNIPPET CARDS ================= */}
+
+                {filteredSnippets.length > 0 && (
+
+                    <section className="userSnippetGrid">
+
+                        {filteredSnippets.map(
+                            (snippet) => (
+
+                                <article
+                                    className="userSnippetCard"
+                                    key={
+                                        snippet.snippetId
+                                    }
+                                >
+
+                                    <div className="userSnippetHeader">
+
+                                        <div>
+
+                                            <h2>
+                                                {snippet.title}
+                                            </h2>
+
+                                            <span className="userLanguageBadge">
+                                                {snippet.language}
+                                            </span>
+
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            className="dashboardStarButton"
+                                            aria-label={`Open ${snippet.title}`}
+                                            onClick={() =>
+                                                navigate(
+                                                    `/snippets/${snippet.snippetId}`
+                                                )
+                                            }
+                                        >
+                                            <FaStar />
+                                        </button>
+
+                                    </div>
+
+                                    <pre
+                                        className="userCodePreview"
+                                        onClick={() =>
+                                            navigate(
+                                                `/snippets/${snippet.snippetId}`
+                                            )
+                                        }
+                                    >
+                                        <code>
+                                            {snippet.code}
+                                        </code>
+                                    </pre>
+
+                                    <div className="userSnippetFooter">
+
+                                        <div className="userSnippetStats">
+
+                                            <span>
+                                                <FaRegHeart />
+
+                                                {getNumberValue(
+                                                    snippet.likeCount
+                                                )}
+                                            </span>
+
+                                            <span>
+                                                <FaRegComment />
+
+                                                {getNumberValue(
+                                                    snippet.commentCount
+                                                )}
+                                            </span>
+
+                                            <span>
+                                                <FaCodeBranch />
+
+                                                {getNumberValue(
+                                                    snippet.forkCount
+                                                )}
+                                            </span>
+
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            className="userBookmarkButton"
+                                            aria-label={`${snippet.bookmarkCount || 0} bookmarks`}
+                                        >
+                                            <FaRegBookmark />
+                                        </button>
+
+                                    </div>
+
+                                </article>
+
+                            )
+                        )}
+
+                    </section>
+
+                )}
+
+            </main>
 
         </div>
-
     );
-
 }
 
-if (error) {
+function getNumberValue(value) {
 
-    return (
+    const numberValue =
+        Number(value);
 
-        <div className="userDashboardPage">
-
-            {error}
-
-        </div>
-
-    );
-
-}
-
-if (!profile || !statistics) {
-
-    return null;
-
-}
-
-  return (
-    <div className="userDashboardPage">
-      {/* Sidebar */}
-
-      <aside className="userSidebar">
-        <p className="sidebarHeading">NAVIGATION</p>
-
-        <nav className="sidebarNavigation">
-          <a href="#home">
-            <FaHome />
-            Home
-          </a>
-
-          <a href="#trending">
-            <FaChartLine />
-            Trending
-          </a>
-
-          <a href="#saved">
-            <FaRegBookmark />
-            Saved
-          </a>
-
-          <a href="#following">
-            <FaUsers />
-            Following
-          </a>
-        </nav>
-
-        <div className="sidebarDivider"></div>
-
-        <p className="sidebarHeading">CATEGORIES</p>
-
-        <nav className="sidebarNavigation">
-          {["Frontend", "Backend", "DevOps", "Database", "Mobile"].map(
-            (category) => (
-              <a href={`#${category}`} key={category}>
-                <FaHashtag />
-                {category}
-              </a>
-            )
-          )}
-        </nav>
-      </aside>
-
-      {/* Main Content */}
-
-      <main className="userDashboardContent">
-        {/* Filters */}
-
-        <section className="dashboardFilters">
-          <div className="filterRow">
-            <span className="filterLabel">LANGUAGE:</span>
-
-            <div className="filterOptions">
-              {languageFilters.map((language) => (
-                <button
-                  key={language}
-                  type="button"
-                  className={
-                    selectedLanguage === language
-                      ? "activeFilter"
-                      : ""
-                  }
-                  onClick={() =>
-                    setSelectedLanguage(language)
-                  }
-                >
-                  {language}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="filterRow">
-            <span className="filterLabel">FRAMEWORK:</span>
-
-            <div className="filterOptions">
-              {frameworkFilters.map((framework) => (
-                <button
-                  key={framework}
-                  type="button"
-                  className={
-                    selectedFramework === framework
-                      ? "activeFilter"
-                      : ""
-                  }
-                  onClick={() =>
-                    setSelectedFramework(framework)
-                  }
-                >
-                  {framework}
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Welcome Banner */}
-
-        <section className="userWelcomeBanner">
-          <div className="welcomeGradient"></div>
-
-          <div className="welcomeUser">
-            <span>Hello</span>
-
-            <h1>{profile.fullName}</h1>
-          </div>
-
-          <div className="welcomeStats">
-            <span>
-              <strong>{statistics.totalSnippets}</strong> snippets
-            </span>
-
-            <span>•</span>
-
-            <span>
-              <strong>{statistics.followers}</strong> followers
-            </span>
-
-            <span>•</span>
-
-            <span>
-              <strong>{statistics.totalViews}</strong> total views
-            </span>
-          </div>
-        </section>
-
-        {/* Snippet Cards */}
-
-        <section className="userSnippetGrid">
-          {filteredSnippets.map((snippet) => (
-            <article
-              className="userSnippetCard"
-              key={snippet.id}
-            >
-              <div className="userSnippetHeader">
-                <div>
-                  <h2>{snippet.title}</h2>
-
-                  <span className="userLanguageBadge">
-                    {snippet.language}
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  className="dashboardStarButton"
-                >
-                  <FaStar />
-                </button>
-              </div>
-
-              <pre className="userCodePreview">
-                <code>{snippet.code}</code>
-              </pre>
-
-              <div className="userSnippetFooter">
-                <div className="userSnippetStats">
-                  <span>
-                    <FaRegHeart />
-                    {snippet.likes}
-                  </span>
-
-                  <span>
-                    <FaRegComment />
-                    {snippet.comments}
-                  </span>
-
-                  <span>
-                    <FaCodeBranch />
-                    {snippet.forks}
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  className="userBookmarkButton"
-                >
-                  <FaBookmark />
-                </button>
-              </div>
-            </article>
-          ))}
-        </section>
-      </main>
-    </div>
-  );
+    return Number.isFinite(
+        numberValue
+    )
+        ? numberValue
+        : 0;
 }

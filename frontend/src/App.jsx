@@ -1,4 +1,7 @@
-import { Routes, Route } from "react-router-dom";
+import {
+    Route,
+    Routes,
+} from "react-router-dom";
 
 import MainLayout from "./components/layout/MainLayout";
 
@@ -25,9 +28,12 @@ import MySnippets from "./pages/snippets/MySnippets/MySnippets";
 import SnippetDetails from "./pages/snippets/SnippetDetails/SnippetDetails";
 import EditSnippet from "./pages/snippets/EditSnippet/EditSnippet";
 
+import SearchPage from "./pages/Search/SearchPage";
+
 import ProtectedRoute from "./routes/ProtectedRoute";
 
 function App() {
+
     return (
         <Routes>
 
@@ -59,7 +65,9 @@ function App() {
 
                 <Route
                     path="/forgot-password"
-                    element={<ForgotPassword />}
+                    element={
+                        <ForgotPassword />
+                    }
                 />
 
                 <Route
@@ -69,7 +77,9 @@ function App() {
 
                 <Route
                     path="/reset-password"
-                    element={<ResetPassword />}
+                    element={
+                        <ResetPassword />
+                    }
                 />
 
                 <Route
@@ -123,8 +133,15 @@ function App() {
                 />
 
                 <Route
+                    path="/search"
+                    element={<SearchPage />}
+                />
+
+                <Route
                     path="/snippets"
-                    element={<PublicSnippets />}
+                    element={
+                        <PublicSnippets />
+                    }
                 />
 
                 <Route
@@ -156,19 +173,18 @@ function App() {
 
                 <Route
                     path="/snippets/:snippetId"
-                    element={<SnippetDetails />}
-                />
-
-                <Route
-                    path="/search"
-                    element={<PublicSnippets />}
+                    element={
+                        <SnippetDetails />
+                    }
                 />
 
                 <Route
                     path="/admin"
                     element={
                         <main className="snippetTemporaryPage">
-                            <h1>Admin Page</h1>
+                            <h1>
+                                Admin Page
+                            </h1>
                         </main>
                     }
                 />
@@ -179,11 +195,14 @@ function App() {
                 path="*"
                 element={
                     <main className="snippetNotFoundPage">
+
                         <h1>404</h1>
 
                         <p>
-                            The requested page was not found.
+                            The requested page was
+                            not found.
                         </p>
+
                     </main>
                 }
             />
