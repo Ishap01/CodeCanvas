@@ -1,215 +1,49 @@
-import React, {
+import {
+    useCallback,
     useEffect,
     useMemo,
+    useRef,
     useState,
 } from "react";
 
 import {
     Link,
+    useNavigate,
     useSearchParams,
 } from "react-router-dom";
 
 import {
-    FaBookmark,
     FaCode,
-    FaCodeBranch,
-    FaEye,
+    FaCrown,
     FaFire,
-    FaHeart,
+    FaRedoAlt,
     FaSearch,
     FaTimes,
+    FaUser,
+    FaUsers,
 } from "react-icons/fa";
+
+import SnippetCard from "../../components/snippets/SnippetCard/SnippetCard";
+
 import {
-    searchSnippets,
     getPopularSearches,
     getSearchHistory,
+    getSuggestions,
+    searchSnippets,
 } from "../../services/searchService";
-import "./SearchPage.css";
 
-/*
- * Temporary frontend data.
- *
- * Search Service integrate karne ke baad
- * is array ko backend response se replace karenge.
- */
-const DEMO_SNIPPETS = [
-    {
-        snippetId: "demo-1",
-        title: "Spring Boot JWT Authentication",
-        description:
-            "Secure Spring Boot REST APIs using JWT authentication and authorization.",
-        code:
-            "@PostMapping(\"/login\")\npublic AuthResponse login(...) {\n    return authService.login(request);\n}",
-        language: "Java",
-        framework: "Spring Boot",
-        categoryName: "Backend",
-        visibility: "PUBLIC",
-        likeCount: 128,
-        bookmarkCount: 44,
-        viewCount: 2100,
-        forkCount: 19,
-        tags: [
-            "JWT",
-            "Spring Security",
-            "Backend",
-        ],
-        featured: true,
-    },
-    {
-        snippetId: "demo-2",
-        title: "React Custom Hook for API Calls",
-        description:
-            "Reusable React hook for handling loading, response and error states.",
-        code:
-            "const useApi = () => {\n    const [loading, setLoading] = useState(false);\n    return { loading };\n};",
-        language: "JavaScript",
-        framework: "React",
-        categoryName: "Frontend",
-        visibility: "PUBLIC",
-        likeCount: 94,
-        bookmarkCount: 38,
-        viewCount: 1750,
-        forkCount: 14,
-        tags: [
-            "React",
-            "Hooks",
-            "Axios",
-        ],
-        featured: true,
-    },
-    {
-        snippetId: "demo-3",
-        title: "Kafka Producer Configuration",
-        description:
-            "Production-style Kafka producer configuration for a Spring Boot microservice.",
-        code:
-            "@Bean\npublic ProducerFactory<String, Object> producerFactory() {\n    return new DefaultKafkaProducerFactory<>(config);\n}",
-        language: "Java",
-        framework: "Spring Kafka",
-        categoryName: "Microservices",
-        visibility: "PREMIUM",
-        likeCount: 76,
-        bookmarkCount: 31,
-        viewCount: 1320,
-        forkCount: 11,
-        tags: [
-            "Kafka",
-            "Events",
-            "Microservices",
-        ],
-        featured: false,
-    },
-    {
-        snippetId: "demo-4",
-        title: "Responsive CSS Grid Layout",
-        description:
-            "Responsive card grid with automatic column sizing and mobile breakpoints.",
-        code:
-            ".grid {\n    display: grid;\n    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));\n}",
-        language: "CSS",
-        framework: "CSS Grid",
-        categoryName: "UI Design",
-        visibility: "PUBLIC",
-        likeCount: 163,
-        bookmarkCount: 67,
-        viewCount: 3400,
-        forkCount: 23,
-        tags: [
-            "CSS",
-            "Responsive",
-            "Grid",
-        ],
-        featured: true,
-    },
-    {
-        snippetId: "demo-5",
-        title: "PostgreSQL User Search Query",
-        description:
-            "Case-insensitive PostgreSQL user search with pagination support.",
-        code:
-            "SELECT *\nFROM users\nWHERE LOWER(username) LIKE LOWER(:query)\nLIMIT :limit;",
-        language: "SQL",
-        framework: "PostgreSQL",
-        categoryName: "Database",
-        visibility: "PUBLIC",
-        likeCount: 54,
-        bookmarkCount: 22,
-        viewCount: 890,
-        forkCount: 7,
-        tags: [
-            "PostgreSQL",
-            "Search",
-            "Database",
-        ],
-        featured: false,
-    },
-    {
-        snippetId: "demo-6",
-        title: "Python Audio Feature Extraction",
-        description:
-            "Extract MFCC audio features for machine-learning based audio classification.",
-        code:
-            "mfcc = librosa.feature.mfcc(\n    y=audio,\n    sr=sample_rate,\n    n_mfcc=40\n)",
-        language: "Python",
-        framework: "Librosa",
-        categoryName: "Machine Learning",
-        visibility: "PREMIUM",
-        likeCount: 112,
-        bookmarkCount: 56,
-        viewCount: 2450,
-        forkCount: 16,
-        tags: [
-            "Python",
-            "Audio",
-            "Machine Learning",
-        ],
-        featured: true,
-    },
-    {
-        snippetId: "demo-7",
-        title: "Axios JWT Request Interceptor",
-        description:
-            "Automatically attach a stored Bearer token to protected frontend requests.",
-        code:
-            "axiosInstance.interceptors.request.use((config) => {\n    config.headers.Authorization = `Bearer ${token}`;\n    return config;\n});",
-        language: "JavaScript",
-        framework: "Axios",
-        categoryName: "Frontend",
-        visibility: "PUBLIC",
-        likeCount: 88,
-        bookmarkCount: 41,
-        viewCount: 1540,
-        forkCount: 12,
-        tags: [
-            "Axios",
-            "JWT",
-            "React",
-        ],
-        featured: false,
-    },
-    {
-        snippetId: "demo-8",
-        title: "Razorpay Order Creation",
-        description:
-            "Create a Razorpay payment order using Spring Boot and Razorpay Java SDK.",
-        code:
-            "JSONObject options = new JSONObject();\noptions.put(\"amount\", amountInPaise);\nreturn razorpayClient.orders.create(options);",
-        language: "Java",
-        framework: "Razorpay",
-        categoryName: "Payments",
-        visibility: "PREMIUM",
-        likeCount: 69,
-        bookmarkCount: 29,
-        viewCount: 1200,
-        forkCount: 9,
-        tags: [
-            "Razorpay",
-            "Payment",
-            "Spring Boot",
-        ],
-        featured: false,
-    },
-];
+import {
+    getPublicProfile,
+} from "../../services/userService";
+
+import {
+    bookmarkSnippet,
+    getSnippetBookmarkStatus,
+    getUserSnippets,
+    removeSnippetBookmark,
+} from "../../services/snippetService";
+
+import "./SearchPage.css";
 
 const SEARCH_CATEGORIES = [
     "All",
@@ -223,23 +57,267 @@ const SEARCH_CATEGORIES = [
     "Kafka",
 ];
 
-const TRENDING_SEARCHES = [
-    "Spring Boot JWT",
-    "React Hooks",
-    "Kafka Microservices",
-    "Responsive CSS",
-    "Razorpay Payment",
-];
+const SEARCH_TABS = {
+    SNIPPETS: "SNIPPETS",
+    USERS: "USERS",
+};
+
+const AUTOCOMPLETE_DELAY = 350;
+
+/*
+ * API response kabhi direct hota hai:
+ *
+ * {
+ *   userId: "...",
+ *   username: "sakshi"
+ * }
+ *
+ * Aur kabhi wrapper:
+ *
+ * {
+ *   data: {
+ *     userId: "...",
+ *     username: "sakshi"
+ *   }
+ * }
+ */
+const unwrapResponseData = (response) => {
+    if (response == null) {
+        return {};
+    }
+
+    if (
+        typeof response === "object" &&
+        response.data !== undefined
+    ) {
+        return response.data;
+    }
+
+    return response;
+};
+
+const normalizeSnippet = (snippet) => {
+    return {
+        ...snippet,
+
+        snippetId:
+            snippet?.snippetId ||
+            snippet?.id,
+
+        title:
+            snippet?.title ||
+            "Untitled snippet",
+
+        description:
+            snippet?.description ||
+            "",
+
+        code:
+            snippet?.code ||
+            "",
+
+        language:
+            snippet?.language ||
+            "Code",
+
+        framework:
+            snippet?.framework ||
+            "",
+
+        categoryName:
+            snippet?.categoryName ||
+            snippet?.category ||
+            "General",
+
+        visibility:
+            snippet?.visibility ||
+            "PUBLIC",
+
+        tags:
+            Array.isArray(snippet?.tags)
+                ? snippet.tags
+                : [],
+
+        previewImageUrl:
+            snippet?.previewImageUrl ||
+            snippet?.imageUrl ||
+            null,
+
+        likeCount:
+            Number(
+                snippet?.likeCount ??
+                snippet?.likes
+            ) || 0,
+
+        commentCount:
+            Number(
+                snippet?.commentCount ??
+                snippet?.comments
+            ) || 0,
+
+        bookmarkCount:
+            Number(
+                snippet?.bookmarkCount ??
+                snippet?.bookmarks
+            ) || 0,
+
+        viewCount:
+            Number(
+                snippet?.viewCount ??
+                snippet?.views
+            ) || 0,
+
+        forkCount:
+            Number(
+                snippet?.forkCount ??
+                snippet?.forks
+            ) || 0,
+
+        createdAt:
+            snippet?.createdAt ||
+            null,
+    };
+};
+
+const normalizeUser = (user) => {
+    return {
+        ...user,
+
+        userId:
+            user?.userId ||
+            user?.id,
+
+        fullName:
+            user?.fullName ||
+            user?.name ||
+            "CodeCanvas User",
+
+        username:
+            user?.username ||
+            "",
+
+        profileImage:
+            user?.profileImage ||
+            user?.profileImageUrl ||
+            user?.avatarUrl ||
+            null,
+
+        bio:
+            user?.bio ||
+            "",
+
+        followers:
+            Number(
+                user?.followers ??
+                user?.followerCount
+            ) || 0,
+
+        following:
+            Number(
+                user?.following ??
+                user?.followingCount
+            ) || 0,
+
+        snippetCount:
+            Number(
+                user?.snippetCount ??
+                user?.totalSnippets
+            ) || 0,
+
+        premium:
+            Boolean(
+                user?.premium ??
+                user?.isPremium ??
+                user?.role === "PREMIUM"
+            ),
+
+        tier:
+            user?.tier ||
+            user?.subscriptionTier ||
+            user?.role ||
+            "",
+    };
+};
+
+const getSuggestionText = (suggestion) => {
+    if (typeof suggestion === "string") {
+        return suggestion;
+    }
+
+    return (
+        suggestion?.keyword ||
+        suggestion?.suggestion ||
+        suggestion?.title ||
+        suggestion?.value ||
+        ""
+    );
+};
+
+const buildPublicProfilePath = (username) => {
+    return `/users/${encodeURIComponent(
+        username
+    )}`;
+};
+
+/*
+ * Tumhara backend missing user ke liye actual HTTP 404 ke
+ * badle kabhi 400 ke andar "404 NOT_FOUND User not found"
+ * bhej raha hai.
+ *
+ * Dono situations ko normal empty result treat karenge.
+ */
+const isUserNotFoundError = (error) => {
+    const status =
+        error?.response?.status;
+
+    const responseData =
+        error?.response?.data;
+
+    const message = String(
+        responseData?.message ||
+        responseData?.error ||
+        responseData ||
+        error?.message ||
+        ""
+    ).toLowerCase();
+
+    return (
+        status === 404 ||
+        (
+            status === 400 &&
+            (
+                message.includes("user not found") ||
+                message.includes("not_found") ||
+                message.includes("not found")
+            )
+        )
+    );
+};
 
 export default function SearchPage() {
+    const navigate = useNavigate();
 
     const [
         searchParams,
         setSearchParams,
     ] = useSearchParams();
 
+    const autocompleteRequestId =
+        useRef(0);
+
+    const token =
+        localStorage.getItem("token");
+
     const queryFromUrl =
         searchParams.get("q") || "";
+
+    const tabFromUrl =
+        searchParams.get("type") === "users"
+            ? SEARCH_TABS.USERS
+            : SEARCH_TABS.SNIPPETS;
+
+    const [activeTab, setActiveTab] =
+        useState(tabFromUrl);
 
     const [searchText, setSearchText] =
         useState(queryFromUrl);
@@ -249,169 +327,968 @@ export default function SearchPage() {
         setSelectedCategory,
     ] = useState("All");
 
-    const [snippets, setSnippets] = useState([]);
+    const [snippets, setSnippets] =
+        useState([]);
 
-    const [loading, setLoading] = useState(false);
+    const [users, setUsers] =
+        useState([]);
 
-    const [totalResults, setTotalResults] = useState(0);
+    const [
+        matchedUser,
+        setMatchedUser,
+    ] = useState(null);
 
-    const [currentPage, setCurrentPage] = useState(0);
+    const [
+        snippetSuggestions,
+        setSnippetSuggestions,
+    ] = useState([]);
 
-    const [popularSearches, setPopularSearches] = useState([]);
+    const [
+        popularSearches,
+        setPopularSearches,
+    ] = useState([]);
 
-    const [searchHistory, setSearchHistory] = useState([]);
+    const [
+        searchHistory,
+        setSearchHistory,
+    ] = useState([]);
 
-    const [showHistory, setShowHistory] = useState(false);
+    const [snippetTotal, setSnippetTotal] =
+        useState(0);
 
+    const [userTotal, setUserTotal] =
+        useState(0);
+
+    const [currentPage, setCurrentPage] =
+        useState(0);
+
+    const [loading, setLoading] =
+        useState(true);
+
+    const [
+        suggestionLoading,
+        setSuggestionLoading,
+    ] = useState(false);
+
+    const [
+        errorMessage,
+        setErrorMessage,
+    ] = useState("");
+
+    const [
+        actionMessage,
+        setActionMessage,
+    ] = useState("");
+
+    const [
+        showSuggestionPanel,
+        setShowSuggestionPanel,
+    ] = useState(false);
+
+    const [
+        bookmarkStatus,
+        setBookmarkStatus,
+    ] = useState({});
+
+    const [
+        bookmarkLoading,
+        setBookmarkLoading,
+    ] = useState({});
+
+    /*
+     * Browser URL se state sync.
+     */
     useEffect(() => {
         setSearchText(queryFromUrl);
-    }, [queryFromUrl]);
-
-    useEffect(() => {
-
-        fetchSnippets();
-
+        setActiveTab(tabFromUrl);
     }, [
         queryFromUrl,
-        selectedCategory,
-        currentPage,
+        tabFromUrl,
     ]);
 
+    /*
+     * Snippet cards ke bookmark statuses.
+     */
+    const loadBookmarkStatuses =
+        useCallback(
+            async (snippetList) => {
+                if (
+                    !token ||
+                    !Array.isArray(snippetList) ||
+                    snippetList.length === 0
+                ) {
+                    setBookmarkStatus({});
+                    return;
+                }
+
+                const entries =
+                    await Promise.all(
+                        snippetList.map(
+                            async (snippet) => {
+                                try {
+                                    const response =
+                                        await getSnippetBookmarkStatus(
+                                            snippet.snippetId
+                                        );
+
+                                    const payload =
+                                        unwrapResponseData(
+                                            response
+                                        );
+
+                                    return [
+                                        snippet.snippetId,
+                                        Boolean(
+                                            payload?.bookmarked
+                                        ),
+                                    ];
+                                } catch (bookmarkError) {
+                                    console.error(
+                                        "Bookmark status error:",
+                                        bookmarkError
+                                    );
+
+                                    return [
+                                        snippet.snippetId,
+                                        false,
+                                    ];
+                                }
+                            }
+                        )
+                    );
+
+                setBookmarkStatus(
+                    Object.fromEntries(entries)
+                );
+            },
+            [token]
+        );
+
+    /*
+     * Normal snippet keyword search.
+     *
+     * Ye tab chalega jab entered keyword se exact username
+     * ka user nahi milta.
+     */
+    const fetchNormalSnippetSearch =
+        useCallback(
+            async (keyword) => {
+                const response =
+                    await searchSnippets({
+                        keyword:
+                            keyword || null,
+
+                        language:
+                            selectedCategory === "All"
+                                ? null
+                                : selectedCategory,
+
+                        framework: null,
+                        category: null,
+                        sortBy: null,
+                        page: currentPage,
+                        size: 12,
+                    });
+
+                const payload =
+                    unwrapResponseData(response);
+
+                const rawSnippets =
+                    Array.isArray(payload)
+                        ? payload
+                        : Array.isArray(
+                            payload?.snippets
+                        )
+                            ? payload.snippets
+                            : Array.isArray(
+                                payload?.content
+                            )
+                                ? payload.content
+                                : [];
+
+                const normalizedSnippets =
+                    rawSnippets.map(
+                        normalizeSnippet
+                    );
+
+                setSnippets(
+                    normalizedSnippets
+                );
+
+                setSnippetTotal(
+                    Number(
+                        payload?.totalElements ??
+                        payload?.totalResults ??
+                        payload?.total
+                    ) ||
+                    normalizedSnippets.length
+                );
+
+                await loadBookmarkStatuses(
+                    normalizedSnippets
+                );
+            },
+            [
+                selectedCategory,
+                currentPage,
+                loadBookmarkStatuses,
+            ]
+        );
+
+    /*
+     * Main combined search flow.
+     *
+     * Search "sakshi"
+     *      ↓
+     * GET /api/users/public/sakshi
+     *      ↓
+     * User found
+     *      ↓
+     * GET snippets using profile.userId
+     *      ↓
+     * Users tab = user card
+     * Snippets tab = that user's snippets
+     *
+     * Exact user nahi mila:
+     *      ↓
+     * Normal snippet keyword search
+     */
+    const fetchSearchResults =
+        useCallback(async () => {
+            const normalizedQuery =
+                queryFromUrl.trim();
+
+            try {
+                setLoading(true);
+                setErrorMessage("");
+
+                setUsers([]);
+                setUserTotal(0);
+                setMatchedUser(null);
+
+                /*
+                 * Empty query par normal popular/all
+                 * snippet search chalegi.
+                 */
+                if (!normalizedQuery) {
+                    await fetchNormalSnippetSearch("");
+                    return;
+                }
+
+                try {
+                    const profileResponse =
+                        await getPublicProfile(
+                            normalizedQuery
+                        );
+
+                    const profilePayload =
+                        unwrapResponseData(
+                            profileResponse
+                        );
+
+                    const rawProfile =
+                        profilePayload?.user ||
+                        profilePayload?.profile ||
+                        profilePayload;
+
+                    if (
+                        rawProfile &&
+                        rawProfile.username &&
+                        rawProfile.userId
+                    ) {
+                        const normalizedUser =
+                            normalizeUser(
+                                rawProfile
+                            );
+
+                        setMatchedUser(
+                            normalizedUser
+                        );
+
+                        setUsers([
+                            normalizedUser,
+                        ]);
+
+                        setUserTotal(1);
+
+                        /*
+                         * Exact user mil gaya.
+                         * Ab us user ke uploaded snippets fetch honge.
+                         */
+                        const snippetResponse =
+                            await getUserSnippets(
+                                normalizedUser.userId
+                            );
+
+                        const snippetPayload =
+                            unwrapResponseData(
+                                snippetResponse
+                            );
+
+                        const rawUserSnippets =
+                            Array.isArray(
+                                snippetPayload
+                            )
+                                ? snippetPayload
+                                : Array.isArray(
+                                    snippetPayload?.snippets
+                                )
+                                    ? snippetPayload.snippets
+                                    : Array.isArray(
+                                        snippetPayload?.content
+                                    )
+                                        ? snippetPayload.content
+                                        : [];
+
+                        const normalizedUserSnippets =
+                            rawUserSnippets.map(
+                                normalizeSnippet
+                            );
+
+                        setSnippets(
+                            normalizedUserSnippets
+                        );
+
+                        setSnippetTotal(
+                            normalizedUserSnippets.length
+                        );
+
+                        await loadBookmarkStatuses(
+                            normalizedUserSnippets
+                        );
+
+                        return;
+                    }
+
+                    /*
+                     * Response successful tha lekin valid profile
+                     * nahi mila. Normal snippet search fallback.
+                     */
+                    await fetchNormalSnippetSearch(
+                        normalizedQuery
+                    );
+                } catch (profileError) {
+                    /*
+                     * Exact username nahi mila.
+                     *
+                     * Isko page error nahi banayenge.
+                     * Keyword ko normal snippet search mein use karenge.
+                     */
+                    if (
+                        isUserNotFoundError(
+                            profileError
+                        )
+                    ) {
+                        setUsers([]);
+                        setUserTotal(0);
+                        setMatchedUser(null);
+
+                        await fetchNormalSnippetSearch(
+                            normalizedQuery
+                        );
+
+                        return;
+                    }
+
+                    throw profileError;
+                }
+            } catch (requestError) {
+                console.error(
+                    "Search page loading error:",
+                    requestError
+                );
+
+                setSnippets([]);
+                setSnippetTotal(0);
+                setUsers([]);
+                setUserTotal(0);
+                setMatchedUser(null);
+
+                setErrorMessage(
+                    requestError
+                        ?.response?.data
+                        ?.message ||
+                    requestError?.message ||
+                    "Unable to load search results."
+                );
+            } finally {
+                setLoading(false);
+            }
+        }, [
+            queryFromUrl,
+            fetchNormalSnippetSearch,
+            loadBookmarkStatuses,
+        ]);
+
+    /*
+     * Query, category ya page change par combined search.
+     */
     useEffect(() => {
+        fetchSearchResults();
+    }, [fetchSearchResults]);
 
-        fetchPopularSearches();
+    /*
+     * Popular searches.
+     */
+    useEffect(() => {
+        const loadPopularSearches =
+            async () => {
+                try {
+                    const response =
+                        await getPopularSearches();
 
-        fetchSearchHistory();
+                    const payload =
+                        unwrapResponseData(
+                            response
+                        );
 
+                    const values =
+                        Array.isArray(payload)
+                            ? payload
+                            : Array.isArray(
+                                payload?.searches
+                            )
+                                ? payload.searches
+                                : [];
+
+                    setPopularSearches(
+                        values
+                    );
+                } catch (requestError) {
+                    console.error(
+                        "Popular searches error:",
+                        requestError
+                    );
+
+                    setPopularSearches([]);
+                }
+            };
+
+        loadPopularSearches();
     }, []);
 
-    const filteredSnippets = snippets;
-
-    const handleSearchSubmit = (event) => {
-
-        event.preventDefault();
-
-        const normalizedSearch =
-            searchText.trim();
-
-        if (!normalizedSearch) {
-            setSearchParams({});
+    /*
+     * Logged-in user search history.
+     */
+    useEffect(() => {
+        if (!token) {
+            setSearchHistory([]);
             return;
         }
 
-        setCurrentPage(0);
+        const loadSearchHistory =
+            async () => {
+                try {
+                    const response =
+                        await getSearchHistory();
 
-        setSearchParams({
-            q: normalizedSearch,
-        });
+                    const payload =
+                        unwrapResponseData(
+                            response
+                        );
+
+                    const values =
+                        Array.isArray(payload)
+                            ? payload
+                            : Array.isArray(
+                                payload?.history
+                            )
+                                ? payload.history
+                                : [];
+
+                    setSearchHistory(
+                        values
+                    );
+                } catch (requestError) {
+                    console.error(
+                        "Search history error:",
+                        requestError
+                    );
+
+                    setSearchHistory([]);
+                }
+            };
+
+        loadSearchHistory();
+    }, [token]);
+
+    /*
+     * Snippet autocomplete only.
+     *
+     * User search ab exact username User Service se hoti hai,
+     * isliye /api/search/users/suggestions use nahi hoga.
+     */
+    useEffect(() => {
+        const normalizedKeyword =
+            searchText.trim();
+
+        autocompleteRequestId.current += 1;
+
+        const currentRequestId =
+            autocompleteRequestId.current;
+
+        if (
+            activeTab === SEARCH_TABS.USERS ||
+            normalizedKeyword.length < 2
+        ) {
+            setSnippetSuggestions([]);
+            setSuggestionLoading(false);
+            return;
+        }
+
+        const timeoutId =
+            window.setTimeout(
+                async () => {
+                    try {
+                        setSuggestionLoading(
+                            true
+                        );
+
+                        const response =
+                            await getSuggestions(
+                                normalizedKeyword
+                            );
+
+                        if (
+                            currentRequestId !==
+                            autocompleteRequestId
+                                .current
+                        ) {
+                            return;
+                        }
+
+                        const payload =
+                            unwrapResponseData(
+                                response
+                            );
+
+                        const rawSuggestions =
+                            Array.isArray(payload)
+                                ? payload
+                                : Array.isArray(
+                                    payload?.suggestions
+                                )
+                                    ? payload.suggestions
+                                    : [];
+
+                        setSnippetSuggestions(
+                            rawSuggestions
+                        );
+                    } catch (requestError) {
+                        console.error(
+                            "Snippet autocomplete error:",
+                            requestError
+                        );
+
+                        if (
+                            currentRequestId ===
+                            autocompleteRequestId
+                                .current
+                        ) {
+                            setSnippetSuggestions(
+                                []
+                            );
+                        }
+                    } finally {
+                        if (
+                            currentRequestId ===
+                            autocompleteRequestId
+                                .current
+                        ) {
+                            setSuggestionLoading(
+                                false
+                            );
+                        }
+                    }
+                },
+                AUTOCOMPLETE_DELAY
+            );
+
+        return () =>
+            window.clearTimeout(
+                timeoutId
+            );
+    }, [
+        searchText,
+        activeTab,
+    ]);
+
+    const updateUrl = (
+        keyword,
+        tab
+    ) => {
+        const updatedParams =
+            new URLSearchParams();
+
+        if (keyword?.trim()) {
+            updatedParams.set(
+                "q",
+                keyword.trim()
+            );
+        }
+
+        if (
+            tab === SEARCH_TABS.USERS
+        ) {
+            updatedParams.set(
+                "type",
+                "users"
+            );
+        }
+
+        setSearchParams(
+            updatedParams,
+            {
+                replace: false,
+            }
+        );
     };
 
-    const handleTrendingSearch =
-        (searchValue) => {
+    const executeSearch = (value) => {
+        const normalizedValue =
+            String(value || "").trim();
 
-            setSearchText(searchValue);
+        setCurrentPage(0);
+        setSelectedCategory("All");
+        setShowSuggestionPanel(false);
+        setSnippetSuggestions([]);
 
-            setCurrentPage(0);
+        updateUrl(
+            normalizedValue,
+            activeTab
+        );
+    };
 
-            setSearchParams({
-                q: searchValue,
-            });
-        };
+    const handleSearchSubmit = (event) => {
+        event.preventDefault();
+
+        executeSearch(
+            searchText
+        );
+    };
+
+    const handleQuickSearch = (value) => {
+        const normalizedValue =
+            String(value || "").trim();
+
+        if (!normalizedValue) {
+            return;
+        }
+
+        setSearchText(
+            normalizedValue
+        );
+
+        executeSearch(
+            normalizedValue
+        );
+    };
 
     const clearSearch = () => {
-
         setSearchText("");
-        setSearchParams({});
+        setCurrentPage(0);
+        setSelectedCategory("All");
+        setShowSuggestionPanel(false);
+        setSnippetSuggestions([]);
+
+        setUsers([]);
+        setUserTotal(0);
+        setMatchedUser(null);
+
+        updateUrl(
+            "",
+            activeTab
+        );
     };
 
-    const fetchSnippets = async () => {
+    const handleTabChange = (nextTab) => {
+        setActiveTab(nextTab);
+        setErrorMessage("");
+        setShowSuggestionPanel(false);
+        setSnippetSuggestions([]);
 
-        try {
-
-            setLoading(true);
-
-            const response = await searchSnippets({
-
-                keyword: queryFromUrl,
-
-                language:
-                    selectedCategory === "All"
-                        ? null
-                        : selectedCategory,
-
-                framework: null,
-
-                category: null,
-
-                sortBy: null,
-
-                page: currentPage,
-
-                size: 12,
-
-            });
-
-            console.log(response);
-
-            setSnippets(response.data.snippets);
-
-            setTotalResults(
-                response.data.totalElements
-            );
-
-        } catch (error) {
-
-            console.error(error);
-
-        } finally {
-
-            setLoading(false);
-
-        }
+        /*
+         * Same searched username/query preserve rahega.
+         *
+         * Snippets tab:
+         * /search?q=sakshi
+         *
+         * Users tab:
+         * /search?q=sakshi&type=users
+         */
+        updateUrl(
+            queryFromUrl,
+            nextTab
+        );
     };
 
-    const fetchPopularSearches = async () => {
+    const handleCategoryChange = (category) => {
+        setSelectedCategory(
+            category
+        );
 
-        try {
-
-            const response =
-                await getPopularSearches();
-
-            setPopularSearches(
-                response.data
-            );
-
-        } catch (error) {
-
-            console.error(
-                "Popular searches error:",
-                error
-            );
-
-        }
+        setCurrentPage(0);
     };
 
-    const fetchSearchHistory = async () => {
+    const handleBookmarkToggle =
+        async (snippet) => {
+            if (!token) {
+                navigate(
+                    "/login",
+                    {
+                        state: {
+                            message:
+                                "Please login to bookmark snippets.",
 
-        try {
+                            redirectTo:
+                                `/search${window.location.search}`,
+                        },
+                    }
+                );
 
-            const response =
-                await getSearchHistory();
+                return;
+            }
 
-            setSearchHistory(
-                response.data
+            const snippetId =
+                snippet?.snippetId;
+
+            if (
+                !snippetId ||
+                bookmarkLoading[snippetId]
+            ) {
+                return;
+            }
+
+            const currentlyBookmarked =
+                Boolean(
+                    bookmarkStatus[snippetId]
+                );
+
+            try {
+                setBookmarkLoading(
+                    (previousState) => ({
+                        ...previousState,
+
+                        [snippetId]:
+                            true,
+                    })
+                );
+
+                setErrorMessage("");
+                setActionMessage("");
+
+                const response =
+                    currentlyBookmarked
+                        ? await removeSnippetBookmark(
+                            snippetId
+                        )
+                        : await bookmarkSnippet(
+                            snippetId
+                        );
+
+                const payload =
+                    unwrapResponseData(
+                        response
+                    );
+
+                const nextBookmarked =
+                    Boolean(
+                        payload?.bookmarked
+                    );
+
+                setBookmarkStatus(
+                    (previousState) => ({
+                        ...previousState,
+
+                        [snippetId]:
+                            nextBookmarked,
+                    })
+                );
+
+                setSnippets(
+                    (previousSnippets) =>
+                        previousSnippets.map(
+                            (existingSnippet) => {
+                                if (
+                                    existingSnippet
+                                        .snippetId !==
+                                    snippetId
+                                ) {
+                                    return existingSnippet;
+                                }
+
+                                return {
+                                    ...existingSnippet,
+
+                                    bookmarkCount:
+                                        Number(
+                                            payload
+                                                ?.bookmarkCount
+                                        ) || 0,
+                                };
+                            }
+                        )
+                );
+
+                setActionMessage(
+                    payload?.message ||
+                    (
+                        nextBookmarked
+                            ? "Snippet bookmarked successfully."
+                            : "Bookmark removed successfully."
+                    )
+                );
+
+                window.setTimeout(
+                    () => {
+                        setActionMessage("");
+                    },
+                    2500
+                );
+            } catch (requestError) {
+                setErrorMessage(
+                    requestError
+                        ?.response?.data
+                        ?.message ||
+                    requestError?.message ||
+                    "Unable to update bookmark."
+                );
+            } finally {
+                setBookmarkLoading(
+                    (previousState) => ({
+                        ...previousState,
+
+                        [snippetId]:
+                            false,
+                    })
+                );
+            }
+        };
+
+    const historyItems =
+        useMemo(() => {
+            return searchHistory
+                .map((historyItem) => {
+                    if (
+                        typeof historyItem ===
+                        "string"
+                    ) {
+                        return historyItem;
+                    }
+
+                    return (
+                        historyItem?.keyword ||
+                        historyItem?.searchTerm ||
+                        historyItem?.query ||
+                        ""
+                    );
+                })
+                .filter(Boolean)
+                .slice(0, 5);
+        }, [searchHistory]);
+
+    const popularItems =
+        useMemo(() => {
+            return popularSearches
+                .map((searchItem) => {
+                    if (
+                        typeof searchItem ===
+                        "string"
+                    ) {
+                        return searchItem;
+                    }
+
+                    return (
+                        searchItem?.keyword ||
+                        searchItem?.searchTerm ||
+                        searchItem?.query ||
+                        ""
+                    );
+                })
+                .filter(Boolean)
+                .slice(0, 5);
+        }, [popularSearches]);
+
+    /*
+     * Exact user milne par category filtering client side hogi,
+     * kyunki snippets already getUserSnippets(userId) se aa chuki hain.
+     */
+    const visibleSnippets =
+        useMemo(() => {
+            if (
+                !matchedUser ||
+                selectedCategory === "All"
+            ) {
+                return snippets;
+            }
+
+            const selectedValue =
+                selectedCategory
+                    .trim()
+                    .toLowerCase();
+
+            return snippets.filter(
+                (snippet) => {
+                    const language =
+                        String(
+                            snippet?.language || ""
+                        )
+                            .trim()
+                            .toLowerCase();
+
+                    const framework =
+                        String(
+                            snippet?.framework || ""
+                        )
+                            .trim()
+                            .toLowerCase();
+
+                    return (
+                        language === selectedValue ||
+                        framework === selectedValue
+                    );
+                }
             );
+        }, [
+            snippets,
+            selectedCategory,
+            matchedUser,
+        ]);
 
-        } catch (error) {
+    const showRecentHistory =
+        showSuggestionPanel &&
+        activeTab ===
+            SEARCH_TABS.SNIPPETS &&
+        searchText.trim().length === 0 &&
+        historyItems.length > 0;
 
-            console.error(
-                "History error:",
-                error
-            );
+    const showSnippetSuggestions =
+        showSuggestionPanel &&
+        activeTab ===
+            SEARCH_TABS.SNIPPETS &&
+        searchText.trim().length >= 2 &&
+        snippetSuggestions.length > 0;
 
-        }
+    const showSuggestionLoader =
+        showSuggestionPanel &&
+        activeTab ===
+            SEARCH_TABS.SNIPPETS &&
+        searchText.trim().length >= 2 &&
+        suggestionLoading;
 
-    };
+    const currentTotal =
+        activeTab === SEARCH_TABS.SNIPPETS
+            ? (
+                matchedUser
+                    ? visibleSnippets.length
+                    : snippetTotal
+            )
+            : userTotal;
+
+    const currentResultCount =
+        activeTab === SEARCH_TABS.SNIPPETS
+            ? visibleSnippets.length
+            : users.length;
 
     return (
         <main className="searchPage">
@@ -426,7 +1303,6 @@ export default function SearchPage() {
 
                     <p className="searchEyebrow">
                         <FaFire />
-
                         DISCOVER CODE
                     </p>
 
@@ -436,89 +1312,223 @@ export default function SearchPage() {
                     </h1>
 
                     <p className="searchHeroDescription">
-                        Search snippets, languages,
-                        frameworks and reusable ideas
-                        shared by CodeCanvas developers.
+                        Search an exact username to view
+                        that developer and their uploaded
+                        snippets, or search reusable code
+                        by keyword.
                     </p>
 
-                    <form
-                        className="searchPageForm"
-                        onSubmit={
-                            handleSearchSubmit
-                        }
-                    >
-                        <FaSearch />
+                    <div className="searchFormContainer">
 
-                        <input
-                            type="text"
-                            value={searchText}
-
-                            onFocus={() => {
-                                if (!searchText.trim()) {
-                                    setShowHistory(true);
-                                }
-                            }}
-
-                            onChange={(event) => {
-
-                                const value = event.target.value;
-
-                                setSearchText(value);
-
-                                setShowHistory(value.trim() === "");
-
-                            }}
-
-
-                            placeholder="Search Java, React, Kafka, CSS..."
-                            autoComplete="off"
-                            aria-label="Search snippets"
-                        />
-
-                        {searchText && (
-                            <button
-                                type="button"
-                                className="searchClearButton"
-                                onClick={clearSearch}
-                                aria-label="Clear search"
-                            >
-                                <FaTimes />
-                            </button>
-                        )}
-
-                        <button
-                            type="submit"
-                            className="searchSubmitButton"
+                        <form
+                            className="searchPageForm"
+                            onSubmit={
+                                handleSearchSubmit
+                            }
                         >
-                            Search
-                        </button>
 
-                    </form>
+                            <FaSearch />
 
+                            <input
+                                type="text"
+                                value={searchText}
+                                placeholder={
+                                    activeTab ===
+                                    SEARCH_TABS.USERS
+                                        ? "Enter exact username..."
+                                        : "Search username, Java, React, Kafka..."
+                                }
+                                autoComplete="off"
+                                aria-label="Search CodeCanvas"
+                                onFocus={() =>
+                                    setShowSuggestionPanel(
+                                        true
+                                    )
+                                }
+                                onBlur={() => {
+                                    window.setTimeout(
+                                        () =>
+                                            setShowSuggestionPanel(
+                                                false
+                                            ),
+                                        180
+                                    );
+                                }}
+                                onChange={(event) => {
+                                    setSearchText(
+                                        event.target.value
+                                    );
 
-                    <div className="trendingSearches">
+                                    setShowSuggestionPanel(
+                                        true
+                                    );
+                                }}
+                            />
 
-                        <span>
-                            Trending:
-                        </span>
-
-                        {popularSearches.map(
-                            (search) => (
+                            {searchText && (
                                 <button
-                                    key={search.keyword}
                                     type="button"
-                                    onClick={() =>
-                                        handleTrendingSearch(
-                                            search.keyword
-                                        )
-                                    }
+                                    className="searchClearButton"
+                                    onClick={clearSearch}
+                                    aria-label="Clear search"
                                 >
-                                    {search.keyword}
+                                    <FaTimes />
                                 </button>
-                            )
+                            )}
+
+                            <button
+                                type="submit"
+                                className="searchSubmitButton"
+                            >
+                                Search
+                            </button>
+
+                        </form>
+
+                        {(showRecentHistory ||
+                            showSnippetSuggestions ||
+                            showSuggestionLoader) && (
+
+                            <div className="searchSuggestionPanel">
+
+                                {showSuggestionLoader && (
+                                    <div className="searchSuggestionLoading">
+                                        <span />
+                                        Loading suggestions...
+                                    </div>
+                                )}
+
+                                {!suggestionLoading &&
+                                    showRecentHistory && (
+
+                                    <div className="searchSuggestionGroup">
+
+                                        <p>
+                                            Recent searches
+                                        </p>
+
+                                        {historyItems.map(
+                                            (historyItem) => (
+
+                                                <button
+                                                    key={
+                                                        historyItem
+                                                    }
+                                                    type="button"
+                                                    onMouseDown={(
+                                                        event
+                                                    ) =>
+                                                        event
+                                                            .preventDefault()
+                                                    }
+                                                    onClick={() =>
+                                                        handleQuickSearch(
+                                                            historyItem
+                                                        )
+                                                    }
+                                                >
+                                                    <FaSearch />
+
+                                                    <span>
+                                                        {historyItem}
+                                                    </span>
+                                                </button>
+
+                                            )
+                                        )}
+
+                                    </div>
+                                )}
+
+                                {!suggestionLoading &&
+                                    showSnippetSuggestions && (
+
+                                    <div className="searchSuggestionGroup">
+
+                                        <p>
+                                            Snippet suggestions
+                                        </p>
+
+                                        {snippetSuggestions.map(
+                                            (
+                                                suggestion,
+                                                index
+                                            ) => {
+                                                const text =
+                                                    getSuggestionText(
+                                                        suggestion
+                                                    );
+
+                                                if (!text) {
+                                                    return null;
+                                                }
+
+                                                return (
+                                                    <button
+                                                        key={
+                                                            suggestion
+                                                                ?.snippetId ||
+                                                            `${text}-${index}`
+                                                        }
+                                                        type="button"
+                                                        onMouseDown={(
+                                                            event
+                                                        ) =>
+                                                            event
+                                                                .preventDefault()
+                                                        }
+                                                        onClick={() =>
+                                                            handleQuickSearch(
+                                                                text
+                                                            )
+                                                        }
+                                                    >
+                                                        <FaCode />
+
+                                                        <span>
+                                                            {text}
+                                                        </span>
+                                                    </button>
+                                                );
+                                            }
+                                        )}
+
+                                    </div>
+                                )}
+
+                            </div>
                         )}
 
                     </div>
+
+                    {popularItems.length > 0 && (
+
+                        <div className="trendingSearches">
+
+                            <span>
+                                Trending:
+                            </span>
+
+                            {popularItems.map(
+                                (popularItem) => (
+
+                                    <button
+                                        key={popularItem}
+                                        type="button"
+                                        onClick={() =>
+                                            handleQuickSearch(
+                                                popularItem
+                                            )
+                                        }
+                                    >
+                                        {popularItem}
+                                    </button>
+
+                                )
+                            )}
+
+                        </div>
+                    )}
 
                 </div>
 
@@ -533,30 +1543,30 @@ export default function SearchPage() {
                         </div>
 
                         <div className="searchVisualCode">
-                            <p>
-                                <span>const</span>{" "}
-                                explore ={" "}
-                                <strong>
-                                    community
-                                </strong>
-                                ;
-                            </p>
 
                             <p>
                                 <span>const</span>{" "}
-                                result ={" "}
+                                developer ={" "}
                                 <strong>
                                     search
                                 </strong>
-                                (idea);
+                                (username);
                             </p>
 
                             <p>
-                                <em>
-                                    return
-                                </em>{" "}
-                                result;
+                                <span>const</span>{" "}
+                                snippets ={" "}
+                                <strong>
+                                    developer
+                                </strong>
+                                .snippets;
                             </p>
+
+                            <p>
+                                <em>return</em>{" "}
+                                results;
+                            </p>
+
                         </div>
 
                     </div>
@@ -569,30 +1579,100 @@ export default function SearchPage() {
 
             <section className="searchPageContent">
 
-                <div className="searchCategoryBar">
+                {actionMessage && (
+                    <div
+                        className="searchActionMessage"
+                        role="status"
+                    >
+                        {actionMessage}
+                    </div>
+                )}
 
-                    {SEARCH_CATEGORIES.map(
-                        (category) => (
-                            <button
-                                key={category}
-                                type="button"
-                                className={
-                                    selectedCategory ===
-                                        category
-                                        ? "activeSearchCategory"
-                                        : ""
-                                }
-                                onClick={() => {
-                                    setCurrentPage(0);
-                                    setSelectedCategory(category);
-                                }}
-                            >
-                                {category}
-                            </button>
-                        )
-                    )}
+                <div className="searchTypeTabs">
+
+                    <button
+                        type="button"
+                        className={
+                            activeTab ===
+                            SEARCH_TABS.SNIPPETS
+                                ? "activeSearchTypeTab"
+                                : ""
+                        }
+                        onClick={() =>
+                            handleTabChange(
+                                SEARCH_TABS.SNIPPETS
+                            )
+                        }
+                    >
+                        <FaCode />
+
+                        Snippets
+
+                        <span>
+                            {
+                                matchedUser
+                                    ? snippets.length
+                                    : snippetTotal
+                            }
+                        </span>
+                    </button>
+
+                    <button
+                        type="button"
+                        className={
+                            activeTab ===
+                            SEARCH_TABS.USERS
+                                ? "activeSearchTypeTab"
+                                : ""
+                        }
+                        onClick={() =>
+                            handleTabChange(
+                                SEARCH_TABS.USERS
+                            )
+                        }
+                    >
+                        <FaUsers />
+
+                        Users
+
+                        <span>
+                            {userTotal}
+                        </span>
+                    </button>
 
                 </div>
+
+                {activeTab ===
+                    SEARCH_TABS.SNIPPETS && (
+
+                    <div className="searchCategoryBar">
+
+                        {SEARCH_CATEGORIES.map(
+                            (category) => (
+
+                                <button
+                                    key={category}
+                                    type="button"
+                                    className={
+                                        selectedCategory ===
+                                        category
+                                            ? "activeSearchCategory"
+                                            : ""
+                                    }
+                                    onClick={() =>
+                                        handleCategoryChange(
+                                            category
+                                        )
+                                    }
+                                >
+                                    {category}
+                                </button>
+
+                            )
+                        )}
+
+                    </div>
+                )}
 
                 <div className="searchResultHeading">
 
@@ -605,202 +1685,324 @@ export default function SearchPage() {
                         </p>
 
                         <h2>
-                            {queryFromUrl
-                                ? `Results for “${queryFromUrl}”`
-                                : "Popular snippets"}
+                            {activeTab ===
+                            SEARCH_TABS.USERS
+                                ? matchedUser
+                                    ? `User matching “${queryFromUrl}”`
+                                    : queryFromUrl
+                                        ? `Users matching “${queryFromUrl}”`
+                                        : "Search developers"
+                                : matchedUser
+                                    ? `${matchedUser.fullName}'s snippets`
+                                    : queryFromUrl
+                                        ? `Results for “${queryFromUrl}”`
+                                        : "Popular snippets"}
                         </h2>
 
                     </div>
 
                     <span>
-                        {filteredSnippets.length}{" "}
-                        {filteredSnippets.length === 1
+                        {currentTotal}{" "}
+                        {currentTotal === 1
                             ? "result"
                             : "results"}
                     </span>
 
                 </div>
 
-                {filteredSnippets.length > 0 ? (
+                {/* ================= ERROR ================= */}
 
-                    <div className="searchExploreGrid">
+                {errorMessage && (
 
-                        {filteredSnippets.map(
-                            (
-                                snippet,
-                                index
-                            ) => (
-                                <article
-                                    key={
-                                        snippet.snippetId
-                                    }
-                                    className={`searchExploreCard ${snippet.featured
-                                        ? "searchFeaturedCard"
-                                        : ""
-                                        } ${index === 0 &&
-                                            !queryFromUrl
-                                            ? "searchLargeCard"
-                                            : ""
-                                        }`}
+                    <div className="searchErrorState">
+
+                        <span>!</span>
+
+                        <h2>
+                            Unable to load results
+                        </h2>
+
+                        <p>
+                            {errorMessage}
+                        </p>
+
+                        <button
+                            type="button"
+                            onClick={
+                                fetchSearchResults
+                            }
+                        >
+                            <FaRedoAlt />
+                            Try again
+                        </button>
+
+                    </div>
+                )}
+
+                {/* ================= SNIPPET LOADING ================= */}
+
+                {loading &&
+                    !errorMessage &&
+                    activeTab ===
+                        SEARCH_TABS.SNIPPETS && (
+
+                    <div className="searchSnippetGrid">
+
+                        {Array.from({
+                            length: 8,
+                        }).map(
+                            (_, index) => (
+
+                                <div
+                                    key={index}
+                                    className="searchSnippetSkeleton"
                                 >
+                                    <div className="searchSnippetSkeletonHeader" />
 
-                                    <Link
-                                        to={`/snippets/${snippet.snippetId}`}
-                                        className="searchCardMainLink"
-                                    >
+                                    <div className="searchSnippetSkeletonImage" />
 
-                                        <div className="searchCardTop">
-
-                                            <span className="searchCardLanguage">
-                                                {
-                                                    snippet.language
-                                                }
-                                            </span>
-
-                                            <span
-                                                className={`searchVisibilityBadge searchVisibility${snippet.visibility ?? "PUBLIC"}`}
-                                            >
-                                                {
-                                                    snippet.visibility
-                                                }
-                                            </span>
-
-                                        </div>
-
-                                        <div className="searchCardCode">
-
-                                            <div className="searchCardCodeHeader">
-
-                                                <span />
-                                                <span />
-                                                <span />
-
-                                                <small>
-                                                    {
-                                                        snippet.framework
-                                                    }
-                                                </small>
-
-                                            </div>
-
-                                            <pre>
-                                                <code>
-                                                    {snippet.description}
-                                                </code>
-                                            </pre>
-
-                                        </div>
-
-                                        <div className="searchCardBody">
-
-                                            <p className="searchCardCategory">
-                                                {
-                                                    snippet.category
-                                                }
-                                            </p>
-
-                                            <h3>
-                                                {
-                                                    snippet.title
-                                                }
-                                            </h3>
-
-                                            <p className="searchCardDescription">
-                                                {
-                                                    snippet.description
-                                                }
-                                            </p>
-
-                                            <div className="searchCardTags">
-
-                                                {snippet.tags.map(
-                                                    (
-                                                        tag
-                                                    ) => (
-                                                        <span
-                                                            key={
-                                                                tag
-                                                            }
-                                                        >
-                                                            #
-                                                            {
-                                                                tag
-                                                            }
-                                                        </span>
-                                                    )
-                                                )}
-
-                                            </div>
-
-                                        </div>
-
-                                    </Link>
-
-                                    <div className="searchCardFooter">
-
-                                        <div className="searchCardStats">
-
-                                            <span>
-                                                <FaHeart />
-
-                                                {formatCount(
-                                                    snippet.likes
-                                                )}
-                                            </span>
-
-                                            <span>
-                                                <FaEye />
-
-                                                {formatCount(
-                                                    snippet.views
-                                                )}
-                                            </span>
-
-                                            <span>
-                                                <FaCodeBranch />
-
-                                                {formatCount(
-                                                    snippet.forks
-                                                )}
-                                            </span>
-
-                                        </div>
-
-                                        <button
-                                            type="button"
-                                            aria-label={`Bookmark ${snippet.title}`}
-                                        >
-                                            <FaBookmark />
-
-                                            {formatCount(
-                                                snippet.bookmarks
-                                            )}
-                                        </button>
-
+                                    <div className="searchSnippetSkeletonBody">
+                                        <span />
+                                        <span />
+                                        <span />
+                                        <span />
                                     </div>
+                                </div>
 
-                                </article>
                             )
                         )}
 
                     </div>
+                )}
 
-                ) : (
+                {/* ================= USER LOADING ================= */}
+
+                {loading &&
+                    !errorMessage &&
+                    activeTab ===
+                        SEARCH_TABS.USERS && (
+
+                    <div className="searchUserGrid">
+
+                        <div className="searchUserSkeleton">
+
+                            <span />
+
+                            <div>
+                                <strong />
+                                <small />
+                                <small />
+                            </div>
+
+                        </div>
+
+                    </div>
+                )}
+
+                {/* ================= SNIPPET RESULTS ================= */}
+
+                {!loading &&
+                    !errorMessage &&
+                    activeTab ===
+                        SEARCH_TABS.SNIPPETS &&
+                    visibleSnippets.length > 0 && (
+
+                    <div className="searchSnippetGrid">
+
+                        {visibleSnippets.map(
+                            (snippet) => (
+
+                                <div
+                                    key={
+                                        snippet.snippetId
+                                    }
+                                    className="searchSnippetCardWrapper"
+                                >
+
+                                    <SnippetCard
+                                        snippet={snippet}
+                                        showOwnerActions={false}
+                                        showBookmarkAction={true}
+                                        isBookmarked={
+                                            Boolean(
+                                                bookmarkStatus[
+                                                    snippet
+                                                        .snippetId
+                                                ]
+                                            )
+                                        }
+                                        bookmarkLoading={
+                                            Boolean(
+                                                bookmarkLoading[
+                                                    snippet
+                                                        .snippetId
+                                                ]
+                                            )
+                                        }
+                                        onBookmarkToggle={
+                                            handleBookmarkToggle
+                                        }
+                                    />
+
+                                    {bookmarkLoading[
+                                        snippet.snippetId
+                                    ] && (
+
+                                        <div className="searchBookmarkLoader">
+                                            <span />
+                                        </div>
+                                    )}
+
+                                </div>
+
+                            )
+                        )}
+
+                    </div>
+                )}
+
+                {/* ================= USER RESULT ================= */}
+
+                {!loading &&
+                    !errorMessage &&
+                    activeTab ===
+                        SEARCH_TABS.USERS &&
+                    users.length > 0 && (
+
+                    <div className="searchUserGrid">
+
+                        {users.map(
+                            (user) => (
+
+                                <Link
+                                    key={
+                                        user.userId ||
+                                        user.username
+                                    }
+                                    to={
+                                        buildPublicProfilePath(
+                                            user.username
+                                        )
+                                    }
+                                    className="searchUserResultCard"
+                                >
+
+                                    <div className="searchUserResultHeader">
+
+                                        <UserAvatar
+                                            user={user}
+                                        />
+
+                                        <div className="searchUserIdentity">
+
+                                            <h3>
+                                                {user.fullName}
+                                            </h3>
+
+                                            <p>
+                                                @{user.username}
+                                            </p>
+
+                                        </div>
+
+                                        {user.premium && (
+
+                                            <span className="searchPremiumUserBadge">
+
+                                                <FaCrown />
+
+                                                Premium
+
+                                            </span>
+                                        )}
+
+                                    </div>
+
+                                    <p className="searchUserBio">
+
+                                        {user.bio?.trim()
+                                            ? user.bio
+                                            : "CodeCanvas developer and community member."}
+
+                                    </p>
+
+                                    <div className="searchUserStatistics">
+
+                                        <span>
+                                            <strong>
+                                                {user.followers}
+                                            </strong>
+
+                                            Followers
+                                        </span>
+
+                                        <span>
+                                            <strong>
+                                                {user.following}
+                                            </strong>
+
+                                            Following
+                                        </span>
+
+                                        <span>
+                                            <strong>
+                                                {
+                                                    snippets.length
+                                                }
+                                            </strong>
+
+                                            Snippets
+                                        </span>
+
+                                    </div>
+
+                                    <span className="searchViewProfileButton">
+                                        View profile
+                                    </span>
+
+                                </Link>
+
+                            )
+                        )}
+
+                    </div>
+                )}
+
+                {/* ================= EMPTY STATE ================= */}
+
+                {!loading &&
+                    !errorMessage &&
+                    currentResultCount === 0 && (
 
                     <div className="searchEmptyState">
 
                         <span>
-                            <FaSearch />
+                            {activeTab ===
+                            SEARCH_TABS.USERS
+                                ? <FaUser />
+                                : <FaSearch />}
                         </span>
 
                         <h2>
-                            No snippets found
+                            {activeTab ===
+                            SEARCH_TABS.USERS
+                                ? queryFromUrl
+                                    ? "User not found"
+                                    : "Search for a user"
+                                : matchedUser
+                                    ? "No snippets uploaded"
+                                    : "No snippets found"}
                         </h2>
 
                         <p>
-                            Try another keyword or
-                            select a different
-                            category.
+                            {activeTab ===
+                            SEARCH_TABS.USERS
+                                ? queryFromUrl
+                                    ? "Enter the exact username used by the developer."
+                                    : "Enter an exact username, for example: sakshi"
+                                : matchedUser
+                                    ? `${matchedUser.fullName} has not uploaded any active snippets yet.`
+                                    : "Try another keyword or select a different category."}
                         </p>
 
                         <button
@@ -813,13 +2015,18 @@ export default function SearchPage() {
                                 clearSearch();
                             }}
                         >
-                            <FaCode />
+                            {activeTab ===
+                            SEARCH_TABS.USERS
+                                ? <FaUsers />
+                                : <FaCode />}
 
-                            Explore all snippets
+                            {activeTab ===
+                            SEARCH_TABS.USERS
+                                ? "Clear username"
+                                : "Explore all"}
                         </button>
 
                     </div>
-
                 )}
 
             </section>
@@ -828,22 +2035,27 @@ export default function SearchPage() {
     );
 }
 
-function formatCount(value) {
+function UserAvatar({ user }) {
+    return (
+        <div className="searchUserAvatar">
 
-    const number =
-        Number(value) || 0;
+            {user?.profileImage ? (
 
-    if (number >= 1000000) {
-        return `${(
-            number / 1000000
-        ).toFixed(1)}M`;
-    }
+                <img
+                    src={user.profileImage}
+                    alt={
+                        user.fullName ||
+                        user.username ||
+                        "User"
+                    }
+                />
 
-    if (number >= 1000) {
-        return `${(
-            number / 1000
-        ).toFixed(1)}K`;
-    }
+            ) : (
 
-    return number.toString();
+                <FaUser />
+
+            )}
+
+        </div>
+    );
 }
