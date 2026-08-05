@@ -20,7 +20,8 @@ export default function Settings() {
 
         logout();
 
-        navigate("/login", { replace: true });
+        // Redirect to Landing Page
+        navigate("/", { replace: true });
 
     };
 
@@ -124,6 +125,7 @@ export default function Settings() {
 
                         <FaChevronRight />
                     </div>
+
                 </div>
 
             </div>
