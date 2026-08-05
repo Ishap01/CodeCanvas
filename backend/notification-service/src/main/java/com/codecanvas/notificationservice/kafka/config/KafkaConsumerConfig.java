@@ -1,7 +1,12 @@
 package com.codecanvas.notificationservice.kafka.config;
 
+import com.codecanvas.notificationservice.kafka.event.CommentCreatedEvent;
+import com.codecanvas.notificationservice.kafka.event.ReplyCreatedEvent;
+import com.codecanvas.notificationservice.kafka.event.SnippetBookmarkedEvent;
 import com.codecanvas.notificationservice.kafka.event.SnippetCreatedEvent;
 import com.codecanvas.notificationservice.kafka.event.SnippetDeletedEvent;
+import com.codecanvas.notificationservice.kafka.event.SnippetForkedEvent;
+import com.codecanvas.notificationservice.kafka.event.SnippetLikedEvent;
 import com.codecanvas.notificationservice.kafka.event.SnippetUpdatedEvent;
 import com.codecanvas.notificationservice.kafka.event.UserDeletedEvent;
 import com.codecanvas.notificationservice.kafka.event.UserRegisteredEvent;
@@ -172,6 +177,101 @@ public class KafkaConsumerConfig {
     public ConcurrentKafkaListenerContainerFactory<String, SnippetDeletedEvent> snippetDeletedKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, SnippetDeletedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(snippetDeletedConsumerFactory());
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
+        factory.setCommonErrorHandler(errorHandler());
+        return factory;
+    }
+
+    // Snippet Liked Consumer Factory & Container Factory
+    @Bean
+    public ConsumerFactory<String, SnippetLikedEvent> snippetLikedConsumerFactory() {
+        return new DefaultKafkaConsumerFactory<>(
+                baseConsumerProps(),
+                new StringDeserializer(),
+                createJsonDeserializer(SnippetLikedEvent.class)
+        );
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, SnippetLikedEvent> snippetLikedKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, SnippetLikedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(snippetLikedConsumerFactory());
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
+        factory.setCommonErrorHandler(errorHandler());
+        return factory;
+    }
+
+    // Snippet Bookmarked Consumer Factory & Container Factory
+    @Bean
+    public ConsumerFactory<String, SnippetBookmarkedEvent> snippetBookmarkedConsumerFactory() {
+        return new DefaultKafkaConsumerFactory<>(
+                baseConsumerProps(),
+                new StringDeserializer(),
+                createJsonDeserializer(SnippetBookmarkedEvent.class)
+        );
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, SnippetBookmarkedEvent> snippetBookmarkedKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, SnippetBookmarkedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(snippetBookmarkedConsumerFactory());
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
+        factory.setCommonErrorHandler(errorHandler());
+        return factory;
+    }
+
+    // Comment Created Consumer Factory & Container Factory
+    @Bean
+    public ConsumerFactory<String, CommentCreatedEvent> commentCreatedConsumerFactory() {
+        return new DefaultKafkaConsumerFactory<>(
+                baseConsumerProps(),
+                new StringDeserializer(),
+                createJsonDeserializer(CommentCreatedEvent.class)
+        );
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, CommentCreatedEvent> commentCreatedKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, CommentCreatedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(commentCreatedConsumerFactory());
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
+        factory.setCommonErrorHandler(errorHandler());
+        return factory;
+    }
+
+    // Reply Created Consumer Factory & Container Factory
+    @Bean
+    public ConsumerFactory<String, ReplyCreatedEvent> replyCreatedConsumerFactory() {
+        return new DefaultKafkaConsumerFactory<>(
+                baseConsumerProps(),
+                new StringDeserializer(),
+                createJsonDeserializer(ReplyCreatedEvent.class)
+        );
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, ReplyCreatedEvent> replyCreatedKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, ReplyCreatedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(replyCreatedConsumerFactory());
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
+        factory.setCommonErrorHandler(errorHandler());
+        return factory;
+    }
+
+    // Snippet Forked Consumer Factory & Container Factory
+    @Bean
+    public ConsumerFactory<String, SnippetForkedEvent> snippetForkedConsumerFactory() {
+        return new DefaultKafkaConsumerFactory<>(
+                baseConsumerProps(),
+                new StringDeserializer(),
+                createJsonDeserializer(SnippetForkedEvent.class)
+        );
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, SnippetForkedEvent> snippetForkedKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, SnippetForkedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(snippetForkedConsumerFactory());
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
         factory.setCommonErrorHandler(errorHandler());
         return factory;

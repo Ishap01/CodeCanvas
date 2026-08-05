@@ -41,6 +41,10 @@ import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 import com.razorpay.Utils;
 
+import com.codecanvas.paymentservice.kafka.event.PaymentVerifiedEvent;
+import com.codecanvas.paymentservice.kafka.event.PaymentFailedEvent;
+import com.codecanvas.paymentservice.kafka.producer.PaymentEventProducer;
+
 import jakarta.servlet.http.HttpServletRequest;
 
 @Service
@@ -58,6 +62,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final UserServiceClient userServiceClient;
     private final RazorpayClient razorpayClient;
     private final HttpServletRequest httpServletRequest;
+    private final PaymentEventProducer paymentEventProducer;
 
     @Value("${razorpay.key-id}")
     private String razorpayKey;
@@ -70,13 +75,15 @@ public class PaymentServiceImpl implements PaymentService {
             PaymentMapper paymentMapper,
             UserServiceClient userServiceClient,
             RazorpayClient razorpayClient,
-            HttpServletRequest httpServletRequest) {
+            HttpServletRequest httpServletRequest,
+            PaymentEventProducer paymentEventProducer) {
 
         this.paymentRepository = paymentRepository;
         this.paymentMapper = paymentMapper;
         this.userServiceClient = userServiceClient;
         this.razorpayClient = razorpayClient;
         this.httpServletRequest = httpServletRequest;
+        this.paymentEventProducer = paymentEventProducer;
     }
 
     @Override
@@ -181,6 +188,8 @@ public class PaymentServiceImpl implements PaymentService {
 
             paymentRepository.save(payment);
 
+
+
             throw new PaymentProcessingException(
                     "Failed to create Razorpay order: "
                             + exception.getMessage(),
@@ -242,6 +251,9 @@ public class PaymentServiceImpl implements PaymentService {
 
         Payment savedPayment =
                 paymentRepository.save(payment);
+
+
+
 
         /*
          * Payment successfully save hone ke baad

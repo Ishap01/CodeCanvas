@@ -3,7 +3,8 @@ package com.codecanvas.snippetservice.service.impl;
 import java.util.UUID;
 
 import com.codecanvas.snippetservice.exception.ResourceNotFoundException;
-import org.springframework.cache.annotation.CacheEvict;
+import com.codecanvas.snippetservice.kafka.mapper.SnippetEventMapper;
+import com.codecanvas.snippetservice.kafka.producer.SnippetEventProducer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,176 +16,174 @@ import com.codecanvas.snippetservice.mapper.SnippetMapper;
 import com.codecanvas.snippetservice.service.ForkService;
 import com.codecanvas.snippetservice.service.SearchIndexService;
 
+import com.codecanvas.snippetservice.kafka.event.SnippetForkedEvent;
+
 @Service
 @Transactional
 public class ForkServiceImpl implements ForkService {
 
-    private final SnippetRepository snippetRepository;
-    private final SnippetMapper snippetMapper;
-    private final SearchIndexService searchIndexService;
+        private final SnippetRepository snippetRepository;
+        private final SnippetMapper snippetMapper;
+        private final SearchIndexService searchIndexService;
 
-    public ForkServiceImpl(
-            SnippetRepository snippetRepository,
-            SnippetMapper snippetMapper,
-            SearchIndexService searchIndexService) {
+        // Kafka Producer
+        private final SnippetEventProducer snippetEventProducer;
 
-        this.snippetRepository = snippetRepository;
-        this.snippetMapper = snippetMapper;
-        this.searchIndexService = searchIndexService;
-    }
+        // Converts entity into Kafka event.
+        private final SnippetEventMapper snippetEventMapper;
 
-    @Override
-    @CacheEvict(value = {"snippets", "public_snippets", "user_snippets"}, allEntries = true)
-    public SnippetResponse forkSnippet(
-            UUID snippetId,
-            UUID currentUserId) {
+        public ForkServiceImpl(
+                        SnippetRepository snippetRepository,
+                        SnippetMapper snippetMapper,
+                        SearchIndexService searchIndexService,
+                        SnippetEventProducer snippetEventProducer,
+                        SnippetEventMapper snippetEventMapper) {
 
-        if (snippetId == null) {
-            throw new IllegalArgumentException(
-                    "Snippet id is required"
-            );
+                this.snippetRepository = snippetRepository;
+                this.snippetMapper = snippetMapper;
+                this.searchIndexService = searchIndexService;
+                this.snippetEventProducer = snippetEventProducer;
+                this.snippetEventMapper = snippetEventMapper;
         }
 
-        if (currentUserId == null) {
-            throw new IllegalArgumentException(
-                    "Authenticated user id is required"
-            );
-        }
+        @Override
+        @CacheEvict(value = { "snippets", "public_snippets", "user_snippets" }, allEntries = true)
+        public SnippetResponse forkSnippet(
+                        UUID snippetId,
+                        UUID currentUserId) {
 
-        Snippet originalSnippet =
-                snippetRepository.findById(snippetId)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Snippet not found"
-                                )
-                        );
+                if (snippetId == null) {
+                        throw new IllegalArgumentException(
+                                        "Snippet id is required");
+                }
 
-        /*
-         * Optional:
-         * Prevent users from forking their own snippet.
-         */
-        if (originalSnippet.getUserId().equals(currentUserId)) {
-            throw new IllegalArgumentException(
-                    "You cannot fork your own snippet."
-            );
-        }
+                if (currentUserId == null) {
+                        throw new IllegalArgumentException(
+                                        "Authenticated user id is required");
+                }
 
-        Snippet forkedSnippet = new Snippet();
+                Snippet originalSnippet = snippetRepository.findById(snippetId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Snippet not found"));
 
-        forkedSnippet.setUserId(currentUserId);
+                /*
+                 * Optional:
+                 * Prevent users from forking their own snippet.
+                 */
+                if (originalSnippet.getUserId().equals(currentUserId)) {
+                        throw new IllegalArgumentException(
+                                        "You cannot fork your own snippet.");
+                }
 
-        forkedSnippet.setTitle(
-                originalSnippet.getTitle()
-        );
+                Snippet forkedSnippet = new Snippet();
 
-        forkedSnippet.setDescription(
-                originalSnippet.getDescription()
-        );
+                forkedSnippet.setUserId(currentUserId);
 
-        forkedSnippet.setCode(
-                originalSnippet.getCode()
-        );
+                forkedSnippet.setTitle(
+                                originalSnippet.getTitle());
 
-        forkedSnippet.setLanguage(
-                originalSnippet.getLanguage()
-        );
+                forkedSnippet.setDescription(
+                                originalSnippet.getDescription());
 
-        forkedSnippet.setFramework(
-                originalSnippet.getFramework()
-        );
+                forkedSnippet.setCode(
+                                originalSnippet.getCode());
 
-        forkedSnippet.setVisibility(
-                originalSnippet.getVisibility()
-        );
+                forkedSnippet.setLanguage(
+                                originalSnippet.getLanguage());
 
-        forkedSnippet.setStatus(
-                originalSnippet.getStatus()
-        );
+                forkedSnippet.setFramework(
+                                originalSnippet.getFramework());
 
-        forkedSnippet.setCategory(
-                originalSnippet.getCategory()
-        );
+                forkedSnippet.setVisibility(
+                                originalSnippet.getVisibility());
 
-        forkedSnippet.setPreviewImageUrl(
-                originalSnippet.getPreviewImageUrl()
-        );
+                forkedSnippet.setStatus(
+                                originalSnippet.getStatus());
 
-        forkedSnippet.setPreviewImagePublicId(
-                originalSnippet.getPreviewImagePublicId()
-        );
+                forkedSnippet.setCategory(
+                                originalSnippet.getCategory());
 
-        forkedSnippet.setParentSnippetId(
-                originalSnippet.getSnippetId()
-        );
+                forkedSnippet.setPreviewImageUrl(
+                                originalSnippet.getPreviewImageUrl());
 
-        /*
-         * Fork starts with fresh engagement.
-         */
-        forkedSnippet.setViewCount(0L);
-        forkedSnippet.setLikeCount(0L);
-        forkedSnippet.setBookmarkCount(0L);
-        forkedSnippet.setCommentCount(0L);
-        forkedSnippet.setForkCount(0L);
+                forkedSnippet.setPreviewImagePublicId(
+                                originalSnippet.getPreviewImagePublicId());
 
-        /*
-         * Copy tags.
-         */
-        if (originalSnippet.getSnippetTags() != null) {
+                forkedSnippet.setParentSnippetId(
+                                originalSnippet.getSnippetId());
 
-            for (SnippetTag originalSnippetTag
-                    : originalSnippet.getSnippetTags()) {
+                /*
+                 * Fork starts with fresh engagement.
+                 */
+                forkedSnippet.setViewCount(0L);
+                forkedSnippet.setLikeCount(0L);
+                forkedSnippet.setBookmarkCount(0L);
+                forkedSnippet.setCommentCount(0L);
+                forkedSnippet.setForkCount(0L);
 
-                SnippetTag newSnippetTag =
-                        new SnippetTag();
+                /*
+                 * Copy tags.
+                 */
+                if (originalSnippet.getSnippetTags() != null) {
 
-                newSnippetTag.setSnippet(
-                        forkedSnippet
-                );
+                        for (SnippetTag originalSnippetTag : originalSnippet.getSnippetTags()) {
 
-                newSnippetTag.setTag(
-                        originalSnippetTag.getTag()
-                );
+                                SnippetTag newSnippetTag = new SnippetTag();
 
-                forkedSnippet.getSnippetTags()
-                        .add(newSnippetTag);
-            }
-        }
+                                newSnippetTag.setSnippet(
+                                                forkedSnippet);
 
-        /*
-         * Increase fork count of original snippet.
-         */
-        originalSnippet.setForkCount(
-                originalSnippet.getForkCount() + 1
-        );
+                                newSnippetTag.setTag(
+                                                originalSnippetTag.getTag());
 
-        /*
-         * Save fork.
-         */
-        Snippet savedFork =
+                                forkedSnippet.getSnippetTags()
+                                                .add(newSnippetTag);
+                        }
+                }
+
+                /*
+                 * Increase fork count of original snippet.
+                 */
+                originalSnippet.setForkCount(
+                                originalSnippet.getForkCount() + 1);
+
+                /*
+                 * Save fork.
+                 */
+                Snippet savedFork = snippetRepository.save(
+                                forkedSnippet);
+
+                /*
+                 * Save original snippet.
+                 */
                 snippetRepository.save(
-                        forkedSnippet
-                );
+                                originalSnippet);
 
-        /*
-         * Save original snippet.
-         */
-        snippetRepository.save(
-                originalSnippet
-        );
+                /*
+                 * Create Kafka event
+                 * after successful fork.
+                 */
+                SnippetForkedEvent event = snippetEventMapper.toSnippetForkedEvent(
+                                originalSnippet,
+                                savedFork);
 
-        /*
-         * Update Elasticsearch.
-         */
-        searchIndexService.indexSnippet(
-                originalSnippet
-        );
+                /*
+                 * Publish fork event.
+                 */
+                snippetEventProducer.publishSnippetForkedEvent(
+                                event);
 
-        searchIndexService.indexSnippet(
-                savedFork
-        );
+                /*
+                 * Update Elasticsearch.
+                 */
+                searchIndexService.indexSnippet(
+                                originalSnippet);
 
-        return snippetMapper.toResponse(
-                savedFork
-        );
-    }
+                searchIndexService.indexSnippet(
+                                savedFork);
+
+                return snippetMapper.toResponse(
+                                savedFork);
+        }
+
 }

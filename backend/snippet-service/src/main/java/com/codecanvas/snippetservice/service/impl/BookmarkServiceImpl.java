@@ -17,6 +17,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.codecanvas.snippetservice.kafka.event.SnippetBookmarkedEvent;
+import com.codecanvas.snippetservice.kafka.mapper.SnippetEventMapper;
+import com.codecanvas.snippetservice.kafka.producer.SnippetEventProducer;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -29,6 +33,12 @@ public class BookmarkServiceImpl
     private final SnippetRepository snippetRepository;
     private final BookmarkRepository bookmarkRepository;
     private final SearchIndexService searchIndexService;
+
+    // Kafka Producer
+    private final SnippetEventProducer snippetEventProducer;
+
+    // Converts entity into Kafka event.
+    private final SnippetEventMapper snippetEventMapper;
 
     private UUID getCurrentUserId() {
 
@@ -84,6 +94,27 @@ public class BookmarkServiceImpl
 
         Snippet updatedSnippet =
                 snippetRepository.save(snippet);
+
+        /*
+         * Create Kafka event
+         * after successful database update.
+         */
+        SnippetBookmarkedEvent event =
+                snippetEventMapper.toSnippetBookmarkedEvent(
+                        updatedSnippet,
+                        userId
+                );
+
+        /*
+         * Publish bookmark event to Kafka.
+         */
+        snippetEventProducer.publishSnippetBookmarkedEvent(
+                event
+        );
+
+        /*
+         * Update Elasticsearch index.
+         */
 
         searchIndexService.indexSnippet(updatedSnippet);
 

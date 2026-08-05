@@ -44,6 +44,10 @@ import {
     updateSnippetComment,
 } from "../../../services/snippetService";
 
+import {
+    getUserById,
+} from "../../../services/userService";
+
 import "./SnippetDetails.css";
 
 function SnippetDetails() {
@@ -78,6 +82,23 @@ function SnippetDetails() {
 
     const [snippet, setSnippet] =
         useState(null);
+
+    /*
+     * Snippet owner ka complete user profile.
+     *
+     * Isme:
+     * - fullName
+     * - username
+     * - profileImage
+     * - userId
+     *
+     * store hoga.
+     */
+    const [ownerProfile, setOwnerProfile] =
+        useState(null);
+
+    const [ownerLoading, setOwnerLoading] =
+        useState(false);
 
     const [comments, setComments] =
         useState([]);
@@ -128,9 +149,48 @@ function SnippetDetails() {
         Boolean(
             currentUserId &&
             snippet?.userId &&
-            currentUserId === snippet.userId
+            String(currentUserId) ===
+            String(snippet.userId)
         );
 
+    /*
+     * API kabhi direct data return karegi:
+     *
+     * {
+     *     userId,
+     *     username
+     * }
+     *
+     * Ya wrapper:
+     *
+     * {
+     *     data: {
+     *         userId,
+     *         username
+     *     }
+     * }
+     */
+    const unwrapResponseData = (
+        response
+    ) => {
+
+        if (!response) {
+            return null;
+        }
+
+        if (
+            typeof response === "object" &&
+            response.data !== undefined
+        ) {
+            return response.data;
+        }
+
+        return response;
+    };
+
+    /*
+     * Snippet load.
+     */
     const loadSnippet =
         useCallback(async () => {
 
@@ -147,7 +207,14 @@ function SnippetDetails() {
                         snippetId
                     );
 
-                setSnippet(response);
+                const snippetData =
+                    unwrapResponseData(
+                        response
+                    );
+
+                setSnippet(
+                    snippetData
+                );
 
             } catch (error) {
 
@@ -163,6 +230,103 @@ function SnippetDetails() {
             }
 
         }, [snippetId]);
+
+    /*
+     * Snippet userId se owner profile load karega.
+     *
+     * Flow:
+     *
+     * snippet.userId
+     *      ↓
+     * GET /api/users/{userId}
+     *      ↓
+     * owner fullName, username, profileImage
+     */
+    const loadOwnerProfile =
+        useCallback(async () => {
+
+            if (!snippet?.userId) {
+                setOwnerProfile(null);
+                return;
+            }
+
+            try {
+                setOwnerLoading(true);
+
+                const response =
+                    await getUserById(
+                        snippet.userId
+                    );
+
+                const payload =
+                    unwrapResponseData(
+                        response
+                    );
+
+                const userData =
+                    payload?.user ||
+                    payload?.profile ||
+                    payload;
+
+                if (
+                    userData &&
+                    (
+                        userData.userId ||
+                        userData.id ||
+                        userData.username
+                    )
+                ) {
+                    setOwnerProfile({
+                        ...userData,
+
+                        userId:
+                            userData.userId ||
+                            userData.id ||
+                            snippet.userId,
+
+                        fullName:
+                            userData.fullName ||
+                            userData.name ||
+                            "CodeCanvas User",
+
+                        username:
+                            userData.username ||
+                            "",
+
+                        profileImage:
+                            userData.profileImage ||
+                            userData.profileImageUrl ||
+                            userData.avatarUrl ||
+                            null,
+                    });
+
+                    return;
+                }
+
+                setOwnerProfile(null);
+
+            } catch (error) {
+
+                /*
+                 * Owner profile fail hone par snippet page
+                 * crash nahi hona chahiye.
+                 *
+                 * Raw user ID fallback mein dikhegi.
+                 */
+                console.error(
+                    "Unable to load snippet owner:",
+                    error
+                );
+
+                setOwnerProfile(null);
+
+            } finally {
+                setOwnerLoading(false);
+            }
+
+        }, [
+            snippet?.userId,
+        ]);
 
     const loadComments =
         useCallback(async () => {
@@ -255,6 +419,15 @@ function SnippetDetails() {
         loadSnippet,
         loadComments,
         loadEngagementStatus,
+    ]);
+
+    /*
+     * Snippet load hone ke baad owner profile load hogi.
+     */
+    useEffect(() => {
+        loadOwnerProfile();
+    }, [
+        loadOwnerProfile,
     ]);
 
     const showTemporaryMessage = (
@@ -929,6 +1102,7 @@ function SnippetDetails() {
             <main className="snippetDetailsPage">
                 <div className="snippetDetailsLoading">
                     <span />
+
                     <p>
                         Loading snippet...
                     </p>
@@ -994,6 +1168,24 @@ function SnippetDetails() {
 
                     <div className="snippetDetailsHeading">
 
+                        {/*
+                         * Instagram-style snippet owner.
+                         *
+                         * Owner profile available hai to clickable link.
+                         * Click -> /users/{username}
+                         */}
+                        <SnippetOwner
+                            ownerProfile={
+                                ownerProfile
+                            }
+                            ownerLoading={
+                                ownerLoading
+                            }
+                            fallbackUserId={
+                                snippet.userId
+                            }
+                        />
+
                         <div className="snippetDetailsBadges">
 
                             <span>
@@ -1035,16 +1227,6 @@ function SnippetDetails() {
                         </p>
 
                         <div className="snippetDetailsMeta">
-
-                            <span>
-                                <FaUser />
-                                {snippet.userId
-                                    ? snippet.userId.slice(
-                                        0,
-                                        8
-                                    )
-                                    : "Unknown user"}
-                            </span>
 
                             <span>
                                 Category:{" "}
@@ -1211,6 +1393,7 @@ function SnippetDetails() {
                             }
                         >
                             <FaHeart />
+
                             {liked
                                 ? "Liked"
                                 : "Like"}
@@ -1425,6 +1608,103 @@ function SnippetDetails() {
             </div>
 
         </main>
+    );
+}
+
+/*
+ * Snippet owner profile component.
+ */
+function SnippetOwner({
+    ownerProfile,
+    ownerLoading,
+    fallbackUserId,
+}) {
+
+    if (ownerLoading) {
+        return (
+            <div className="snippetDetailsOwnerLoading">
+
+                <span />
+
+                <div>
+                    <strong />
+                    <small />
+                </div>
+
+            </div>
+        );
+    }
+
+    const ownerName =
+        ownerProfile?.fullName ||
+        "Unknown user";
+
+    const ownerUsername =
+        ownerProfile?.username ||
+        "";
+
+    const ownerImage =
+        ownerProfile?.profileImage ||
+        null;
+
+    const ownerContent = (
+        <>
+            <div className="snippetDetailsOwnerAvatar">
+
+                {ownerImage ? (
+                    <img
+                        src={ownerImage}
+                        alt={ownerName}
+                    />
+                ) : (
+                    <FaUser />
+                )}
+
+            </div>
+
+            <div className="snippetDetailsOwnerIdentity">
+
+                <strong>
+                    {ownerName}
+                </strong>
+
+                <small>
+                    {ownerUsername
+                        ? `@${ownerUsername}`
+                        : fallbackUserId
+                            ? `User ${String(
+                                fallbackUserId
+                            ).slice(0, 8)}`
+                            : "Unknown account"}
+                </small>
+
+            </div>
+
+            {ownerUsername && (
+                <span className="snippetDetailsOwnerView">
+                    View profile
+                </span>
+            )}
+        </>
+    );
+
+    if (ownerUsername) {
+        return (
+            <Link
+                to={`/users/${encodeURIComponent(
+                    ownerUsername
+                )}`}
+                className="snippetDetailsOwner"
+            >
+                {ownerContent}
+            </Link>
+        );
+    }
+
+    return (
+        <div className="snippetDetailsOwner snippetDetailsOwnerFallback">
+            {ownerContent}
+        </div>
     );
 }
 
