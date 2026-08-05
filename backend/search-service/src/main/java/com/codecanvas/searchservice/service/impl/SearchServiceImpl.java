@@ -66,11 +66,19 @@ public class SearchServiceImpl implements SearchService {
                                         .description(document.getDescription())
                                         .language(document.getLanguage())
                                         .framework(document.getFramework())
+
+                                        .category(document.getCategory())
+                                        .tags(document.getTags())
+
                                         .previewImageUrl(document.getPreviewImageUrl())
+
                                         .likes(safeCount(document.getLikes()))
                                         .views(safeCount(document.getViews()))
                                         .forks(safeCount(document.getForks()))
+                                        .bookmarks(safeCount(document.getBookmarks()))
+
                                         .bookmarked(false)
+
                                         .build()
                         )
                         .toList();

@@ -1049,7 +1049,299 @@
     .searchSubmitButton,
     .trendingSearches button,
     .searchCategoryBar button,
-    .searchExploreCard {
+    .searchExploreCard,
+    .searchSuggestionsDropdown button,
+    .recentSearches button,
+    .searchPaginationButton {
         transition: none;
     }
+}
+
+/* ================= AUTOCOMPLETE SUGGESTIONS (Phase 3) ================= */
+
+.searchSuggestionsDropdown {
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+    max-width: 760px;
+
+    margin: 10px 0 0;
+    padding: 6px;
+
+    list-style: none;
+
+    border: 1px solid #303039;
+    border-radius: 14px;
+
+    background: rgba(17, 17, 23, 0.98);
+
+    box-shadow:
+        0 18px 45px rgba(0, 0, 0, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.searchSuggestionsDropdown li {
+    list-style: none;
+}
+
+.searchSuggestionsDropdown button {
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+
+    gap: 10px;
+
+    padding: 10px 12px;
+
+    border: none;
+    border-radius: 9px;
+
+    background: transparent;
+
+    color: #c7c7d1;
+
+    cursor: pointer;
+
+    font-size: 13px;
+    text-align: left;
+
+    transition:
+        background 0.15s ease,
+        color 0.15s ease;
+}
+
+.searchSuggestionsDropdown button:hover {
+    background: rgba(108, 92, 231, 0.12);
+
+    color: #f3f4f6;
+}
+
+.searchSuggestionsDropdown button svg {
+    flex-shrink: 0;
+
+    color: #6f6f7b;
+
+    font-size: 13px;
+}
+
+/* ================= RECENT SEARCHES (Phase 5) ================= */
+
+.recentSearches {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+
+    gap: 9px;
+
+    margin-top: 12px;
+}
+
+.recentSearches > span {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 6px;
+
+    color: #6f6f7b;
+
+    font-size: 10px;
+    font-weight: 750;
+}
+
+.recentSearches button {
+    padding: 6px 10px;
+
+    border: 1px solid #26262e;
+    border-radius: 999px;
+
+    background: transparent;
+
+    color: #75757f;
+
+    cursor: pointer;
+
+    font-size: 9px;
+    font-weight: 700;
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.recentSearches button:hover {
+    border-color: rgba(124, 108, 242, 0.65);
+
+    color: #c4b5fd;
+
+    transform: translateY(-1px);
+}
+
+/* ================= PAGINATION (Phase 6) ================= */
+
+.searchPagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 16px;
+
+    margin-top: 40px;
+}
+
+.searchPaginationButton {
+    min-width: 100px;
+
+    padding: 10px 18px;
+
+    border: 1px solid #303039;
+    border-radius: 11px;
+
+    background: #121217;
+
+    color: #d4d4dc;
+
+    cursor: pointer;
+
+    font-size: 12px;
+    font-weight: 750;
+
+    transition:
+        border-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.searchPaginationButton:hover:not(:disabled) {
+    border-color: rgba(124, 108, 242, 0.65);
+
+    color: #c4b5fd;
+
+    transform: translateY(-1px);
+}
+
+.searchPaginationButton:disabled {
+    cursor: not-allowed;
+
+    opacity: 0.4;
+}
+
+.searchPaginationInfo {
+    color: #85858f;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.searchPageForm{
+    position:relative;
+}
+
+.searchHistoryDropdown{
+
+    position:absolute;
+
+    top:calc(100% + 10px);
+
+    left:0;
+
+    right:0;
+
+    background:#171821;
+
+    border:1px solid rgba(255,255,255,.08);
+
+    border-radius:18px;
+
+    overflow:hidden;
+
+    z-index:100;
+
+    max-height:320px;
+
+    overflow-y:auto;
+
+    box-shadow:
+        0 20px 60px rgba(0,0,0,.45);
+
+}
+
+.searchHistoryHeader{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:16px 20px;
+
+    border-bottom:1px solid rgba(255,255,255,.06);
+
+    font-weight:600;
+
+}
+
+.searchHistoryHeader button{
+
+    border:none;
+
+    background:none;
+
+    color:#7f5cff;
+
+    cursor:pointer;
+
+}
+
+.searchHistoryItem{
+
+    width:100%;
+
+    border:none;
+
+    background:transparent;
+
+    color:white;
+
+    padding:16px 20px;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    cursor:pointer;
+
+    transition:.2s;
+
+}
+
+.searchHistoryItem:hover{
+
+    background:#232533;
+
+}
+.searchHistoryDropdown h4 {
+    padding: 12px 16px;
+    margin: 0;
+    font-size: 13px;
+    color: #a9a9b5;
+}
+
+.searchHistoryItem {
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    color: white;
+    text-align: left;
+    cursor: pointer;
+}
+
+.searchHistoryItem:hover {
+    background: #242430;
 }
