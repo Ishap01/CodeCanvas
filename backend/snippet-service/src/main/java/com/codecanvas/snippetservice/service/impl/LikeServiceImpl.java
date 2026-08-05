@@ -4,6 +4,8 @@ import com.codecanvas.snippetservice.dto.response.LikeResponse;
 import com.codecanvas.snippetservice.entity.Snippet;
 import com.codecanvas.snippetservice.entity.SnippetLike;
 import com.codecanvas.snippetservice.exception.ResourceNotFoundException;
+import com.codecanvas.snippetservice.kafka.mapper.SnippetEventMapper;
+import com.codecanvas.snippetservice.kafka.producer.SnippetEventProducer;
 import com.codecanvas.snippetservice.repository.SnippetLikeRepository;
 import com.codecanvas.snippetservice.repository.SnippetRepository;
 import com.codecanvas.snippetservice.security.AuthenticatedUser;
@@ -13,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.codecanvas.snippetservice.kafka.event.SnippetLikedEvent;
 
 import java.util.UUID;
 
@@ -24,6 +27,12 @@ public class LikeServiceImpl implements LikeService {
     private final SnippetRepository snippetRepository;
     private final SnippetLikeRepository likeRepository;
     private final SearchIndexService searchIndexService;
+
+    private final SnippetEventProducer snippetEventProducer;
+
+    private final SnippetEventMapper snippetEventMapper;
+
+
 
     private UUID getCurrentUserId() {
 
@@ -78,6 +87,16 @@ public class LikeServiceImpl implements LikeService {
 
         Snippet updatedSnippet =
                 snippetRepository.save(snippet);
+
+        SnippetLikedEvent event =
+                snippetEventMapper.toSnippetLikedEvent(
+                        updatedSnippet,
+                        userId
+                );
+
+        snippetEventProducer.publishSnippetLikedEvent(
+                event
+        );
 
         searchIndexService.indexSnippet(updatedSnippet);
 
