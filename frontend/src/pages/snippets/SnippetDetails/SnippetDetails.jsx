@@ -287,30 +287,48 @@ function SnippetDetails() {
         return false;
     };
 
-    const handleCopyCode =
-        async () => {
+    const handleCopyCode = async () => {
 
-            if (!snippet?.code) {
-                return;
-            }
+    try {
 
-            try {
-                await navigator.clipboard.writeText(
-                    snippet.code
-                );
+        let codeToCopy = "";
 
-                setCopySuccess(true);
+        if (
+            Array.isArray(snippet.files) &&
+            snippet.files.length > 0
+        ) {
 
-                window.setTimeout(() => {
-                    setCopySuccess(false);
-                }, 1600);
+            codeToCopy = snippet.files
+                .map(file =>
+`// ${file.filename}
 
-            } catch {
-                setErrorMessage(
-                    "Unable to copy code."
-                );
-            }
-        };
+${file.code}`)
+                .join("\n\n\n");
+
+        } else {
+
+            codeToCopy = snippet.code || "";
+        }
+
+        await navigator.clipboard.writeText(
+            codeToCopy
+        );
+
+        setCopySuccess(true);
+
+        setTimeout(() => {
+            setCopySuccess(false);
+        }, 1600);
+
+    } catch {
+
+        setErrorMessage(
+            "Unable to copy code."
+        );
+
+    }
+
+};
 
     const handleLikeToggle =
         async () => {
@@ -1095,38 +1113,76 @@ function SnippetDetails() {
 
                 <section className="snippetDetailsCodeSection">
 
-                    <div className="snippetDetailsCodeHeader">
+    <div className="snippetDetailsCodeHeader">
 
-                        <div>
-                            <FaCode />
+        <div>
 
-                            <span>
-                                {snippet.language}
-                            </span>
-                        </div>
+            <FaCode />
 
-                        <button
-                            type="button"
-                            onClick={
-                                handleCopyCode
-                            }
-                        >
-                            <FaCopy />
+            <span>
+                {snippet.language}
+            </span>
 
-                            {copySuccess
-                                ? "Copied"
-                                : "Copy code"}
-                        </button>
+        </div>
 
-                    </div>
+        <button
+            type="button"
+            onClick={handleCopyCode}
+        >
+            <FaCopy />
 
-                    <pre>
-                        <code>
-                            {snippet.code}
-                        </code>
-                    </pre>
+            {copySuccess
+                ? "Copied"
+                : "Copy all"}
+        </button>
 
-                </section>
+    </div>
+
+    {Array.isArray(snippet.files) &&
+    snippet.files.length > 0 ? (
+
+        snippet.files.map((file) => (
+
+            <div
+                key={file.fileOrder}
+                className="snippetDetailsSingleFile"
+            >
+
+                <div className="snippetDetailsFileHeader">
+
+                    📄 {file.filename}
+
+                </div>
+
+                <pre>
+
+                    <code>
+
+                        {file.code}
+
+                    </code>
+
+                </pre>
+
+            </div>
+
+        ))
+
+    ) : (
+
+        <pre>
+
+            <code>
+
+                {snippet.code}
+
+            </code>
+
+        </pre>
+
+    )}
+
+</section>
 
                 {Array.isArray(
                     snippet.tags

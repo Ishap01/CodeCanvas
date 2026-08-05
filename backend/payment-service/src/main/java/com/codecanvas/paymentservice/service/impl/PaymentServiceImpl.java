@@ -60,7 +60,6 @@ public class PaymentServiceImpl implements PaymentService {
     private final UserServiceClient userServiceClient;
     private final RazorpayClient razorpayClient;
     private final HttpServletRequest httpServletRequest;
-    private final PaymentEventProducer paymentEventProducer;
 
     @Value("${razorpay.key-id}")
     private String razorpayKey;
@@ -73,15 +72,14 @@ public class PaymentServiceImpl implements PaymentService {
             PaymentMapper paymentMapper,
             UserServiceClient userServiceClient,
             RazorpayClient razorpayClient,
-            HttpServletRequest httpServletRequest,
-            PaymentEventProducer paymentEventProducer) {
+            HttpServletRequest httpServletRequest
+            ) {
 
         this.paymentRepository = paymentRepository;
         this.paymentMapper = paymentMapper;
         this.userServiceClient = userServiceClient;
         this.razorpayClient = razorpayClient;
         this.httpServletRequest = httpServletRequest;
-        this.paymentEventProducer = paymentEventProducer;
     }
 
     @Override

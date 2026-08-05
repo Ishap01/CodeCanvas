@@ -92,10 +92,10 @@
 
 .createSnippetHeadingIcon {
     display: grid;
-    flex: 0 0 58px;
+    flex: 0 0 72px;
 
-    width: 58px;
-    height: 58px;
+    width: 72px;
+    height: 72px;
 
     place-items: center;
 
@@ -920,6 +920,66 @@
     font-weight: 700;
 
     cursor: pointer;
+}
+
+.createSnippetFileCard {
+    border: 1px solid #2d2f46;
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 24px;
+    background: rgba(255,255,255,0.02);
+}
+
+.createSnippetFileHeader{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.createSnippetRemoveFileButton{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:transparent;
+    border:none;
+    color:#ff6b6b;
+    cursor:pointer;
+    font-size:14px;
+}
+
+.createSnippetAddFileButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    min-width: 170px;
+    height: 44px;
+
+    padding: 0 20px;
+
+    border: 1px solid #7c5cff;
+    border-radius: 12px;
+
+    background: rgba(124, 92, 255, 0.12);
+    color: #d7c8ff;
+
+    font-weight: 600;
+    font-size: 14px;
+
+    cursor: pointer;
+
+    transition: all .2s ease;
+}
+
+.createSnippetAddFileButton:hover {
+    background: rgba(124, 92, 255, 0.22);
+    color: #ffffff;
+}
+
+.createSnippetAddFileButton:hover{
+    background:#7c5cff15;
 }
 
 /*

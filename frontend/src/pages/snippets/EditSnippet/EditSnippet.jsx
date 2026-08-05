@@ -74,12 +74,20 @@ const VISIBILITY_OPTIONS = [
 const INITIAL_FORM_DATA = {
     title: "",
     description: "",
-    code: "",
+
+    files: [
+        {
+            filename: "",
+            code: "",
+        },
+    ],
+
     language: "",
     framework: "",
     category: "",
     visibility: "PUBLIC",
 };
+
 
 const MAX_IMAGE_SIZE =
     5 * 1024 * 1024;
@@ -181,27 +189,30 @@ function EditSnippet() {
                     );
 
                 setFormData({
-                    title:
-                        response?.title || "",
 
-                    description:
-                        response?.description || "",
+                    title: response?.title || "",
 
-                    code:
-                        response?.code || "",
+                    description: response?.description || "",
 
-                    language:
-                        response?.language || "",
+                    files:
+                        response?.files?.length
+                            ? response.files
+                            : [
+                                {
+                                    filename: "",
+                                    code: "",
+                                },
+                            ],
 
-                    framework:
-                        response?.framework || "",
+                    language: response?.language || "",
 
-                    category:
-                        response?.categoryName || "",
+                    framework: response?.framework || "",
+
+                    category: response?.categoryName || "",
 
                     visibility:
-                        response?.visibility ||
-                        "PUBLIC",
+                        response?.visibility || "PUBLIC",
+
                 });
 
                 setTags(
@@ -270,6 +281,64 @@ function EditSnippet() {
         );
 
         setErrorMessage("");
+    };
+
+    const handleFileChange = (index, field, value) => {
+
+        setFormData((previous) => {
+
+            const updatedFiles = [...previous.files];
+
+            updatedFiles[index] = {
+                ...updatedFiles[index],
+                [field]: value,
+            };
+
+            return {
+                ...previous,
+                files: updatedFiles,
+            };
+        });
+
+    };
+
+    const addFile = () => {
+
+        setFormData((previous) => ({
+
+            ...previous,
+
+            files: [
+
+                ...previous.files,
+
+                {
+                    filename: "",
+                    code: "",
+                }
+
+            ]
+
+        }));
+
+    };
+
+    const removeFile = (index) => {
+
+        if (formData.files.length == 1) {
+            return;
+        }
+
+        setFormData((previous) => ({
+
+            ...previous,
+
+            files: previous.files.filter(
+                (_, i) => i !== index
+            )
+
+        }));
+
     };
 
     const addTag = () => {
@@ -478,12 +547,23 @@ function EditSnippet() {
                 "Description is required.";
         }
 
-        if (
-            !formData.code.trim()
-        ) {
-            errors.code =
-                "Code is required.";
-        }
+        formData.files.forEach((file, index) => {
+
+            if (!file.filename.trim()) {
+
+                errors[`filename_${index}`] =
+                    "Filename is required.";
+
+            }
+
+            if (!file.code.trim()) {
+
+                errors[`code_${index}`] =
+                    "Code is required.";
+
+            }
+
+        });
 
         if (
             !formData.language.trim()
@@ -551,30 +631,36 @@ function EditSnippet() {
         }
 
         const requestBody = {
-            title:
-                formData.title.trim(),
 
-            description:
-                formData.description.trim(),
+            title: formData.title.trim(),
 
-            code:
-                formData.code,
+            description: formData.description.trim(),
 
-            language:
-                formData.language.trim(),
+            code: formData.files[0].code,
+
+            filename: formData.files[0].filename,
+
+            files: formData.files.map((file) => ({
+
+                filename: file.filename.trim(),
+
+                code: file.code,
+
+            })),
+
+            language: formData.language.trim(),
 
             framework:
                 formData.framework.trim()
                     ? formData.framework.trim()
                     : null,
 
-            category:
-                formData.category.trim(),
+            category: formData.category.trim(),
 
             tags,
 
-            visibility:
-                formData.visibility,
+            visibility: formData.visibility,
+
         };
 
         try {
@@ -587,6 +673,7 @@ function EditSnippet() {
                 );
 
             setFormData({
+
                 title:
                     response?.title ||
                     requestBody.title,
@@ -595,17 +682,17 @@ function EditSnippet() {
                     response?.description ||
                     requestBody.description,
 
-                code:
-                    response?.code ||
-                    requestBody.code,
+                files:
+                    response?.files?.length
+                        ? response.files
+                        : requestBody.files,
 
                 language:
                     response?.language ||
                     requestBody.language,
 
                 framework:
-                    response?.framework ||
-                    "",
+                    response?.framework || "",
 
                 category:
                     response?.categoryName ||
@@ -614,6 +701,7 @@ function EditSnippet() {
                 visibility:
                     response?.visibility ||
                     requestBody.visibility,
+
             });
 
             setTags(
@@ -936,52 +1024,125 @@ function EditSnippet() {
                             <span>02</span>
 
                             <div>
-                                <h2>
-                                    Source code
-                                </h2>
+
+                                <h2>Source code</h2>
 
                                 <p>
-                                    Update the complete code
-                                    stored inside this
-                                    snippet.
+                                    Update one or more source files stored inside this snippet.
                                 </p>
+
                             </div>
 
                         </div>
 
-                        <div className="editSnippetField">
+                        {formData.files.map((file, index) => (
 
-                            <label htmlFor="editSnippetCode">
-                                Code
-                                <span>*</span>
-                            </label>
+                            <div
+                                key={index}
+                                className="createSnippetFileCard"
+                            >
 
-                            <textarea
-                                id="editSnippetCode"
-                                name="code"
-                                value={formData.code}
-                                onChange={
-                                    handleInputChange
-                                }
-                                rows={18}
-                                spellCheck="false"
-                                disabled={isSaving}
-                                className={`editSnippetCodeInput ${
-                                    fieldErrors.code
-                                        ? "editSnippetInputError"
-                                        : ""
-                                }`}
-                            />
+                                <div className="createSnippetFileHeader">
 
-                            {fieldErrors.code && (
-                                <small className="editSnippetFieldError">
-                                    {
-                                        fieldErrors.code
-                                    }
-                                </small>
-                            )}
+                                    <h3>
+                                        File {index + 1}
+                                    </h3>
 
-                        </div>
+                                    {formData.files.length > 1 && (
+
+                                        <button
+                                            type="button"
+                                            className="createSnippetRemoveFileButton"
+                                            onClick={() => removeFile(index)}
+                                        >
+                                            <FaTimes />
+                                            Remove
+                                        </button>
+
+                                    )}
+
+                                </div>
+
+                                <div className="editSnippetField">
+
+                                    <label>
+                                        Filename
+                                        <span>*</span>
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        value={file.filename}
+                                        onChange={(e) =>
+                                            handleFileChange(
+                                                index,
+                                                "filename",
+                                                e.target.value
+                                            )
+                                        }
+                                        className={
+                                            fieldErrors[`filename_${index}`]
+                                                ? "editSnippetInputError"
+                                                : ""
+                                        }
+                                    />
+
+                                    {fieldErrors[`filename_${index}`] && (
+
+                                        <small className="editSnippetFieldError">
+                                            {fieldErrors[`filename_${index}`]}
+                                        </small>
+
+                                    )}
+
+                                </div>
+
+                                <div className="editSnippetField">
+
+                                    <label>
+                                        Source Code
+                                        <span>*</span>
+                                    </label>
+
+                                    <textarea
+                                        rows={18}
+                                        spellCheck="false"
+                                        value={file.code}
+                                        onChange={(e) =>
+                                            handleFileChange(
+                                                index,
+                                                "code",
+                                                e.target.value
+                                            )
+                                        }
+                                        className={`editSnippetCodeInput ${fieldErrors[`code_${index}`]
+                                                ? "editSnippetInputError"
+                                                : ""
+                                            }`}
+                                    />
+
+                                    {fieldErrors[`code_${index}`] && (
+
+                                        <small className="editSnippetFieldError">
+                                            {fieldErrors[`code_${index}`]}
+                                        </small>
+
+                                    )}
+
+                                </div>
+
+                            </div>
+
+                        ))}
+
+                        <button
+                            type="button"
+                            className="createSnippetAddFileButton"
+                            onClick={addFile}
+                        >
+                            <FaPlus />
+                            Add Another File
+                        </button>
 
                     </section>
 
@@ -1250,12 +1411,11 @@ function EditSnippet() {
                                         key={
                                             option.value
                                         }
-                                        className={`editSnippetVisibilityOption ${
-                                            formData.visibility ===
-                                            option.value
+                                        className={`editSnippetVisibilityOption ${formData.visibility ===
+                                                option.value
                                                 ? "editSnippetVisibilityOptionActive"
                                                 : ""
-                                        }`}
+                                            }`}
                                     >
 
                                         <input
@@ -1310,46 +1470,7 @@ function EditSnippet() {
 
                     </section>
 
-                    <div className="editSnippetStickyActions">
-
-                        <button
-                            type="button"
-                            onClick={() =>
-                                navigate(
-                                    `/snippets/${snippetId}`
-                                )
-                            }
-                            disabled={isSaving}
-                            className="editSnippetCancelButton"
-                        >
-                            Cancel
-                        </button>
-
-                        <button
-                            type="submit"
-                            disabled={isSaving}
-                            className="editSnippetSaveButton"
-                        >
-                            {isSaving ? (
-                                <>
-                                    <span className="editSnippetSpinner" />
-
-                                    Saving...
-                                </>
-                            ) : (
-                                <>
-                                    <FaSave />
-
-                                    Save changes
-                                </>
-                            )}
-                        </button>
-
-                    </div>
-
-                </form>
-
-                <section className="editSnippetCard editSnippetImageCard">
+                    <section className="editSnippetCard editSnippetImageCard">
 
                     <div className="editSnippetSectionHeader">
 
@@ -1414,11 +1535,10 @@ function EditSnippet() {
                     {!selectedImagePreview ? (
                         <label
                             htmlFor="editSnippetImage"
-                            className={`editSnippetImageDropZone ${
-                                fieldErrors.image
+                            className={`editSnippetImageDropZone ${fieldErrors.image
                                     ? "editSnippetImageDropZoneError"
                                     : ""
-                            }`}
+                                }`}
                         >
                             <FaImage />
 
@@ -1525,6 +1645,47 @@ function EditSnippet() {
                     )}
 
                 </section>
+
+                    <div className="editSnippetStickyActions">
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                navigate(
+                                    `/snippets/${snippetId}`
+                                )
+                            }
+                            disabled={isSaving}
+                            className="editSnippetCancelButton"
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            type="submit"
+                            disabled={isSaving}
+                            className="editSnippetSaveButton"
+                        >
+                            {isSaving ? (
+                                <>
+                                    <span className="editSnippetSpinner" />
+
+                                    Saving...
+                                </>
+                            ) : (
+                                <>
+                                    <FaSave />
+
+                                    Save changes
+                                </>
+                            )}
+                        </button>
+
+                    </div>
+
+                </form>
+
+                
 
             </div>
 

@@ -13,6 +13,7 @@ import com.codecanvas.snippetservice.repository.SnippetRepository;
 import com.codecanvas.snippetservice.mapper.SnippetMapper;
 import com.codecanvas.snippetservice.service.ForkService;
 import com.codecanvas.snippetservice.service.SearchIndexService;
+import com.codecanvas.snippetservice.entity.SnippetFile;
 
 @Service
 @Transactional
@@ -78,11 +79,49 @@ public class ForkServiceImpl implements ForkService {
         forkedSnippet.setDescription(
                 originalSnippet.getDescription()
         );
+        if (originalSnippet.getFiles() != null &&
+                !originalSnippet.getFiles().isEmpty()) {
 
-        forkedSnippet.setCode(
-                originalSnippet.getCode()
-        );
+            forkedSnippet.setCode(
+                    originalSnippet.getFiles()
+                            .get(0)
+                            .getCode()
+            );
 
+        } else {
+
+            forkedSnippet.setCode(
+                    originalSnippet.getCode()
+            );
+        }
+
+        if (originalSnippet.getFiles() != null) {
+
+            for (SnippetFile originalFile : originalSnippet.getFiles()) {
+
+                SnippetFile newFile = new SnippetFile();
+
+                newFile.setFilename(
+                        originalFile.getFilename()
+                );
+
+                newFile.setCode(
+                        originalFile.getCode()
+                );
+
+                newFile.setFileOrder(
+                        originalFile.getFileOrder()
+                );
+
+                newFile.setSnippet(
+                        forkedSnippet
+                );
+
+                forkedSnippet.getFiles().add(
+                        newFile
+                );
+            }
+        }
         forkedSnippet.setLanguage(
                 originalSnippet.getLanguage()
         );
