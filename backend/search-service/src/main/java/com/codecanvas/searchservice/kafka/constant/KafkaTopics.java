@@ -25,11 +25,11 @@ public final class KafkaTopics {
      * =========================================================
      */
     public static final String SNIPPET_CREATED =
-            "snippet.created";
+            "snippet-created";
 
     public static final String SNIPPET_UPDATED =
-            "snippet.updated";
+            "snippet-updated";
 
     public static final String SNIPPET_DELETED =
-            "snippet.deleted";
+            "snippet-deleted";
 }

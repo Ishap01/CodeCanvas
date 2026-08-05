@@ -25,8 +25,14 @@ public class SnippetEventProducer {
             SnippetCreatedEvent event) {
 
         kafkaTemplate.send(
-                "snippet-created",
+                KafkaTopics.SNIPPET_CREATED,
+                event.getSnippetId().toString(),
                 event
+        );
+
+        log.info(
+                "Published SnippetCreatedEvent : {}",
+                event.getSnippetId()
         );
     }
 
