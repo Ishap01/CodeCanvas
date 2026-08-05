@@ -185,18 +185,7 @@ public class PaymentServiceImpl implements PaymentService {
 
             paymentRepository.save(payment);
 
-            PaymentFailedEvent event =
-                    PaymentFailedEvent.builder()
-                            .paymentId(payment.getPaymentId())
-                            .userId(payment.getUserId())
-                            .planId(payment.getPlanId())
-                            .amount(payment.getAmount())
-                            .currency(payment.getCurrency().name())
-                            .reason(exception.getMessage())
-                            .failedAt(LocalDateTime.now())
-                            .build();
 
-            paymentEventProducer.publishPaymentFailedEvent(event);
 
             throw new PaymentProcessingException(
                     "Failed to create Razorpay order: "
@@ -260,18 +249,6 @@ public class PaymentServiceImpl implements PaymentService {
                 paymentRepository.save(payment);
 
 
-        PaymentVerifiedEvent event =
-                PaymentVerifiedEvent.builder()
-                        .paymentId(savedPayment.getPaymentId())
-                        .userId(savedPayment.getUserId())
-                        .planId(savedPayment.getPlanId())
-                        .amount(savedPayment.getAmount())
-                        .currency(savedPayment.getCurrency().name())
-                        .razorpayPaymentId(savedPayment.getRazorpayPaymentId())
-                        .paidAt(savedPayment.getPaidAt())
-                        .build();
-
-        paymentEventProducer.publishPaymentVerifiedEvent(event);
 
 
         /*
