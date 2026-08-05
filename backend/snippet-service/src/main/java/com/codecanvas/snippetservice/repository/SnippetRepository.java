@@ -20,6 +20,7 @@ public interface SnippetRepository extends JpaRepository<Snippet, UUID> {
             Status status
     );
 
+
     List<Snippet> findByUserIdAndStatus(
             UUID userId,
             Status status

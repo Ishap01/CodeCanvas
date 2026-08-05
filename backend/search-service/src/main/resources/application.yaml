@@ -15,6 +15,13 @@ spring:
       ddl-auto: update
     show-sql: true
 
+  kafka:
+      bootstrap-servers: localhost:9092
+
+      consumer:
+        group-id: search-service
+        auto-offset-reset: earliest
+
   elasticsearch:
     uris: http://localhost:9200
 
@@ -37,4 +44,8 @@ eureka:
 
   instance:
     prefer-ip-address: true
+
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration: ${JWT_EXPIRATION:3600000}
 

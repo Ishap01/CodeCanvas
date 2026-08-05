@@ -182,3 +182,69 @@
     border-right-color: var(--border);
   }
 }
+
+
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  height: auto !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+body {
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.main-layout,
+.layout,
+.app-layout,
+.main-container,
+.main-content,
+.content,
+.page-content {
+  min-height: 100vh !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.pricing-page {
+  min-height: 100vh !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  padding-bottom: 140px !important;
+}
+.snippetTemporaryPage,
+.snippetNotFoundPage {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 40px 20px;
+    background: #070912;
+    color: #ffffff;
+    text-align: center;
+}
+
+.snippetTemporaryPage h1,
+.snippetNotFoundPage h1 {
+    margin: 0 0 12px;
+    font-size: 2rem;
+}
+
+.snippetTemporaryPage p,
+.snippetNotFoundPage p {
+    margin: 0;
+    color: #949bb3;
+    line-height: 1.6;
+}

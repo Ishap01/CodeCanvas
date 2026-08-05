@@ -44,12 +44,15 @@ public class SecurityConfig {
                                 "/api/auth/reset-password"
                         ).permitAll()
 
-                        // Statistics & Subscription public APIs
                         .requestMatchers(
                                 "/api/statistics/**",
                                 "/api/subscriptions/plans",
                                 "/api/subscriptions/plans/**",
                                 "/api/subscriptions/status/**"
+                        ).permitAll()
+
+                        .requestMatchers(
+                                "/api/subscriptions/internal/**"
                         ).permitAll()
 
                         .anyRequest()

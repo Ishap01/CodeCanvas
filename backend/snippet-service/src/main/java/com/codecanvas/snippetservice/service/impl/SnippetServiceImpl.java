@@ -41,813 +41,826 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class SnippetServiceImpl implements SnippetService {
 
-    private final SnippetRepository snippetRepository;
-    private final CategoryRepository categoryRepository;
-    private final TagRepository tagRepository;
-    private final SnippetMapper snippetMapper;
-    private final CloudinaryService cloudinaryService;
-    private final SearchIndexService searchIndexService;
-    private final SnippetViewRepository snippetViewRepository;
-    private final ViewService viewService;
+        private final SnippetRepository snippetRepository;
+        private final CategoryRepository categoryRepository;
+        private final TagRepository tagRepository;
+        private final SnippetMapper snippetMapper;
+        private final CloudinaryService cloudinaryService;
+        private final SearchIndexService searchIndexService;
+        private final SnippetViewRepository snippetViewRepository;
+        private final ViewService viewService;
+        private final UserServiceClient userServiceClient;
 
+        // Kafka Producer
+        private final SnippetEventProducer snippetEventProducer;
 
-    @Override
-    @CacheEvict(value = {"snippets", "public_snippets", "user_snippets"}, allEntries = true)
-    public SnippetResponse createSnippet(
-            UUID userId,
-            CreateSnippetRequest request) {
+        // Converts Snippet entity into Kafka event.
 
-        if (userId == null) {
-            throw new IllegalArgumentException(
-                    "Authenticated user id is required"
-            );
+        private final SnippetEventMapper snippetEventMapper;
+
+        @Override
+        @CacheEvict(value = { "snippets", "public_snippets", "user_snippets" }, allEntries = true)
+        public SnippetResponse createSnippet(
+                        UUID userId,
+                        CreateSnippetRequest request) {
+
+                if (userId == null) {
+                        throw new IllegalArgumentException(
+                                        "Authenticated user id is required");
+                }
+
+                if (request == null) {
+                        throw new IllegalArgumentException(
+                                        "Snippet request is required");
+                }
+
+                Category category = findOrCreateCategory(
+                                request.getCategory());
+
+                Snippet snippet = snippetMapper.toEntity(
+                                request,
+                                category);
+
+                if (snippet == null) {
+                        throw new IllegalStateException(
+                                        "Snippet could not be created from request");
+                }
+
+                snippet.setUserId(userId);
+
+                /*
+                 * Image initially null rahegi.
+                 *
+                 * Image upload API baad mein Cloudinary URL
+                 * aur public ID save karegi.
+                 */
+                snippet.setPreviewImageUrl(null);
+                snippet.setPreviewImagePublicId(null);
+
+                addTagsToSnippet(
+                                snippet,
+                                request.getTags());
+
+                /*
+                 * Snippet parent entity hai.
+                 *
+                 * CascadeType.ALL ke karan associated
+                 * SnippetTag rows automatically save hongi.
+                 */
+                Snippet savedSnippet = snippetRepository.save(snippet);
+
+                searchIndexService.indexSnippet(savedSnippet);
+
+                return snippetMapper.toResponse(savedSnippet);
         }
 
-        if (request == null) {
-            throw new IllegalArgumentException(
-                    "Snippet request is required"
-            );
+        @Override
+        @Transactional
+        @Cacheable(value = "snippets", key = "#snippetId")
+        public SnippetResponse getSnippetById(
+                        UUID snippetId,
+                        UUID currentUserId) {
+
+                Snippet snippet = findActiveSnippetById(snippetId);
+
+                boolean owner = currentUserId != null
+                                && currentUserId.equals(
+                                                snippet.getUserId());
+
+                /*
+                 * Owner can always view.
+                 */
+                if (owner) {
+
+                        viewService.recordView(
+                                        snippet,
+                                        currentUserId);
+
+                        return snippetMapper.toResponse(snippet);
+                }
+
+                /*
+                 * Public snippet
+                 */
+                if (snippet.getVisibility() == Visibility.PUBLIC) {
+
+                        viewService.recordView(
+                                        snippet,
+                                        currentUserId);
+
+                        return snippetMapper.toResponse(snippet);
+                }
+
+                /*
+                 * Premium snippet
+                 */
+                if (snippet.getVisibility() == Visibility.PREMIUM) {
+
+                        if (currentUserId == null) {
+
+                                throw new UnauthorizedActionException(
+                                                "Premium subscription required.");
+                        }
+
+                        if (!userServiceClient.isPremiumUser(currentUserId)) {
+
+                                throw new UnauthorizedActionException(
+                                                "Premium subscription required.");
+                        }
+
+                        viewService.recordView(
+                                        snippet,
+                                        currentUserId);
+
+                        return snippetMapper.toResponse(snippet);
+                }
+
+                /*
+                 * Private snippet
+                 */
+                throw new UnauthorizedActionException(
+                                "You are not allowed to view this private snippet.");
         }
 
-        Category category = findOrCreateCategory(
-                request.getCategory()
-        );
+        @Override
+        @Transactional(readOnly = true)
+        @Cacheable(value = "public_snippets")
+        public List<SnippetResponse> getPublicSnippets() {
 
-        Snippet snippet = snippetMapper.toEntity(
-                request,
-                category
-        );
+                /*
+                 * Public snippets har user ko milengi.
+                 */
+                List<Snippet> accessibleSnippets = new ArrayList<>(
+                                snippetRepository
+                                                .findByVisibilityAndStatus(
+                                                                Visibility.PUBLIC,
+                                                                Status.ACTIVE));
 
-        if (snippet == null) {
-            throw new IllegalStateException(
-                    "Snippet could not be created from request"
-            );
+                /*
+                 * Anonymous user:
+                 * sirf public snippets.
+                 */
+                if (currentUserId == null) {
+
+                        return convertToResponseList(
+                                        accessibleSnippets);
+                }
+
+                boolean premiumUser;
+
+                try {
+
+                        /*
+                         * Current logged-in user ka premium status
+                         * User Service se check hoga.
+                         */
+                        premiumUser = userServiceClient.isPremiumUser(
+                                        currentUserId);
+
+                } catch (RuntimeException exception) {
+
+                        /*
+                         * User Service temporarily fail ho jaye toh
+                         * complete public listing fail nahi hogi.
+                         *
+                         * Safe fallback:
+                         * sirf public snippets return hongi.
+                         */
+                        premiumUser = false;
+                }
+
+                /*
+                 * Normal user:
+                 * sirf public snippets.
+                 */
+                if (!premiumUser) {
+
+                        return convertToResponseList(
+                                        accessibleSnippets);
+                }
+
+                /*
+                 * Premium user:
+                 * public ke saath premium snippets bhi.
+                 */
+                List<Snippet> premiumSnippets = snippetRepository
+                                .findByVisibilityAndStatus(
+                                                Visibility.PREMIUM,
+                                                Status.ACTIVE);
+
+                accessibleSnippets.addAll(
+                                premiumSnippets);
+
+                return convertToResponseList(
+                                accessibleSnippets);
         }
 
-        snippet.setUserId(userId);
+        @Override
+        @Transactional(readOnly = true)
+        @Cacheable(value = "public_snippets")
+        public List<SnippetResponse> getAllSnippets() {
 
-        /*
-         * Image initially null rahegi.
-         *
-         * Image upload API baad mein Cloudinary URL
-         * aur public ID save karegi.
-         */
-        snippet.setPreviewImageUrl(null);
-        snippet.setPreviewImagePublicId(null);
-
-        addTagsToSnippet(
-                snippet,
-                request.getTags()
-        );
-
-        /*
-         * Snippet parent entity hai.
-         *
-         * CascadeType.ALL ke karan associated
-         * SnippetTag rows automatically save hongi.
-         */
-        Snippet savedSnippet =
-                snippetRepository.save(snippet);
-
-        searchIndexService.indexSnippet(savedSnippet);
-
-        return snippetMapper.toResponse(savedSnippet);
-    }
-
-    @Override
-    @Transactional
-    @Cacheable(value = "snippets", key = "#snippetId")
-    public SnippetResponse getSnippetById(
-            UUID snippetId,
-            UUID currentUserId) {
-
-        Snippet snippet =
-                findActiveSnippetById(snippetId);
-
-        boolean owner =
-                currentUserId != null
-                        && currentUserId.equals(
-                        snippet.getUserId()
-                );
-
-        boolean publiclyVisible =
-                snippet.getVisibility()
-                        == Visibility.PUBLIC;
-
-        if (!owner && !publiclyVisible) {
-            System.out.println("Visibility = " + snippet.getVisibility());
-            throw new UnauthorizedActionException(
-                    "You are not allowed to view this private snippet"
-            );
-        }
-
-        viewService.recordView(
-                snippet,
-                currentUserId
-        );
-
-        return snippetMapper.toResponse(snippet);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    @Cacheable(value = "public_snippets")
-    public List<SnippetResponse> getPublicSnippets() {
-
-        List<Snippet> snippets =
-                snippetRepository
-                        .findByVisibilityAndStatus(
+                List<Snippet> snippets = snippetRepository.findByVisibilityAndStatus(
                                 Visibility.PUBLIC,
-                                Status.ACTIVE
-                        );
+                                Status.ACTIVE);
 
-        return convertToResponseList(snippets);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    @Cacheable(value = "public_snippets")
-    public List<SnippetResponse> getAllSnippets() {
-
-        List<Snippet> snippets =
-                snippetRepository.findByVisibilityAndStatus(
-                        Visibility.PUBLIC,
-                        Status.ACTIVE
-                );
-
-        return convertToResponseList(snippets);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    @Cacheable(value = "user_snippets", key = "#userId")
-    public List<SnippetResponse> getSnippetsByUserId(
-            UUID userId) {
-
-        if (userId == null) {
-            throw new IllegalArgumentException(
-                    "User id is required"
-            );
+                return convertToResponseList(snippets);
         }
 
-        List<Snippet> snippets =
-                snippetRepository
-                        .findByUserIdAndStatus(
-                                userId,
-                                Status.ACTIVE
-                        );
+        @Override
+        @Transactional(readOnly = true)
+        @Cacheable(value = "user_snippets", key = "#userId")
+        public List<SnippetResponse> getSnippetsByUserId(
+                        UUID userId) {
 
-        return convertToResponseList(snippets);
-    }
+                if (userId == null) {
+                        throw new IllegalArgumentException(
+                                        "User id is required");
+                }
 
-    @Override
-    @CacheEvict(value = {"snippets", "public_snippets", "user_snippets"}, allEntries = true)
-    public SnippetResponse updateSnippet(
-            UUID snippetId,
-            UUID userId,
-            UpdateSnippetRequest request) {
+                List<Snippet> snippets = snippetRepository
+                                .findByUserIdAndStatus(
+                                                userId,
+                                                Status.ACTIVE);
 
-        if (request == null) {
-            throw new IllegalArgumentException(
-                    "Snippet update request is required"
-            );
+                return convertToResponseList(snippets);
         }
 
-        Snippet snippet =
-                findActiveSnippetById(snippetId);
+        @Override
+        @CacheEvict(value = { "snippets", "public_snippets", "user_snippets" }, allEntries = true)
+        public SnippetResponse updateSnippet(
+                        UUID snippetId,
+                        UUID userId,
+                        UpdateSnippetRequest request) {
 
-        verifyOwnership(snippet, userId);
+                if (request == null) {
+                        throw new IllegalArgumentException(
+                                        "Snippet update request is required");
+                }
 
-        Category category =
-                findOrCreateCategory(
-                        request.getCategory()
-                );
+                Snippet snippet = findActiveSnippetById(snippetId);
 
-        /*
-         * This updates:
-         *
-         * title
-         * description
-         * code
-         * language
-         * framework
-         * visibility
-         * category
-         *
-         * Cloudinary fields are not modified here.
-         */
-        snippetMapper.updateEntity(
-                snippet,
-                request,
-                category
-        );
+                verifyOwnership(snippet, userId);
 
-        synchronizeTags(
-                snippet,
-                request.getTags()
-        );
+                Category category = findOrCreateCategory(
+                                request.getCategory());
 
-        Snippet updatedSnippet =
+                /*
+                 * This updates:
+                 *
+                 * title
+                 * description
+                 * code
+                 * language
+                 * framework
+                 * visibility
+                 * category
+                 *
+                 * Cloudinary fields are not modified here.
+                 */
+                snippetMapper.updateEntity(
+                                snippet,
+                                request,
+                                category);
+
+                synchronizeTags(
+                                snippet,
+                                request.getTags());
+
+                Snippet updatedSnippet = snippetRepository.save(snippet);
+
+                // Existing REST logic
+                // searchIndexService.indexSnippet(updatedSnippet);
+
+                System.out.println("2. After save");
+
+                // New Kafka logic
+                SnippetUpdatedEvent event = snippetEventMapper.toSnippetUpdatedEvent(
+                                updatedSnippet);
+
+                System.out.println("3. Event created");
+
+                snippetEventProducer.publishSnippetUpdatedEvent(
+                                event);
+
+                System.out.println("4. Event published");
+                return snippetMapper.toResponse(updatedSnippet);
+        }
+
+        @Override
+        @CacheEvict(value = { "snippets", "public_snippets", "user_snippets" }, allEntries = true)
+        public SnippetResponse uploadOrReplacePreviewImage(
+                        UUID snippetId,
+                        UUID userId,
+                        MultipartFile image) {
+
+                Snippet snippet = findActiveSnippetById(snippetId);
+
+                verifyOwnership(snippet, userId);
+
+                /*
+                 * Existing Cloudinary public ID ko temporarily
+                 * preserve karenge.
+                 *
+                 * New image successfully upload hone ke baad hi
+                 * old image delete hogi.
+                 */
+                String oldPublicId = normalizeOptionalText(
+                                snippet.getPreviewImagePublicId());
+
+                /*
+                 * CloudinaryService internally:
+                 *
+                 * 1. File validate karegi
+                 * 2. Image upload karegi
+                 * 3. secure_url return karegi
+                 * 4. public_id return karegi
+                 */
+                CloudinaryUploadResponse uploadResponse = cloudinaryService.uploadImage(image);
+
+                if (uploadResponse == null
+                                || normalizeOptionalText(
+                                                uploadResponse.getImageUrl()) == null
+                                || normalizeOptionalText(
+                                                uploadResponse.getImagePublicId()) == null) {
+
+                        throw new IllegalStateException(
+                                        "Cloudinary did not return valid image details");
+                }
+
+                String newImageUrl = uploadResponse.getImageUrl().trim();
+
+                String newPublicId = uploadResponse
+                                .getImagePublicId()
+                                .trim();
+
+                snippet.setPreviewImageUrl(
+                                newImageUrl);
+
+                snippet.setPreviewImagePublicId(
+                                newPublicId);
+
+                try {
+
+                        Snippet updatedSnippet = snippetRepository.save(snippet);
+
+                        searchIndexService.indexSnippet(updatedSnippet);
+
+                        /*
+                         * New image and database update successful hone ke baad
+                         * previous Cloudinary image delete karenge.
+                         */
+                        if (oldPublicId != null
+                                        && !oldPublicId.equals(newPublicId)) {
+
+                                cloudinaryService.deleteImage(
+                                                oldPublicId);
+                        }
+
+                        return snippetMapper.toResponse(
+                                        updatedSnippet);
+
+                } catch (RuntimeException exception) {
+
+                        /*
+                         * Database save fail ho gaya, lekin new image
+                         * Cloudinary par upload ho chuki hai.
+                         *
+                         * Orphan image avoid karne ke liye new image
+                         * delete karne ki koshish karenge.
+                         */
+                        try {
+                                cloudinaryService.deleteImage(
+                                                newPublicId);
+                        } catch (RuntimeException cleanupException) {
+
+                                exception.addSuppressed(
+                                                cleanupException);
+                        }
+
+                        throw exception;
+                }
+        }
+
+        @Override
+        @CacheEvict(value = { "snippets", "public_snippets", "user_snippets" }, allEntries = true)
+        public ApiResponse deletePreviewImage(
+                        UUID snippetId,
+                        UUID userId) {
+
+                Snippet snippet = findActiveSnippetById(snippetId);
+
+                verifyOwnership(snippet, userId);
+
+                String publicId = normalizeOptionalText(
+                                snippet.getPreviewImagePublicId());
+
+                if (publicId == null) {
+
+                        /*
+                         * Public ID absent hone par bhi stale URL
+                         * database mein ho sakti hai.
+                         */
+                        snippet.setPreviewImageUrl(null);
+                        snippet.setPreviewImagePublicId(null);
+
+                        Snippet updatedSnippet = snippetRepository.save(snippet);
+
+                        searchIndexService.indexSnippet(updatedSnippet);
+
+                        return new ApiResponse(
+                                        true,
+                                        "Snippet preview image deleted successfully");
+                }
+
+                /*
+                 * First Cloudinary asset delete karenge.
+                 *
+                 * Delete successful hone ke baad database fields
+                 * clear hongi.
+                 */
+                cloudinaryService.deleteImage(publicId);
+
+                snippet.setPreviewImageUrl(null);
+                snippet.setPreviewImagePublicId(null);
+
+                Snippet updatedSnippet = snippetRepository.save(snippet);
+
+                searchIndexService.indexSnippet(updatedSnippet);
+
+                return new ApiResponse(
+                                true,
+                                "Snippet preview image deleted successfully");
+        }
+
+        @Override
+        @CacheEvict(value = { "snippets", "public_snippets", "user_snippets" }, allEntries = true)
+        public ApiResponse deleteSnippet(
+                        UUID snippetId,
+                        UUID userId) {
+
+                Snippet snippet = findActiveSnippetById(snippetId);
+
+                verifyOwnership(snippet, userId);
+
+                /*
+                 * Soft delete:
+                 *
+                 * Database row remove nahi hogi.
+                 * Status ACTIVE se DELETED ho jayega.
+                 *
+                 * Preview image bhi preserve rahegi because future
+                 * mein restore feature add kiya ja sakta hai.
+                 */
+                snippet.setStatus(Status.DELETED);
+
                 snippetRepository.save(snippet);
 
-        searchIndexService.indexSnippet(updatedSnippet);
-        return snippetMapper.toResponse(updatedSnippet);
-    }
+                // Existing REST call (keep for now)
+                // searchIndexService.deleteSnippet(snippetId);
 
-    @Override
-    @CacheEvict(value = {"snippets", "public_snippets", "user_snippets"}, allEntries = true)
-    public SnippetResponse uploadOrReplacePreviewImage(
-            UUID snippetId,
-            UUID userId,
-            MultipartFile image) {
+                // Publish Kafka event
+                SnippetDeletedEvent event = new SnippetDeletedEvent(
+                                snippetId);
 
-        Snippet snippet =
-                findActiveSnippetById(snippetId);
-
-        verifyOwnership(snippet, userId);
-
-        /*
-         * Existing Cloudinary public ID ko temporarily
-         * preserve karenge.
-         *
-         * New image successfully upload hone ke baad hi
-         * old image delete hogi.
-         */
-        String oldPublicId =
-                normalizeOptionalText(
-                        snippet.getPreviewImagePublicId()
-                );
-
-        /*
-         * CloudinaryService internally:
-         *
-         * 1. File validate karegi
-         * 2. Image upload karegi
-         * 3. secure_url return karegi
-         * 4. public_id return karegi
-         */
-        CloudinaryUploadResponse uploadResponse =
-                cloudinaryService.uploadImage(image);
-
-        if (uploadResponse == null
-                || normalizeOptionalText(
-                uploadResponse.getImageUrl()
-        ) == null
-                || normalizeOptionalText(
-                uploadResponse.getImagePublicId()
-        ) == null) {
-
-            throw new IllegalStateException(
-                    "Cloudinary did not return valid image details"
-            );
+                snippetEventProducer.publishSnippetDeletedEvent(
+                                event);
+                return new ApiResponse(
+                                true,
+                                "Snippet deleted successfully");
         }
 
-        String newImageUrl =
-                uploadResponse.getImageUrl().trim();
+        private Snippet findActiveSnippetById(
+                        UUID snippetId) {
 
-        String newPublicId =
-                uploadResponse
-                        .getImagePublicId()
-                        .trim();
+                if (snippetId == null) {
+                        throw new IllegalArgumentException(
+                                        "Snippet id is required");
+                }
 
-        snippet.setPreviewImageUrl(
-                newImageUrl
-        );
+                Snippet snippet = snippetRepository
+                                .findById(snippetId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Snippet not found with id: "
+                                                                + snippetId));
 
-        snippet.setPreviewImagePublicId(
-                newPublicId
-        );
+                if (snippet.getStatus() == Status.DELETED) {
 
-        try {
-
-            Snippet updatedSnippet =
-                    snippetRepository.save(snippet);
-
-            searchIndexService.indexSnippet(updatedSnippet);
-
-            /*
-             * New image and database update successful hone ke baad
-             * previous Cloudinary image delete karenge.
-             */
-            if (oldPublicId != null
-                    && !oldPublicId.equals(newPublicId)) {
-
-                cloudinaryService.deleteImage(
-                        oldPublicId
-                );
-            }
-
-            return snippetMapper.toResponse(
-                    updatedSnippet
-            );
-
-        } catch (RuntimeException exception) {
-
-            /*
-             * Database save fail ho gaya, lekin new image
-             * Cloudinary par upload ho chuki hai.
-             *
-             * Orphan image avoid karne ke liye new image
-             * delete karne ki koshish karenge.
-             */
-            try {
-                cloudinaryService.deleteImage(
-                        newPublicId
-                );
-            } catch (RuntimeException cleanupException) {
-
-                exception.addSuppressed(
-                        cleanupException
-                );
-            }
-
-            throw exception;
-        }
-    }
-
-    @Override
-    @CacheEvict(value = {"snippets", "public_snippets", "user_snippets"}, allEntries = true)
-    public ApiResponse deletePreviewImage(
-            UUID snippetId,
-            UUID userId) {
-
-        Snippet snippet =
-                findActiveSnippetById(snippetId);
-
-        verifyOwnership(snippet, userId);
-
-        String publicId =
-                normalizeOptionalText(
-                        snippet.getPreviewImagePublicId()
-                );
-
-        if (publicId == null) {
-
-            /*
-             * Public ID absent hone par bhi stale URL
-             * database mein ho sakti hai.
-             */
-            snippet.setPreviewImageUrl(null);
-            snippet.setPreviewImagePublicId(null);
-
-            Snippet updatedSnippet = snippetRepository.save(snippet);
-
-            searchIndexService.indexSnippet(updatedSnippet);
-
-            return new ApiResponse(
-                    true,
-                    "Snippet preview image deleted successfully"
-            );
-        }
-
-        /*
-         * First Cloudinary asset delete karenge.
-         *
-         * Delete successful hone ke baad database fields
-         * clear hongi.
-         */
-        cloudinaryService.deleteImage(publicId);
-
-        snippet.setPreviewImageUrl(null);
-        snippet.setPreviewImagePublicId(null);
-
-        Snippet updatedSnippet =
-                snippetRepository.save(snippet);
-
-        searchIndexService.indexSnippet(updatedSnippet);
-
-        return new ApiResponse(
-                true,
-                "Snippet preview image deleted successfully"
-        );
-    }
-
-    @Override
-    @CacheEvict(value = {"snippets", "public_snippets", "user_snippets"}, allEntries = true)
-    public ApiResponse deleteSnippet(
-            UUID snippetId,
-            UUID userId) {
-
-        Snippet snippet =
-                findActiveSnippetById(snippetId);
-
-        verifyOwnership(snippet, userId);
-
-        /*
-         * Soft delete:
-         *
-         * Database row remove nahi hogi.
-         * Status ACTIVE se DELETED ho jayega.
-         *
-         * Preview image bhi preserve rahegi because future
-         * mein restore feature add kiya ja sakta hai.
-         */
-        snippet.setStatus(Status.DELETED);
-
-        snippetRepository.save(snippet);
-
-        searchIndexService.deleteSnippet(snippetId);
-
-        return new ApiResponse(
-                true,
-                "Snippet deleted successfully"
-        );
-    }
-
-
-
-    private Snippet findActiveSnippetById(
-            UUID snippetId) {
-
-        if (snippetId == null) {
-            throw new IllegalArgumentException(
-                    "Snippet id is required"
-            );
-        }
-
-        Snippet snippet =
-                snippetRepository
-                        .findById(snippetId)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
+                        throw new ResourceNotFoundException(
                                         "Snippet not found with id: "
-                                                + snippetId
-                                )
-                        );
+                                                        + snippetId);
+                }
 
-        if (snippet.getStatus()
-                == Status.DELETED) {
-
-            throw new ResourceNotFoundException(
-                    "Snippet not found with id: "
-                            + snippetId
-            );
+                return snippet;
         }
 
-        return snippet;
-    }
+        private void verifyOwnership(
+                        Snippet snippet,
+                        UUID userId) {
 
-    private void verifyOwnership(
-            Snippet snippet,
-            UUID userId) {
+                if (snippet == null) {
+                        throw new ResourceNotFoundException(
+                                        "Snippet not found");
+                }
 
-        if (snippet == null) {
-            throw new ResourceNotFoundException(
-                    "Snippet not found"
-            );
+                if (userId == null) {
+                        throw new UnauthorizedActionException(
+                                        "Authenticated user is required");
+                }
+
+                if (snippet.getUserId() == null
+                                || !snippet.getUserId()
+                                                .equals(userId)) {
+
+                        throw new UnauthorizedActionException(
+                                        "You are not allowed to modify this snippet");
+                }
         }
 
-        if (userId == null) {
-            throw new UnauthorizedActionException(
-                    "Authenticated user is required"
-            );
+        private Category findOrCreateCategory(
+                        String categoryName) {
+
+                String normalizedCategoryName = normalizeRequiredText(
+                                categoryName,
+                                "Category is required");
+
+                return categoryRepository
+                                .findByCategoryNameIgnoreCase(
+                                                normalizedCategoryName)
+                                .orElseGet(() -> {
+
+                                        Category category = new Category();
+
+                                        category.setCategoryName(
+                                                        normalizedCategoryName);
+
+                                        return categoryRepository.save(
+                                                        category);
+                                });
         }
 
-        if (snippet.getUserId() == null
-                || !snippet.getUserId()
-                .equals(userId)) {
+        private void addTagsToSnippet(
+                        Snippet snippet,
+                        List<String> tagNames) {
 
-            throw new UnauthorizedActionException(
-                    "You are not allowed to modify this snippet"
-            );
-        }
-    }
+                if (snippet == null) {
+                        throw new IllegalArgumentException(
+                                        "Snippet is required");
+                }
 
-    private Category findOrCreateCategory(
-            String categoryName) {
+                if (tagNames == null
+                                || tagNames.isEmpty()) {
 
-        String normalizedCategoryName =
-                normalizeRequiredText(
-                        categoryName,
-                        "Category is required"
-                );
+                        throw new IllegalArgumentException(
+                                        "At least one tag is required");
+                }
 
-        return categoryRepository
-                .findByCategoryNameIgnoreCase(
-                        normalizedCategoryName
-                )
-                .orElseGet(() -> {
+                Set<String> processedTagNames = new HashSet<>();
 
-                    Category category =
-                            new Category();
+                for (String tagName : tagNames) {
 
-                    category.setCategoryName(
-                            normalizedCategoryName
-                    );
+                        if (tagName == null
+                                        || tagName.isBlank()) {
+                                continue;
+                        }
 
-                    return categoryRepository.save(
-                            category
-                    );
-                });
-    }
+                        String normalizedTagName = tagName.trim();
 
-    private void addTagsToSnippet(
-            Snippet snippet,
-            List<String> tagNames) {
+                        String lowercaseTagName = normalizedTagName.toLowerCase(
+                                        Locale.ROOT);
 
-        if (snippet == null) {
-            throw new IllegalArgumentException(
-                    "Snippet is required"
-            );
-        }
+                        /*
+                         * React, react aur REACT ko same
+                         * request tag maana jayega.
+                         */
+                        if (!processedTagNames.add(
+                                        lowercaseTagName)) {
 
-        if (tagNames == null
-                || tagNames.isEmpty()) {
+                                continue;
+                        }
 
-            throw new IllegalArgumentException(
-                    "At least one tag is required"
-            );
-        }
+                        Tag tag = findOrCreateTag(
+                                        normalizedTagName);
 
-        Set<String> processedTagNames =
-                new HashSet<>();
+                        snippet.addTag(tag);
+                }
 
-        for (String tagName : tagNames) {
+                if (snippet.getSnippetTags() == null
+                                || snippet.getSnippetTags()
+                                                .isEmpty()) {
 
-            if (tagName == null
-                    || tagName.isBlank()) {
-                continue;
-            }
-
-            String normalizedTagName =
-                    tagName.trim();
-
-            String lowercaseTagName =
-                    normalizedTagName.toLowerCase(
-                            Locale.ROOT
-                    );
-
-            /*
-             * React, react aur REACT ko same
-             * request tag maana jayega.
-             */
-            if (!processedTagNames.add(
-                    lowercaseTagName)) {
-
-                continue;
-            }
-
-            Tag tag = findOrCreateTag(
-                    normalizedTagName
-            );
-
-            snippet.addTag(tag);
+                        throw new IllegalArgumentException(
+                                        "At least one valid tag is required");
+                }
         }
 
-        if (snippet.getSnippetTags() == null
-                || snippet.getSnippetTags()
-                .isEmpty()) {
+        private void synchronizeTags(
+                        Snippet snippet,
+                        List<String> requestedTagNames) {
 
-            throw new IllegalArgumentException(
-                    "At least one valid tag is required"
-            );
-        }
-    }
+                if (snippet == null) {
+                        throw new IllegalArgumentException(
+                                        "Snippet is required");
+                }
 
-    private void synchronizeTags(
-            Snippet snippet,
-            List<String> requestedTagNames) {
+                if (requestedTagNames == null
+                                || requestedTagNames.isEmpty()) {
 
-        if (snippet == null) {
-            throw new IllegalArgumentException(
-                    "Snippet is required"
-            );
-        }
+                        throw new IllegalArgumentException(
+                                        "At least one tag is required");
+                }
 
-        if (requestedTagNames == null
-                || requestedTagNames.isEmpty()) {
+                Set<String> requestedNormalizedNames = new HashSet<>();
 
-            throw new IllegalArgumentException(
-                    "At least one tag is required"
-            );
-        }
+                for (String tagName : requestedTagNames) {
 
-        Set<String> requestedNormalizedNames =
-                new HashSet<>();
+                        if (tagName == null
+                                        || tagName.isBlank()) {
+                                continue;
+                        }
 
-        for (String tagName
-                : requestedTagNames) {
+                        requestedNormalizedNames.add(
+                                        tagName.trim()
+                                                        .toLowerCase(
+                                                                        Locale.ROOT));
+                }
 
-            if (tagName == null
-                    || tagName.isBlank()) {
-                continue;
-            }
+                if (requestedNormalizedNames.isEmpty()) {
 
-            requestedNormalizedNames.add(
-                    tagName.trim()
-                            .toLowerCase(
-                                    Locale.ROOT
-                            )
-            );
-        }
+                        throw new IllegalArgumentException(
+                                        "At least one valid tag is required");
+                }
 
-        if (requestedNormalizedNames.isEmpty()) {
+                if (snippet.getSnippetTags() == null) {
 
-            throw new IllegalArgumentException(
-                    "At least one valid tag is required"
-            );
-        }
+                        throw new IllegalStateException(
+                                        "Snippet tag collection is not initialized");
+                }
 
-        if (snippet.getSnippetTags() == null) {
+                Iterator<SnippetTag> iterator = snippet.getSnippetTags()
+                                .iterator();
 
-            throw new IllegalStateException(
-                    "Snippet tag collection is not initialized"
-            );
-        }
+                while (iterator.hasNext()) {
 
-        Iterator<SnippetTag> iterator =
-                snippet.getSnippetTags()
-                        .iterator();
+                        SnippetTag snippetTag = iterator.next();
 
-        while (iterator.hasNext()) {
+                        if (snippetTag == null
+                                        || snippetTag.getTag() == null
+                                        || snippetTag.getTag()
+                                                        .getTagName() == null) {
 
-            SnippetTag snippetTag =
-                    iterator.next();
+                                iterator.remove();
+                                continue;
+                        }
 
-            if (snippetTag == null
-                    || snippetTag.getTag() == null
-                    || snippetTag.getTag()
-                    .getTagName() == null) {
+                        String existingTagName = snippetTag.getTag()
+                                        .getTagName()
+                                        .trim()
+                                        .toLowerCase(
+                                                        Locale.ROOT);
 
-                iterator.remove();
-                continue;
-            }
+                        if (!requestedNormalizedNames
+                                        .contains(existingTagName)) {
 
-            String existingTagName =
-                    snippetTag.getTag()
-                            .getTagName()
-                            .trim()
-                            .toLowerCase(
-                                    Locale.ROOT
-                            );
+                                iterator.remove();
+                                snippetTag.setSnippet(null);
+                        }
+                }
 
-            if (!requestedNormalizedNames
-                    .contains(existingTagName)) {
+                Set<String> existingNormalizedNames = new HashSet<>();
 
-                iterator.remove();
-                snippetTag.setSnippet(null);
-            }
-        }
+                for (SnippetTag snippetTag : snippet.getSnippetTags()) {
 
-        Set<String> existingNormalizedNames =
-                new HashSet<>();
+                        if (snippetTag == null
+                                        || snippetTag.getTag() == null
+                                        || snippetTag.getTag()
+                                                        .getTagName() == null) {
 
-        for (SnippetTag snippetTag
-                : snippet.getSnippetTags()) {
+                                continue;
+                        }
 
-            if (snippetTag == null
-                    || snippetTag.getTag() == null
-                    || snippetTag.getTag()
-                    .getTagName() == null) {
+                        existingNormalizedNames.add(
+                                        snippetTag.getTag()
+                                                        .getTagName()
+                                                        .trim()
+                                                        .toLowerCase(
+                                                                        Locale.ROOT));
+                }
 
-                continue;
-            }
+                Set<String> processedRequestTags = new HashSet<>();
 
-            existingNormalizedNames.add(
-                    snippetTag.getTag()
-                            .getTagName()
-                            .trim()
-                            .toLowerCase(
-                                    Locale.ROOT
-                            )
-            );
-        }
+                for (String requestedTagName : requestedTagNames) {
 
-        Set<String> processedRequestTags =
-                new HashSet<>();
+                        if (requestedTagName == null
+                                        || requestedTagName.isBlank()) {
 
-        for (String requestedTagName
-                : requestedTagNames) {
+                                continue;
+                        }
 
-            if (requestedTagName == null
-                    || requestedTagName.isBlank()) {
+                        String normalizedTagName = requestedTagName.trim();
 
-                continue;
-            }
+                        String lowercaseTagName = normalizedTagName.toLowerCase(
+                                        Locale.ROOT);
 
-            String normalizedTagName =
-                    requestedTagName.trim();
+                        if (!processedRequestTags.add(
+                                        lowercaseTagName)) {
 
-            String lowercaseTagName =
-                    normalizedTagName.toLowerCase(
-                            Locale.ROOT
-                    );
+                                continue;
+                        }
 
-            if (!processedRequestTags.add(
-                    lowercaseTagName)) {
+                        if (existingNormalizedNames.contains(
+                                        lowercaseTagName)) {
 
-                continue;
-            }
+                                continue;
+                        }
 
-            if (existingNormalizedNames.contains(
-                    lowercaseTagName)) {
+                        Tag tag = findOrCreateTag(
+                                        normalizedTagName);
 
-                continue;
-            }
+                        snippet.addTag(tag);
 
-            Tag tag = findOrCreateTag(
-                    normalizedTagName
-            );
+                        existingNormalizedNames.add(
+                                        lowercaseTagName);
+                }
 
-            snippet.addTag(tag);
+                if (snippet.getSnippetTags()
+                                .isEmpty()) {
 
-            existingNormalizedNames.add(
-                    lowercaseTagName
-            );
+                        throw new IllegalArgumentException(
+                                        "At least one valid tag is required");
+                }
         }
 
-        if (snippet.getSnippetTags()
-                .isEmpty()) {
+        private Tag findOrCreateTag(
+                        String tagName) {
 
-            throw new IllegalArgumentException(
-                    "At least one valid tag is required"
-            );
-        }
-    }
+                String normalizedTagName = normalizeRequiredText(
+                                tagName,
+                                "Tag name is required");
 
-    private Tag findOrCreateTag(
-            String tagName) {
+                return tagRepository
+                                .findByTagNameIgnoreCase(
+                                                normalizedTagName)
+                                .orElseGet(() -> {
 
-        String normalizedTagName =
-                normalizeRequiredText(
-                        tagName,
-                        "Tag name is required"
-                );
+                                        Tag tag = new Tag();
 
-        return tagRepository
-                .findByTagNameIgnoreCase(
-                        normalizedTagName
-                )
-                .orElseGet(() -> {
+                                        tag.setTagName(
+                                                        normalizedTagName);
 
-                    Tag tag = new Tag();
-
-                    tag.setTagName(
-                            normalizedTagName
-                    );
-
-                    return tagRepository.save(tag);
-                });
-    }
-
-    private List<SnippetResponse>
-    convertToResponseList(
-            List<Snippet> snippets) {
-
-        List<SnippetResponse> responses =
-                new ArrayList<>();
-
-        if (snippets == null
-                || snippets.isEmpty()) {
-
-            return responses;
+                                        return tagRepository.save(tag);
+                                });
         }
 
-        for (Snippet snippet : snippets) {
+        private List<SnippetResponse> convertToResponseList(
+                        List<Snippet> snippets) {
 
-            if (snippet == null) {
-                continue;
-            }
+                List<SnippetResponse> responses = new ArrayList<>();
 
-            responses.add(
-                    snippetMapper.toResponse(
-                            snippet
-                    )
-            );
+                if (snippets == null
+                                || snippets.isEmpty()) {
+
+                        return responses;
+                }
+
+                for (Snippet snippet : snippets) {
+
+                        if (snippet == null) {
+                                continue;
+                        }
+
+                        responses.add(
+                                        snippetMapper.toResponse(
+                                                        snippet));
+                }
+
+                return responses;
         }
 
-        return responses;
-    }
+        private String normalizeRequiredText(
+                        String value,
+                        String errorMessage) {
 
+                if (value == null
+                                || value.isBlank()) {
 
+                        throw new IllegalArgumentException(
+                                        errorMessage);
+                }
 
-    private String normalizeRequiredText(
-            String value,
-            String errorMessage) {
-
-        if (value == null
-                || value.isBlank()) {
-
-            throw new IllegalArgumentException(
-                    errorMessage
-            );
+                return value.trim();
         }
 
-        return value.trim();
-    }
+        private String normalizeOptionalText(
+                        String value) {
 
-    private String normalizeOptionalText(
-            String value) {
+                if (value == null
+                                || value.isBlank()) {
 
-        if (value == null
-                || value.isBlank()) {
+                        return null;
+                }
 
-            return null;
+                return value.trim();
         }
-
-        return value.trim();
-    }
-
-
 
 }

@@ -161,4 +161,13 @@ public class SubscriptionController {
                 .map(plan -> ResponseEntity.ok(SubscriptionPlanDTO.from(plan)))
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    @GetMapping("/internal/premium/{userId}")
+    public ResponseEntity<Boolean> isPremiumUser(
+            @PathVariable UUID userId) {
+
+        return ResponseEntity.ok(
+                subscriptionService.isPremiumUser(userId)
+        );
+    }
 }

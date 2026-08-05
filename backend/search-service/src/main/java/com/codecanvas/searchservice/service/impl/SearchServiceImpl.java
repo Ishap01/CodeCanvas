@@ -1,5 +1,10 @@
 package com.codecanvas.searchservice.service.impl;
 
+
+import com.codecanvas.searchservice.document.UserDocument;
+import com.codecanvas.searchservice.kafka.event.UserRegisteredEvent;
+import com.codecanvas.searchservice.kafka.event.UserUpdatedEvent;
+import com.codecanvas.searchservice.repository.UserDocumentRepository;
 import com.codecanvas.searchservice.document.SearchDocument;
 import com.codecanvas.searchservice.dto.request.IndexSnippetRequest;
 import com.codecanvas.searchservice.dto.request.SearchRequest;
@@ -25,6 +30,15 @@ public class SearchServiceImpl implements SearchService {
     private final SearchHistoryRepository searchHistoryRepository;
     private final ElasticSearchQueryService elasticSearchQueryService;
     private final SearchDocumentRepository searchDocumentRepository;
+
+
+
+    /*
+     * =========================================================
+     * USER ELASTICSEARCH REPOSITORY
+     * =========================================================
+     */
+    private final UserDocumentRepository userDocumentRepository;
 
 
     @Override
@@ -171,6 +185,115 @@ public class SearchServiceImpl implements SearchService {
         searchDocumentRepository.deleteById(
                 snippetId.toString()
         );
+    }
+
+    /*
+     * =========================================================
+     * USER INDEXING
+     * Index newly registered user into Elasticsearch
+     * =========================================================
+     */
+    @Override
+    public void indexUser(UserRegisteredEvent event) {
+
+        UserDocument document =
+                UserDocument.builder()
+                        .id(event.getUserId().toString())
+                        .userId(event.getUserId())
+                        .fullName(event.getFullName())
+                        .username(event.getUsername())
+                        .email(event.getEmail())
+                        .bio(event.getBio())
+                        .profileImage(event.getProfileImage())
+                        .build();
+
+        userDocumentRepository.save(document);
+    }
+
+    /*
+     * =========================================================
+     * USER UPDATE
+     * Update existing user in Elasticsearch
+     * =========================================================
+     */
+    @Override
+    public void updateUser(UserUpdatedEvent event) {
+
+        UserDocument document =
+                UserDocument.builder()
+                        .id(event.getUserId().toString())
+                        .userId(event.getUserId())
+                        .fullName(event.getFullName())
+                        .username(event.getUsername())
+                        .email(event.getEmail())
+                        .bio(event.getBio())
+                        .profileImage(event.getProfileImage())
+                        .build();
+
+        userDocumentRepository.save(document);
+    }
+
+    /*
+     * =========================================================
+     * USER DELETE
+     * Remove user from Elasticsearch
+     * =========================================================
+     */
+    @Override
+    public void deleteUser(UUID userId) {
+
+        userDocumentRepository.deleteByUserId(userId);
+    }
+
+
+    /*
+     * =========================================================
+     * USER SEARCH
+     * Search users by full name, username or bio
+     * =========================================================
+     */
+    @Override
+    public List<UserSearchResponse> searchUsers(String keyword) {
+
+        List<UserDocument> users =
+                elasticSearchQueryService.searchUsers(keyword);
+
+        return users.stream()
+                .map(user ->
+                        UserSearchResponse.builder()
+                                .userId(user.getUserId())
+                                .fullName(user.getFullName())
+                                .username(user.getUsername())
+                                .bio(user.getBio())
+                                .profileImage(user.getProfileImage())
+                                .build()
+                )
+                .toList();
+    }
+
+
+    /*
+     * =========================================================
+     * USER AUTOCOMPLETE
+     * Suggest users by full name or username
+     * =========================================================
+     */
+    @Override
+    public List<UserAutocompleteResponse> autocompleteUsers(
+            String keyword) {
+
+        return elasticSearchQueryService
+                .autocompleteUsers(keyword)
+                .stream()
+                .map(user ->
+                        UserAutocompleteResponse.builder()
+                                .userId(user.getUserId())
+                                .fullName(user.getFullName())
+                                .username(user.getUsername())
+                                .profileImage(user.getProfileImage())
+                                .build()
+                )
+                .toList();
     }
 }
 
