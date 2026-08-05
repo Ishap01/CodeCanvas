@@ -344,6 +344,20 @@
     word-break: break-word;
 }
 
+.instagramSnippetFilename {
+
+    margin: 10px 16px 0;
+
+    color: #c8cbff;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    opacity: .9;
+
+}
+
 .instagramSnippetCodeIcon {
     position: absolute;
 

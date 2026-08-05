@@ -8,6 +8,8 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.time.LocalDateTime;
+
+import com.codecanvas.snippetservice.dto.request.SnippetFileRequest;
 import com.codecanvas.snippetservice.kafka.event.SnippetCreatedEvent;
 import com.codecanvas.snippetservice.kafka.event.SnippetDeletedEvent;
 import com.codecanvas.snippetservice.kafka.event.SnippetUpdatedEvent;
@@ -45,6 +47,7 @@ import com.codecanvas.snippetservice.service.SnippetService;
 import com.codecanvas.snippetservice.dto.request.IndexSnippetRequest;
 import com.codecanvas.snippetservice.client.SearchServiceClient;
 import com.codecanvas.snippetservice.kafka.event.SnippetDeletedEvent;
+import com.codecanvas.snippetservice.entity.SnippetFile;
 
 @Service
 @Transactional
@@ -116,6 +119,62 @@ public class SnippetServiceImpl implements SnippetService {
          */
         snippet.setPreviewImageUrl(null);
         snippet.setPreviewImagePublicId(null);
+
+
+        /*
+         * Supports both:
+         *
+         * 1. Old frontend -> request.getCode()
+         * 2. New frontend -> request.getFiles()
+         */
+
+        if (request.getFiles() != null && !request.getFiles().isEmpty()) {
+
+            SnippetFileRequest firstFile = request.getFiles().get(0);
+
+            snippet.setCode(firstFile.getCode());
+
+            int order = 1;
+
+            for (SnippetFileRequest fileRequest : request.getFiles()) {
+
+                if (fileRequest == null) {
+                    continue;
+                }
+
+                SnippetFile snippetFile = new SnippetFile();
+
+                snippetFile.setFilename(fileRequest.getFilename());
+
+                snippetFile.setCode(fileRequest.getCode());
+
+                snippetFile.setFileOrder(order++);
+
+                snippetFile.setSnippet(snippet);
+
+                snippet.getFiles().add(snippetFile);
+            }
+
+        } else {
+
+            SnippetFile snippetFile = new SnippetFile();
+
+            String filename = request.getFilename();
+
+            if (filename == null || filename.isBlank()) {
+                filename = "Main." + getFileExtension(request.getLanguage());
+            }
+
+            snippetFile.setFilename(filename);
+
+            snippetFile.setCode(request.getCode());
+
+            snippetFile.setFileOrder(1);
+
+            snippetFile.setSnippet(snippet);
+
+            snippet.getFiles().add(snippetFile);
+        }
 
         addTagsToSnippet(
                 snippet,
@@ -485,6 +544,80 @@ public class SnippetServiceImpl implements SnippetService {
                 request,
                 category
         );
+
+        /*
+         * Supports both:
+         *
+         * 1. Old frontend -> code
+         * 2. New frontend -> files
+         */
+
+        if (request.getFiles() != null && !request.getFiles().isEmpty()) {
+
+            snippet.setCode(
+                    request.getFiles().get(0).getCode()
+            );
+
+            snippet.getFiles().clear();
+
+            int order = 1;
+
+            for (SnippetFileRequest fileRequest : request.getFiles()) {
+
+                if (fileRequest == null) {
+                    continue;
+                }
+
+                SnippetFile snippetFile = new SnippetFile();
+
+                snippetFile.setFilename(fileRequest.getFilename());
+
+                snippetFile.setCode(fileRequest.getCode());
+
+                snippetFile.setFileOrder(order++);
+
+                snippetFile.setSnippet(snippet);
+
+                snippet.getFiles().add(snippetFile);
+            }
+
+        } else {
+
+            if (!snippet.getFiles().isEmpty()) {
+
+                SnippetFile firstFile = snippet.getFiles().get(0);
+
+                firstFile.setCode(request.getCode());
+                snippet.setCode(request.getCode());
+
+                String filename = request.getFilename();
+
+                if (filename != null && !filename.isBlank()) {
+                    firstFile.setFilename(filename.trim());
+                }
+
+            } else {
+
+                SnippetFile snippetFile = new SnippetFile();
+
+                String filename = request.getFilename();
+
+                if (filename == null || filename.isBlank()) {
+                    filename = "Main." + getFileExtension(request.getLanguage());
+                }
+
+                snippetFile.setFilename(filename);
+
+                snippetFile.setCode(request.getCode());
+
+                snippetFile.setFileOrder(1);
+
+                snippetFile.setSnippet(snippet);
+
+                snippet.getFiles().add(snippetFile);
+            }
+        }
+
 
         synchronizeTags(
                 snippet,
@@ -1119,5 +1252,33 @@ public class SnippetServiceImpl implements SnippetService {
     }
 
 
+    private String getFileExtension(String language) {
+
+        if (language == null) {
+            return "txt";
+        }
+
+        return switch (language.toLowerCase()) {
+
+            case "java" -> "java";
+            case "javascript" -> "js";
+            case "typescript" -> "ts";
+            case "python" -> "py";
+            case "c" -> "c";
+            case "c++" -> "cpp";
+            case "c#" -> "cs";
+            case "html" -> "html";
+            case "css" -> "css";
+            case "sql" -> "sql";
+            case "php" -> "php";
+            case "go" -> "go";
+            case "kotlin" -> "kt";
+            case "swift" -> "swift";
+            case "ruby" -> "rb";
+            case "rust" -> "rs";
+
+            default -> "txt";
+        };
+    }
 
 }

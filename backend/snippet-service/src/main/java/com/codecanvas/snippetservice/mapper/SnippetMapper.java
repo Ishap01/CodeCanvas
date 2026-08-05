@@ -12,6 +12,11 @@ import com.codecanvas.snippetservice.entity.Category;
 import com.codecanvas.snippetservice.entity.Snippet;
 import com.codecanvas.snippetservice.enums.Status;
 
+import java.util.Comparator;
+
+import com.codecanvas.snippetservice.dto.response.SnippetFileResponse;
+import com.codecanvas.snippetservice.entity.SnippetFile;
+
 @Component
 public class SnippetMapper {
 
@@ -220,6 +225,45 @@ public class SnippetMapper {
         response.setCode(
                 snippet.getCode()
         );
+
+        /*
+         * Populate multiple files.
+         *
+         * 'code' is retained for backward compatibility.
+         */
+        if (snippet.getFiles() != null) {
+
+            response.setFiles(
+
+                    snippet.getFiles()
+
+                            .stream()
+
+
+                            .sorted(
+                    Comparator.comparing(
+                            SnippetFile::getFileOrder,
+                            Comparator.nullsLast(Integer::compareTo)
+                    )
+            )
+
+                            .map(file ->
+
+                                    new SnippetFileResponse(
+
+                                            file.getFilename(),
+
+                                            file.getCode(),
+
+                                            file.getFileOrder()
+
+                                    )
+                            )
+
+                            .toList()
+
+            );
+        }
 
         response.setLanguage(
                 snippet.getLanguage()

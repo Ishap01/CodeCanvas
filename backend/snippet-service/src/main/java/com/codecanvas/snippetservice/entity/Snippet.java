@@ -69,6 +69,12 @@ public class Snippet {
     )
     private String code;
 
+    @OneToMany(
+            mappedBy = "snippet",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<SnippetFile> files = new ArrayList<>();
 
     @Column(
             name = "comment_count",

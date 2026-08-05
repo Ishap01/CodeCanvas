@@ -27,7 +27,14 @@ import "./CreateSnippet.css";
 const INITIAL_FORM_DATA = {
     title: "",
     description: "",
-    code: "",
+
+    files: [
+        {
+            filename: "",
+            code: "",
+        },
+    ],
+
     language: "",
     framework: "",
     category: "",
@@ -147,6 +154,64 @@ function CreateSnippet() {
         }));
 
         setErrorMessage("");
+    };
+
+    const handleFileChange = (index, field, value) => {
+
+        setFormData((previous) => {
+
+            const updatedFiles = [...previous.files];
+
+            updatedFiles[index] = {
+                ...updatedFiles[index],
+                [field]: value,
+            };
+
+            return {
+                ...previous,
+                files: updatedFiles,
+            };
+        });
+
+    };
+
+    const addFile = () => {
+
+        setFormData((previous) => ({
+
+            ...previous,
+
+            files: [
+
+                ...previous.files,
+
+                {
+                    filename: "",
+                    code: "",
+                }
+
+            ]
+
+        }));
+
+    };
+
+    const removeFile = (index) => {
+
+        if (formData.files.length == 1) {
+            return;
+        }
+
+        setFormData((previous) => ({
+
+            ...previous,
+
+            files: previous.files.filter(
+                (_, i) => i !== index
+            )
+
+        }));
+
     };
 
     const addTag = () => {
@@ -325,10 +390,17 @@ function CreateSnippet() {
                 "Description is required.";
         }
 
-        if (!formData.code.trim()) {
-            errors.code =
-                "Code is required.";
-        }
+        formData.files.forEach((file, index) => {
+
+            if (!file.filename.trim()) {
+                errors[`filename_${index}`] = "Filename is required.";
+            }
+
+            if (!file.code.trim()) {
+                errors[`code_${index}`] = "Code is required.";
+            }
+
+        });
 
         if (!formData.language.trim()) {
             errors.language =
@@ -373,32 +445,34 @@ function CreateSnippet() {
         }
 
         const requestBody = {
-            title:
-                formData.title.trim(),
+            title: formData.title.trim(),
 
-            description:
-                formData.description.trim(),
+            description: formData.description.trim(),
 
-            code:
-                formData.code,
+            // Backward compatibility
+            filename: formData.files[0].filename.trim(),
 
-            language:
-                formData.language.trim(),
+            code: formData.files[0].code,
+
+            // New multi-file support
+            files: formData.files.map((file) => ({
+                filename: file.filename.trim(),
+                code: file.code,
+            })),
+
+            language: formData.language.trim(),
 
             framework:
                 formData.framework.trim()
                     ? formData.framework.trim()
                     : null,
 
-            category:
-                formData.category.trim(),
+            category: formData.category.trim(),
 
             tags,
 
-            visibility:
-                formData.visibility,
+            visibility: formData.visibility,
         };
-
         try {
             setIsSubmitting(true);
 
@@ -446,7 +520,7 @@ function CreateSnippet() {
         } catch (error) {
             setErrorMessage(
                 error.message ||
-                    "Unable to create snippet."
+                "Unable to create snippet."
             );
 
         } finally {
@@ -638,52 +712,127 @@ function CreateSnippet() {
                             <span>02</span>
 
                             <div>
-                                <h2>
-                                    Code
-                                </h2>
+                                <h2>Code</h2>
 
                                 <p>
-                                    Paste the complete code
-                                    that users should be
-                                    able to view and copy.
+                                    Add one or more source files for this snippet.
                                 </p>
                             </div>
                         </div>
 
-                        <div className="createSnippetField">
+                        {formData.files.map((file, index) => (
 
-                            <label htmlFor="snippetCode">
-                                Source code
-                                <span>*</span>
-                            </label>
+                            <div
+                                key={index}
+                                className="createSnippetFileCard"
+                            >
 
-                            <textarea
-                                id="snippetCode"
-                                name="code"
-                                value={formData.code}
-                                onChange={
-                                    handleInputChange
-                                }
-                                placeholder={`public class Example {\n    public static void main(String[] args) {\n        System.out.println("Hello CodeCanvas");\n    }\n}`}
-                                rows={18}
-                                spellCheck="false"
-                                disabled={isSubmitting}
-                                className={`createSnippetCodeInput ${
-                                    fieldErrors.code
-                                        ? "createSnippetInputError"
-                                        : ""
-                                }`}
-                            />
+                                <div className="createSnippetFileHeader">
 
-                            {fieldErrors.code && (
-                                <small className="createSnippetFieldError">
-                                    {
-                                        fieldErrors.code
-                                    }
-                                </small>
-                            )}
+                                    <h3>
+                                        File {index + 1}
+                                    </h3>
 
-                        </div>
+                                    {formData.files.length > 1 && (
+
+                                        <button
+                                            type="button"
+                                            className="createSnippetRemoveFileButton"
+                                            onClick={() => removeFile(index)}
+                                        >
+                                            <FaTimes />
+                                            Remove
+                                        </button>
+
+                                    )}
+
+                                </div>
+
+                                <div className="createSnippetField">
+
+                                    <label>
+                                        Filename
+                                        <span>*</span>
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        value={file.filename}
+                                        placeholder="Example: UserService.java"
+                                        onChange={(e) =>
+                                            handleFileChange(
+                                                index,
+                                                "filename",
+                                                e.target.value
+                                            )
+                                        }
+                                        disabled={isSubmitting}
+                                        className={
+                                            fieldErrors[`filename_${index}`]
+                                                ? "createSnippetInputError"
+                                                : ""
+                                        }
+                                    />
+
+                                    {fieldErrors[`filename_${index}`] && (
+
+                                        <small className="createSnippetFieldError">
+                                            {fieldErrors[`filename_${index}`]}
+                                        </small>
+
+                                    )}
+
+                                </div>
+
+                                <div className="createSnippetField">
+
+                                    <label>
+                                        Source Code
+                                        <span>*</span>
+                                    </label>
+
+                                    <textarea
+                                        rows={18}
+                                        spellCheck="false"
+                                        value={file.code}
+                                        placeholder="Paste your code here..."
+                                        onChange={(e) =>
+                                            handleFileChange(
+                                                index,
+                                                "code",
+                                                e.target.value
+                                            )
+                                        }
+                                        disabled={isSubmitting}
+                                        className={`createSnippetCodeInput ${fieldErrors[`code_${index}`]
+                                            ? "createSnippetInputError"
+                                            : ""
+                                            }`}
+                                    />
+
+                                    {fieldErrors[`code_${index}`] && (
+
+                                        <small className="createSnippetFieldError">
+                                            {fieldErrors[`code_${index}`]}
+                                        </small>
+
+                                    )}
+
+                                </div>
+
+                            </div>
+
+                        ))}
+
+                        <button
+                            type="button"
+                            className="createSnippetAddFileButton"
+                            onClick={addFile}
+                            disabled={isSubmitting}
+                        >
+                            <FaPlus />
+                            Add Another File
+                        </button>
 
                     </section>
 
@@ -961,12 +1110,11 @@ function CreateSnippet() {
                                         key={
                                             option.value
                                         }
-                                        className={`createSnippetVisibilityOption ${
-                                            formData.visibility ===
+                                        className={`createSnippetVisibilityOption ${formData.visibility ===
                                             option.value
-                                                ? "createSnippetVisibilityOptionActive"
-                                                : ""
-                                        }`}
+                                            ? "createSnippetVisibilityOptionActive"
+                                            : ""
+                                            }`}
                                     >
                                         <input
                                             type="radio"
@@ -1039,11 +1187,10 @@ function CreateSnippet() {
                         {!imagePreviewUrl ? (
                             <label
                                 htmlFor="snippetPreviewImage"
-                                className={`createSnippetImageDropZone ${
-                                    fieldErrors.image
-                                        ? "createSnippetImageDropZoneError"
-                                        : ""
-                                }`}
+                                className={`createSnippetImageDropZone ${fieldErrors.image
+                                    ? "createSnippetImageDropZoneError"
+                                    : ""
+                                    }`}
                             >
                                 <FaImage />
 
