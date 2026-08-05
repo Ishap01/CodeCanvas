@@ -48,6 +48,13 @@ import {
     getUserById,
 } from "../../../services/userService";
 
+import {
+    summarizeCode,
+    explainCode,
+} from "../../../services/aiService";
+
+import ReactMarkdown from "react-markdown";
+
 import "./SnippetDetails.css";
 
 function SnippetDetails() {
@@ -144,6 +151,24 @@ function SnippetDetails() {
 
     const [copySuccess, setCopySuccess] =
         useState(false);
+
+    const [aiLoading, setAiLoading] =
+    useState("");
+
+const [aiResult, setAiResult] =
+    useState("");
+
+const [aiOperation, setAiOperation] =
+    useState("");
+
+const [aiCache, setAiCache] =
+    useState({
+
+        summary: "",
+
+        explanation: "",
+
+    });
 
     const isOwner =
         Boolean(
@@ -459,6 +484,147 @@ function SnippetDetails() {
 
         return false;
     };
+
+    const buildAISource = () => {
+
+    if (
+        Array.isArray(snippet.files) &&
+        snippet.files.length > 0
+    ) {
+
+        return snippet.files
+            .map(
+                (file) =>
+
+`FILE NAME:
+${file.filename}
+
+SOURCE CODE:
+${file.code}`
+            )
+            .join(
+                "\n\n=====================================\n\n"
+            );
+    }
+
+    return snippet.code || "";
+};
+
+const handleSummarize = async () => {
+
+    if (aiCache.summary) {
+
+    setAiOperation("Summary");
+
+    setAiResult(aiCache.summary);
+
+    return;
+
+}
+
+    try {
+
+        setAiLoading("SUMMARY");
+
+        setAiResult("");
+
+        setErrorMessage("");
+
+        const response =
+            await summarizeCode(
+                buildAISource()
+            );
+
+        setAiOperation("Summary");
+
+        setAiCache(previous => ({
+
+    ...previous,
+
+    summary: response.result,
+
+}));
+
+setAiCache(previous => ({
+
+    ...previous,
+
+    summary: response.result,
+
+}));
+
+setAiResult(
+    response.result
+);
+
+    } catch (error) {
+
+        setErrorMessage(
+            error.message ||
+            "Unable to summarize code."
+        );
+
+    } finally {
+
+        setAiLoading("");
+
+    }
+
+};
+
+const handleExplain = async () => {
+
+    if (aiCache.explanation) {
+
+    setAiOperation("Explanation");
+
+    setAiResult(aiCache.explanation);
+
+    return;
+
+}
+
+    try {
+
+        setAiLoading("EXPLAIN");
+
+        setAiResult("");
+
+        setErrorMessage("");
+
+        const response =
+            await explainCode(
+                buildAISource()
+            );
+
+        setAiOperation("Explanation");
+
+        setAiCache(previous => ({
+
+    ...previous,
+
+    explanation: response.result,
+
+}));
+
+setAiResult(
+    response.result
+);
+
+    } catch (error) {
+
+        setErrorMessage(
+            error.message ||
+            "Unable to explain code."
+        );
+
+    } finally {
+
+        setAiLoading("");
+
+    }
+
+};
 
     const handleCopyCode = async () => {
 
@@ -1361,6 +1527,73 @@ ${file.code}`)
             </code>
 
         </pre>
+
+    )}
+
+</section>
+
+<section className="snippetDetailsAiSection">
+
+    <div className="snippetDetailsAiHeader">
+
+        <div>
+
+            <h2>
+                🤖 AI Assistant
+            </h2>
+
+            <p>
+                Understand this snippet using AI.
+            </p>
+
+        </div>
+
+        <div className="snippetDetailsAiActions">
+
+            <button
+                type="button"
+                onClick={handleSummarize}
+                disabled={Boolean(aiLoading)}
+            >
+                {aiLoading === "SUMMARY"
+                    ? "Summarizing..."
+                    : "📄 Summarize"}
+            </button>
+
+            <button
+                type="button"
+                onClick={handleExplain}
+                disabled={Boolean(aiLoading)}
+            >
+                {aiLoading === "EXPLAIN"
+                    ? "Explaining..."
+                    : "💎 Explain"}
+            </button>
+
+        </div>
+
+    </div>
+
+    {aiResult && (
+
+        <div className="snippetDetailsAiResult">
+
+            <h3>
+
+                {aiOperation}
+
+            </h3>
+
+            <div className="snippetDetailsMarkdown">
+
+    <ReactMarkdown>
+
+        {aiResult}
+
+    </ReactMarkdown>
+
+</div>
+        </div>
 
     )}
 

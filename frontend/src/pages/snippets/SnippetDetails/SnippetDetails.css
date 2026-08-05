@@ -957,6 +957,266 @@
 
 }
 
+/* ==========================
+   AI Assistant
+========================== */
+
+.snippetDetailsAiSection {
+
+    margin-top: 22px;
+
+    padding: 22px;
+
+    border: 1px solid rgba(
+        146,
+        154,
+        196,
+        0.14
+    );
+
+    border-radius: 18px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(18,21,40,.95),
+            rgba(10,12,26,.98)
+        );
+
+}
+
+.snippetDetailsAiHeader {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 20px;
+
+}
+
+.snippetDetailsAiHeader h2 {
+
+    margin: 0;
+
+    color: #fff;
+
+    font-size: 1.2rem;
+
+}
+
+.snippetDetailsAiHeader p {
+
+    margin-top: 5px;
+
+    color: #8f98b2;
+
+    font-size: .82rem;
+
+}
+
+.snippetDetailsAiActions {
+
+    display: flex;
+
+    gap: 12px;
+
+}
+
+.snippetDetailsAiActions button {
+
+    min-height: 42px;
+
+    padding: 0 18px;
+
+    border: 1px solid rgba(
+        138,
+        109,
+        255,
+        .35
+    );
+
+    border-radius: 10px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(108,74,224,.22),
+            rgba(68,124,255,.16)
+        );
+
+    color: #f4f6ff;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+}
+
+.snippetDetailsAiActions button:hover {
+
+    border-color: rgba(
+        138,
+        109,
+        255,
+        .8
+    );
+
+}
+
+.snippetDetailsAiResult {
+
+    margin-top: 22px;
+
+    padding: 18px;
+
+    border-radius: 12px;
+
+    background:
+        rgba(
+            7,
+            10,
+            20,
+            .8
+        );
+
+    border: 1px solid rgba(
+        255,
+        255,
+        255,
+        .08
+    );
+
+}
+
+.snippetDetailsAiResult h3 {
+
+    margin-bottom: 14px;
+
+    color: #8bc7ff;
+
+}
+
+.snippetDetailsAiResult pre {
+
+    margin: 0;
+
+    white-space: pre-wrap;
+
+    word-break: break-word;
+
+    color: #dfe6ff;
+
+    font-family: inherit;
+
+    line-height: 1.8;
+
+}
+
+/* ===========================
+   AI Markdown
+=========================== */
+
+.snippetDetailsMarkdown {
+
+    color: #dce3f5;
+
+    line-height: 1.85;
+
+    font-size: .92rem;
+
+}
+
+.snippetDetailsMarkdown h1,
+.snippetDetailsMarkdown h2,
+.snippetDetailsMarkdown h3,
+.snippetDetailsMarkdown h4 {
+
+    color: #ffffff;
+
+    margin-top: 1.2rem;
+    margin-bottom: .8rem;
+
+}
+
+.snippetDetailsMarkdown p {
+
+    margin: .8rem 0;
+
+}
+
+.snippetDetailsMarkdown ul,
+.snippetDetailsMarkdown ol {
+
+    padding-left: 22px;
+
+}
+
+.snippetDetailsMarkdown li {
+
+    margin: 6px 0;
+
+}
+
+.snippetDetailsMarkdown strong {
+
+    color: #ffffff;
+
+}
+
+.snippetDetailsMarkdown code {
+
+    padding: 2px 6px;
+
+    border-radius: 6px;
+
+    background: rgba(
+        255,
+        255,
+        255,
+        .08
+    );
+
+    color: #9fd6ff;
+
+    font-family:
+        "Cascadia Code",
+        Consolas,
+        monospace;
+
+}
+
+.snippetDetailsMarkdown pre {
+
+    overflow-x: auto;
+
+    margin: 16px 0;
+
+    padding: 16px;
+
+    border-radius: 10px;
+
+    background: #0b0f1d;
+
+    border: 1px solid rgba(
+        255,
+        255,
+        255,
+        .08
+    );
+
+}
+
+.snippetDetailsMarkdown pre code {
+
+    padding: 0;
+
+    background: transparent;
+
+}
+
 @keyframes snippetDetailsSpin {
     to {
         transform: rotate(360deg);

@@ -22,6 +22,10 @@ import {
     uploadSnippetImage,
 } from "../../../services/snippetService";
 
+import {
+    generateTags,
+} from "../../../services/aiService";
+
 import "./CreateSnippet.css";
 
 const INITIAL_FORM_DATA = {
@@ -114,6 +118,9 @@ function CreateSnippet() {
         useState("");
 
     const [isSubmitting, setIsSubmitting] =
+        useState(false);
+
+    const [isGeneratingTags, setIsGeneratingTags] =
         useState(false);
 
     const selectedVisibility = useMemo(
@@ -428,6 +435,118 @@ function CreateSnippet() {
             Object.keys(errors).length ===
             0
         );
+    };
+
+    const handleGenerateTags = async () => {
+
+        const hasCode =
+            formData.files.some(
+                (file) => file.code.trim()
+            );
+
+        if (!hasCode) {
+
+            setErrorMessage(
+                "Please add source code before generating tags."
+            );
+
+            return;
+        }
+
+        try {
+
+            setIsGeneratingTags(true);
+
+            setErrorMessage("");
+            setSuccessMessage("");
+
+            const completeCode =
+                formData.files
+                    .map(
+                        (file) =>
+
+                            `FILE NAME:
+${file.filename || "Untitled File"}
+
+SOURCE CODE:
+${file.code}`
+                    )
+                    .join(
+                        "\n\n============================================\n\n"
+                    );
+
+            const response =
+                await generateTags(
+                    completeCode
+                );
+
+            const generatedTags =
+                response?.result
+                    ?.split(/\n|,/)
+                    .map(tag =>
+                        tag
+                            .replace(/^[-•*\d.\s]+/, "")
+                            .trim()
+                    )
+                    .filter(Boolean);
+
+            const uniqueTags = [];
+
+            [...tags, ...generatedTags].forEach((tag) => {
+
+                const normalized =
+                    tag.trim();
+
+                if (
+                    normalized &&
+                    !uniqueTags.some(
+                        existing =>
+                            existing.toLowerCase() ===
+                            normalized.toLowerCase()
+                    )
+                ) {
+                    uniqueTags.push(normalized);
+                }
+
+                if (generatedTags.length < 8) {
+                    setSuccessMessage(
+                        `✨ ${generatedTags.length} relevant tags generated.`
+                    );
+                } else {
+                    setSuccessMessage(
+                        `✨ ${generatedTags.length} tags generated successfully.`
+                    );
+                }
+
+            });
+
+            const finalTags = uniqueTags.slice(0, 10);
+
+            setTags(finalTags);
+
+            setSuccessMessage(
+                `✨ ${finalTags.length} tag${finalTags.length > 1 ? "s" : ""} ready to use.`
+            );
+
+            window.setTimeout(() => {
+                setSuccessMessage("");
+            }, 3000);
+
+            setTags(uniqueTags);
+
+        } catch (error) {
+
+            setErrorMessage(
+                error.message ||
+                "Unable to generate tags."
+            );
+
+        } finally {
+
+            setIsGeneratingTags(false);
+
+        }
+
     };
 
     const handleSubmit = async (event) => {
@@ -1025,16 +1144,45 @@ function CreateSnippet() {
                                     }
                                 />
 
-                                <button
-                                    type="button"
-                                    onClick={addTag}
-                                    disabled={
-                                        isSubmitting
-                                    }
-                                >
-                                    <FaPlus />
-                                    Add tag
-                                </button>
+                                <div className="createSnippetTagActions">
+
+                                    <button
+                                        type="button"
+                                        onClick={addTag}
+                                        disabled={
+                                            isSubmitting ||
+                                            isGeneratingTags
+                                        }
+                                    >
+                                        <FaPlus />
+                                        Add tag
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        className="createSnippetAiButton"
+                                        onClick={handleGenerateTags}
+                                        disabled={
+                                            isSubmitting ||
+                                            isGeneratingTags
+                                        }
+                                    >
+                                        {isGeneratingTags
+                                            ? (
+                                                <>
+                                                    <span className="createSnippetSpinner" />
+                                                    Generating...
+                                                </>
+                                            )
+                                            : (
+                                                <>
+                                                    ✨
+                                                    Generate Tags
+                                                </>
+                                            )}
+                                    </button>
+
+                                </div>
 
                             </div>
 
@@ -1076,8 +1224,7 @@ function CreateSnippet() {
                                 </small>
                             ) : (
                                 <small>
-                                    Add between 1 and 10
-                                    relevant tags.
+                                    You can add maximum 10 relevant tags.
                                 </small>
                             )}
 

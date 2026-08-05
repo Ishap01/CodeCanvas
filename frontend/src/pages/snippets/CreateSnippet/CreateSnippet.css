@@ -500,6 +500,39 @@
         transform 0.2s ease;
 }
 
+.createSnippetTagActions {
+
+    display: flex;
+    gap: 10px;
+
+}
+
+.createSnippetAiButton {
+
+    border: 1px solid rgba(116, 233, 255, 0.35);
+
+    background: linear-gradient(
+        135deg,
+        rgba(70, 140, 255, 0.18),
+        rgba(118, 92, 255, 0.18)
+    );
+
+    color: #dff7ff;
+
+}
+
+.createSnippetAiButton:hover {
+
+    border-color: rgba(116,233,255,.8);
+
+    background: linear-gradient(
+        135deg,
+        rgba(70,140,255,.28),
+        rgba(118,92,255,.28)
+    );
+
+}
+
 .createSnippetTagInputRow button:hover {
     border-color: rgba(
         155,
