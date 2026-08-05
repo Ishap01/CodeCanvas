@@ -6,14 +6,26 @@ import axiosInstance from "../api/axios";
 
 // Logged-in profile
 export const getProfile = async () => {
-  const response = await axiosInstance.get("/api/users/profile");
+  const response = await axiosInstance.get(
+    "/api/users/profile"
+  );
+
   return response.data;
 };
 
-// Public profile
+// Public profile by exact username
 export const getPublicProfile = async (username) => {
+  const normalizedUsername =
+    String(username || "").trim();
+
+  if (!normalizedUsername) {
+    throw new Error("Username is required.");
+  }
+
   const response = await axiosInstance.get(
-    `/api/users/public/${username}`
+    `/api/users/public/${encodeURIComponent(
+      normalizedUsername
+    )}`
   );
 
   return response.data;

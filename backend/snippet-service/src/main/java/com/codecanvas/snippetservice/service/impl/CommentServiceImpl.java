@@ -6,6 +6,10 @@ import com.codecanvas.snippetservice.dto.response.CommentResponse;
 import com.codecanvas.snippetservice.entity.Comment;
 import com.codecanvas.snippetservice.entity.Snippet;
 import com.codecanvas.snippetservice.exception.ResourceNotFoundException;
+import com.codecanvas.snippetservice.kafka.event.CommentCreatedEvent;
+import com.codecanvas.snippetservice.kafka.event.ReplyCreatedEvent;
+import com.codecanvas.snippetservice.kafka.mapper.SnippetEventMapper;
+import com.codecanvas.snippetservice.kafka.producer.SnippetEventProducer;
 import com.codecanvas.snippetservice.repository.CommentRepository;
 import com.codecanvas.snippetservice.repository.SnippetRepository;
 import com.codecanvas.snippetservice.security.AuthenticatedUser;
@@ -27,6 +31,13 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final SnippetRepository snippetRepository;
     private final SearchIndexService searchIndexService;
+
+
+    // Kafka Producer
+    private final SnippetEventProducer snippetEventProducer;
+
+    // Converts entity into Kafka event.
+    private final SnippetEventMapper snippetEventMapper;
 
     private UUID getCurrentUserId() {
 
@@ -99,6 +110,26 @@ public class CommentServiceImpl implements CommentService {
         );
 
         snippetRepository.save(snippet);
+
+        /*
+         * Create Kafka event
+         * after successful comment creation.
+         */
+        CommentCreatedEvent event =
+                snippetEventMapper.toCommentCreatedEvent(
+                        savedComment
+                );
+
+        /*
+         * Publish comment created event.
+         */
+        snippetEventProducer.publishCommentCreatedEvent(
+                event
+        );
+
+        /*
+         * Update Elasticsearch index.
+         */
 
         searchIndexService.indexSnippet(snippet);
 
@@ -215,6 +246,27 @@ public class CommentServiceImpl implements CommentService {
         );
 
         snippetRepository.save(snippet);
+
+
+        /*
+         * Create Kafka event
+         * after successful reply creation.
+         */
+        ReplyCreatedEvent event =
+                snippetEventMapper.toReplyCreatedEvent(
+                        savedReply
+                );
+
+        /*
+         * Publish reply created event.
+         */
+        snippetEventProducer.publishReplyCreatedEvent(
+                event
+        );
+
+        /*
+         * Update Elasticsearch index.
+         */
 
         searchIndexService.indexSnippet(snippet);
 
