@@ -51,6 +51,18 @@ spring:
           json:
             trusted:
               packages: "*"
+app:
+  kafka:
+    topics:
+      payment-success: payment-success-events
+      payment-failed: payment-failed-events
+    payment-success:
+      partitions: 3
+      replicas: 1
+
+    payment-failed:
+      partitions: 3
+      replicas: 1
 
 eureka:
   client:

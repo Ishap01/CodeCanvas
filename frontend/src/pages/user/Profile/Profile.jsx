@@ -1,17 +1,20 @@
-import React, {
+import {
     useEffect,
     useMemo,
     useState,
 } from "react";
 
-import "./Profile.css";
+import {
+    useNavigate,
+} from "react-router-dom";
 
 import {
+    FaCrown,
     FaShareAlt,
     FaUser,
 } from "react-icons/fa";
 
-import { useNavigate } from "react-router-dom";
+import "./Profile.css";
 
 import profileBanner from "../../../assets/images/hero.png";
 
@@ -19,6 +22,7 @@ import SnippetCard from "../../../components/snippets/SnippetCard/SnippetCard";
 
 import {
     getProfile,
+    getSubscriptionStatus,
 } from "../../../services/userService";
 
 import {
@@ -49,15 +53,116 @@ const tabs = [
     },
 ];
 
-export default function Profile() {
+function unwrapResponseData(response) {
+    if (response == null) {
+        return {};
+    }
 
-    const navigate = useNavigate();
+    if (
+        typeof response === "object" &&
+        response.data !== undefined
+    ) {
+        return response.data;
+    }
+
+    return response;
+}
+
+function extractSnippetArray(response) {
+    const payload =
+        unwrapResponseData(response);
+
+    if (Array.isArray(payload)) {
+        return payload;
+    }
+
+    if (
+        Array.isArray(
+            payload?.snippets
+        )
+    ) {
+        return payload.snippets;
+    }
+
+    if (
+        Array.isArray(
+            payload?.content
+        )
+    ) {
+        return payload.content;
+    }
+
+    if (
+        Array.isArray(
+            payload?.results
+        )
+    ) {
+        return payload.results;
+    }
+
+    return [];
+}
+
+function normalizeSubscription(
+    response
+) {
+    const payload =
+        unwrapResponseData(response);
+
+    return {
+        isPremium:
+            Boolean(
+                payload?.isPremium
+            ),
+
+        tier:
+            String(
+                payload?.tier ||
+                ""
+            )
+                .trim()
+                .toUpperCase(),
+    };
+}
+
+function formatTierName(tier) {
+    const normalizedTier =
+        String(tier || "")
+            .trim();
+
+    if (!normalizedTier) {
+        return "Premium Member";
+    }
+
+    return normalizedTier
+        .replaceAll("_", " ")
+        .toLowerCase()
+        .replace(
+            /\b\w/g,
+            (character) =>
+                character.toUpperCase()
+        );
+}
+
+export default function Profile() {
+    const navigate =
+        useNavigate();
 
     const [profile, setProfile] =
         useState(null);
 
-    const [statistics, setStatistics] =
-        useState(null);
+    const [
+        subscription,
+        setSubscription,
+    ] = useState({
+        isPremium: false,
+        tier: "",
+    });
+
+    const [
+        statistics,
+        setStatistics,
+    ] = useState(null);
 
     const [snippets, setSnippets] =
         useState([]);
@@ -87,84 +192,139 @@ export default function Profile() {
     ] = useState("");
 
     useEffect(() => {
-
-        const loadProfilePage = async () => {
-
-            try {
-
-                setLoading(true);
-                setError("");
-
-                const [
-                    profileData,
-                    snippetData,
-                ] = await Promise.all([
-                    getProfile(),
-                    getMySnippets(),
-                ]);
-
-                setProfile(profileData);
-
-                setSnippets(
-                    Array.isArray(snippetData)
-                        ? snippetData
-                        : []
-                );
-
+        const loadProfilePage =
+            async () => {
                 try {
+                    setLoading(true);
+                    setError("");
 
-                    const statisticsData =
-                        await getUserStatistics(
-                            profileData.userId
+                    /*
+                     * Profile aur uploaded snippets
+                     * parallel load honge.
+                     */
+                    const [
+                        profileResponse,
+                        snippetResponse,
+                    ] = await Promise.all([
+                        getProfile(),
+                        getMySnippets(),
+                    ]);
+
+                    const profilePayload =
+                        unwrapResponseData(
+                            profileResponse
                         );
 
-                    setStatistics(
-                        statisticsData
+                    const normalizedProfile =
+                        profilePayload?.user ||
+                        profilePayload?.profile ||
+                        profilePayload;
+
+                    const normalizedSnippets =
+                        extractSnippetArray(
+                            snippetResponse
+                        );
+
+                    setProfile(
+                        normalizedProfile
                     );
 
+                    setSnippets(
+                        normalizedSnippets
+                    );
+
+                    /*
+                     * Statistics fail ho jaye to bhi
+                     * profile page render hona chahiye.
+                     */
+                    if (
+                        normalizedProfile?.userId
+                    ) {
+                        try {
+                            const statisticsResponse =
+                                await getUserStatistics(
+                                    normalizedProfile
+                                        .userId
+                                );
+
+                            setStatistics(
+                                unwrapResponseData(
+                                    statisticsResponse
+                                )
+                            );
+                        } catch (
+                            statisticsError
+                        ) {
+                            console.error(
+                                "Unable to load user statistics:",
+                                statisticsError
+                            );
+
+                            setStatistics({
+                                followers: 0,
+                                following: 0,
+                            });
+                        }
+
+                        /*
+                         * Premium status alag subscription
+                         * endpoint se aayega.
+                         */
+                        try {
+                            const subscriptionResponse =
+                                await getSubscriptionStatus(
+                                    normalizedProfile
+                                        .userId
+                                );
+
+                            setSubscription(
+                                normalizeSubscription(
+                                    subscriptionResponse
+                                )
+                            );
+                        } catch (
+                            subscriptionError
+                        ) {
+                            console.error(
+                                "Unable to load subscription status:",
+                                subscriptionError
+                            );
+
+                            /*
+                             * Subscription endpoint fail hone par
+                             * user ko normal profile theme milegi.
+                             */
+                            setSubscription({
+                                isPremium: false,
+                                tier: "",
+                            });
+                        }
+                    }
                 } catch (
-                    statisticsError
+                    requestError
                 ) {
-
                     console.error(
-                        "Unable to load user statistics:",
-                        statisticsError
+                        "Unable to load profile page:",
+                        requestError
                     );
 
-                    setStatistics({
-                        followers: 0,
-                        following: 0,
-                    });
+                    setError(
+                        requestError
+                            ?.response
+                            ?.data
+                            ?.message ||
+                        requestError?.message ||
+                        "Unable to load profile."
+                    );
+                } finally {
+                    setLoading(false);
                 }
-
-            } catch (requestError) {
-
-                console.error(
-                    "Unable to load profile page:",
-                    requestError
-                );
-
-                setError(
-                    requestError?.response?.data
-                        ?.message ||
-                    requestError?.message ||
-                    "Unable to load profile."
-                );
-
-            } finally {
-
-                setLoading(false);
-
-            }
-
-        };
+            };
 
         loadProfilePage();
-
     }, []);
 
     useEffect(() => {
-
         if (
             activeTab !== "Saved" ||
             savedTabLoading ||
@@ -173,44 +333,47 @@ export default function Profile() {
             return;
         }
 
-        const loadSavedSnippets = async () => {
+        const loadSavedSnippets =
+            async () => {
+                try {
+                    setSavedTabLoading(
+                        true
+                    );
 
-            try {
+                    setSavedTabError("");
 
-                setSavedTabLoading(true);
-                setSavedTabError("");
+                    const response =
+                        await getMyBookmarkedSnippets();
 
-                const response =
-                    await getMyBookmarkedSnippets();
-
-                setBookmarkedSnippets(
-                    Array.isArray(response)
-                        ? response
-                        : []
-                );
-
-            } catch (requestError) {
-
-                console.error(
-                    "Unable to load saved snippets:",
+                    setBookmarkedSnippets(
+                        extractSnippetArray(
+                            response
+                        )
+                    );
+                } catch (
                     requestError
-                );
+                ) {
+                    console.error(
+                        "Unable to load saved snippets:",
+                        requestError
+                    );
 
-                setSavedTabError(
-                    requestError?.message ||
-                    "Unable to load saved snippets."
-                );
-
-            } finally {
-
-                setSavedTabLoading(false);
-
-            }
-
-        };
+                    setSavedTabError(
+                        requestError
+                            ?.response
+                            ?.data
+                            ?.message ||
+                        requestError?.message ||
+                        "Unable to load saved snippets."
+                    );
+                } finally {
+                    setSavedTabLoading(
+                        false
+                    );
+                }
+            };
 
         loadSavedSnippets();
-
     }, [
         activeTab,
         bookmarkedSnippets.length,
@@ -219,13 +382,11 @@ export default function Profile() {
 
     const snippetStatistics =
         useMemo(() => {
-
             return snippets.reduce(
                 (
                     calculatedStatistics,
                     snippet
                 ) => {
-
                     calculatedStatistics
                         .totalSnippets += 1;
 
@@ -254,7 +415,6 @@ export default function Profile() {
                         );
 
                     return calculatedStatistics;
-
                 },
                 {
                     totalSnippets: 0,
@@ -264,7 +424,6 @@ export default function Profile() {
                     totalForks: 0,
                 }
             );
-
         }, [snippets]);
 
     const followers =
@@ -277,6 +436,14 @@ export default function Profile() {
             statistics?.following
         );
 
+    const isPremium =
+        subscription.isPremium;
+
+    const premiumTierLabel =
+        formatTierName(
+            subscription.tier
+        );
+
     const displayedSnippets =
         activeTab === "Uploaded"
             ? snippets
@@ -284,40 +451,45 @@ export default function Profile() {
                 ? bookmarkedSnippets
                 : [];
 
+    const profilePageClassName =
+        isPremium
+            ? "profilePage premiumProfilePage"
+            : "profilePage";
+
     const handleShareProfile =
         async () => {
-
             const profileUrl =
                 window.location.href;
 
             try {
-
                 if (navigator.share) {
-
                     await navigator.share({
                         title:
                             profile?.fullName ||
                             "CodeCanvas Profile",
+
                         text:
                             `View ${
                                 profile?.fullName ||
                                 "this user"
                             } on CodeCanvas.`,
-                        url: profileUrl,
+
+                        url:
+                            profileUrl,
                     });
 
                     return;
                 }
 
                 await navigator.clipboard
-                    .writeText(profileUrl);
+                    .writeText(
+                        profileUrl
+                    );
 
                 window.alert(
                     "Profile link copied."
                 );
-
             } catch (shareError) {
-
                 console.error(
                     "Unable to share profile:",
                     shareError
@@ -326,11 +498,12 @@ export default function Profile() {
         };
 
     if (loading) {
-
         return (
             <div className="profilePage">
 
                 <div className="emptyProfileTab">
+
+                    <span className="profileLoadingSpinner" />
 
                     <h2>
                         Loading profile...
@@ -338,7 +511,8 @@ export default function Profile() {
 
                     <p>
                         Please wait while your profile
-                        is loaded.
+                        and subscription details are
+                        loaded.
                     </p>
 
                 </div>
@@ -348,7 +522,6 @@ export default function Profile() {
     }
 
     if (error) {
-
         return (
             <div className="profilePage">
 
@@ -383,9 +556,9 @@ export default function Profile() {
     }
 
     return (
-        <div className="profilePage">
+        <div className={profilePageClassName}>
 
-            {/* PROFILE HEADER */}
+            {/* ================= PROFILE HEADER ================= */}
 
             <section className="profileHeader">
 
@@ -397,9 +570,23 @@ export default function Profile() {
                     }}
                 >
                     <div className="profileBannerOverlay" />
+
+                    {isPremium && (
+                        <div className="premiumBannerGlow" />
+                    )}
                 </div>
 
                 <div className="profileHeaderContent">
+
+                    {isPremium && (
+                        <div className="premiumMemberRibbon">
+
+                            <FaCrown />
+
+                            Premium Member
+
+                        </div>
+                    )}
 
                     <div className="profileAvatar">
 
@@ -421,13 +608,33 @@ export default function Profile() {
 
                         )}
 
+                        {isPremium && (
+                            <span className="premiumAvatarCrown">
+                                <FaCrown />
+                            </span>
+                        )}
+
                     </div>
 
                     <div className="profileIdentity">
 
-                        <h1>
-                            {profile.fullName}
-                        </h1>
+                        <div className="profileNameRow">
+
+                            <h1>
+                                {profile.fullName}
+                            </h1>
+
+                            {isPremium && (
+                                <span className="premiumIdentityBadge">
+
+                                    <FaCrown />
+
+                                    {premiumTierLabel}
+
+                                </span>
+                            )}
+
+                        </div>
 
                         <p>
                             @{profile.username}
@@ -446,6 +653,7 @@ export default function Profile() {
                                             .totalSnippets
                                     }
                                 </strong>
+
                                 Snippets
                             </span>
 
@@ -456,6 +664,7 @@ export default function Profile() {
                                             .totalLikes
                                     }
                                 </strong>
+
                                 Likes
                             </span>
 
@@ -466,6 +675,7 @@ export default function Profile() {
                                             .totalBookmarks
                                     }
                                 </strong>
+
                                 Saves
                             </span>
 
@@ -476,6 +686,7 @@ export default function Profile() {
                                             .totalViews
                                     }
                                 </strong>
+
                                 Views
                             </span>
 
@@ -486,6 +697,7 @@ export default function Profile() {
                                             .totalForks
                                     }
                                 </strong>
+
                                 Forks
                             </span>
 
@@ -496,6 +708,7 @@ export default function Profile() {
                                             .toLocaleString()
                                     }
                                 </strong>
+
                                 Followers
                             </span>
 
@@ -506,6 +719,7 @@ export default function Profile() {
                                             .toLocaleString()
                                     }
                                 </strong>
+
                                 Following
                             </span>
 
@@ -544,15 +758,29 @@ export default function Profile() {
 
             </section>
 
-            {/* PROFILE CONTENT */}
+            {/* ================= PROFILE CONTENT ================= */}
 
             <main className="profileContent">
 
                 <section className="profileAbout">
 
-                    <p className="profileSectionLabel">
-                        ABOUT
-                    </p>
+                    <div className="profileAboutHeading">
+
+                        <p className="profileSectionLabel">
+                            About
+                        </p>
+
+                        {isPremium && (
+                            <span className="premiumAboutBadge">
+
+                                <FaCrown />
+
+                                Premium Profile
+
+                            </span>
+                        )}
+
+                    </div>
 
                     <p className="profileBio">
                         {profile.bio?.trim()
@@ -581,7 +809,6 @@ export default function Profile() {
                             )}
 
                         </div>
-
                     )}
 
                 </section>
@@ -623,6 +850,8 @@ export default function Profile() {
 
                                 <div className="emptyProfileTab">
 
+                                    <span className="profileLoadingSpinner" />
+
                                     <h2>
                                         Loading saved snippets...
                                     </h2>
@@ -659,6 +888,10 @@ export default function Profile() {
                                     0 && (
 
                                 <div className="emptyProfileTab">
+
+                                    {isPremium && (
+                                        <FaCrown className="premiumEmptyCrown" />
+                                    )}
 
                                     <h2>
                                         {activeTab ===
@@ -714,6 +947,10 @@ export default function Profile() {
 
                         <div className="emptyProfileTab">
 
+                            {isPremium && (
+                                <FaCrown className="premiumEmptyCrown" />
+                            )}
+
                             <h2>
                                 Liked Snippets
                             </h2>
@@ -729,6 +966,10 @@ export default function Profile() {
                     {activeTab === "Activity" && (
 
                         <div className="emptyProfileTab">
+
+                            {isPremium && (
+                                <FaCrown className="premiumEmptyCrown" />
+                            )}
 
                             <h2>
                                 Activity
@@ -751,11 +992,12 @@ export default function Profile() {
 }
 
 function getNumberValue(value) {
-
     const numberValue =
         Number(value);
 
-    return Number.isFinite(numberValue)
+    return Number.isFinite(
+        numberValue
+    )
         ? numberValue
         : 0;
 }

@@ -1,4 +1,4 @@
-package com.codecanvas.paymentservice.kafka.event;
+package com.codecanvas.userservice.kafka.event;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -107,23 +107,31 @@ public class PaymentFailedEvent {
         return razorpayOrderId;
     }
 
-    public void setRazorpayOrderId(String razorpayOrderId) {
-        this.razorpayOrderId = razorpayOrderId;
+    public void setRazorpayOrderId(
+            String razorpayOrderId) {
+
+        this.razorpayOrderId =
+                razorpayOrderId;
     }
 
     public String getRazorpayPaymentId() {
         return razorpayPaymentId;
     }
 
-    public void setRazorpayPaymentId(String razorpayPaymentId) {
-        this.razorpayPaymentId = razorpayPaymentId;
+    public void setRazorpayPaymentId(
+            String razorpayPaymentId) {
+
+        this.razorpayPaymentId =
+                razorpayPaymentId;
     }
 
     public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(BigDecimal amount) {
+    public void setAmount(
+            BigDecimal amount) {
+
         this.amount = amount;
     }
 
@@ -131,7 +139,9 @@ public class PaymentFailedEvent {
         return currency;
     }
 
-    public void setCurrency(String currency) {
+    public void setCurrency(
+            String currency) {
+
         this.currency = currency;
     }
 
@@ -139,15 +149,21 @@ public class PaymentFailedEvent {
         return failureReason;
     }
 
-    public void setFailureReason(String failureReason) {
-        this.failureReason = failureReason;
+    public void setFailureReason(
+            String failureReason) {
+
+        this.failureReason =
+                failureReason;
     }
 
     public LocalDateTime getOccurredAt() {
         return occurredAt;
     }
 
-    public void setOccurredAt(LocalDateTime occurredAt) {
-        this.occurredAt = occurredAt;
+    public void setOccurredAt(
+            LocalDateTime occurredAt) {
+
+        this.occurredAt =
+                occurredAt;
     }
 }

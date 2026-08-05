@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public class PaymentFailedEvent {
+public class PaymentSuccessEvent {
 
     private UUID eventId;
     private String eventType;
@@ -15,30 +15,26 @@ public class PaymentFailedEvent {
     private Long planId;
     private String planName;
 
-    private String razorpayOrderId;
     private String razorpayPaymentId;
 
     private BigDecimal amount;
     private String currency;
 
-    private String failureReason;
     private LocalDateTime occurredAt;
 
-    public PaymentFailedEvent() {
+    public PaymentSuccessEvent() {
     }
 
-    public PaymentFailedEvent(
+    public PaymentSuccessEvent(
             UUID eventId,
             String eventType,
             UUID paymentId,
             UUID userId,
             Long planId,
             String planName,
-            String razorpayOrderId,
             String razorpayPaymentId,
             BigDecimal amount,
             String currency,
-            String failureReason,
             LocalDateTime occurredAt) {
 
         this.eventId = eventId;
@@ -47,11 +43,9 @@ public class PaymentFailedEvent {
         this.userId = userId;
         this.planId = planId;
         this.planName = planName;
-        this.razorpayOrderId = razorpayOrderId;
         this.razorpayPaymentId = razorpayPaymentId;
         this.amount = amount;
         this.currency = currency;
-        this.failureReason = failureReason;
         this.occurredAt = occurredAt;
     }
 
@@ -103,14 +97,6 @@ public class PaymentFailedEvent {
         this.planName = planName;
     }
 
-    public String getRazorpayOrderId() {
-        return razorpayOrderId;
-    }
-
-    public void setRazorpayOrderId(String razorpayOrderId) {
-        this.razorpayOrderId = razorpayOrderId;
-    }
-
     public String getRazorpayPaymentId() {
         return razorpayPaymentId;
     }
@@ -133,14 +119,6 @@ public class PaymentFailedEvent {
 
     public void setCurrency(String currency) {
         this.currency = currency;
-    }
-
-    public String getFailureReason() {
-        return failureReason;
-    }
-
-    public void setFailureReason(String failureReason) {
-        this.failureReason = failureReason;
     }
 
     public LocalDateTime getOccurredAt() {

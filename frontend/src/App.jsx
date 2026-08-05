@@ -175,11 +175,13 @@ function App() {
                 />
 
                 <Route
-                    path="/snippets/:snippetId"
-                    element={
-                        <SnippetDetails />
-                    }
-                />
+    path="/snippets/:snippetId"
+    element={
+        <ProtectedRoute message="Please login to view this snippet.">
+            <SnippetDetails />
+        </ProtectedRoute>
+    }
+/>
 
                 <Route
                     path="/admin"
