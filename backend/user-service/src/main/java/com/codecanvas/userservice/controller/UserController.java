@@ -3,6 +3,7 @@ package com.codecanvas.userservice.controller;
 import java.util.List;
 import java.util.UUID;
 
+import com.codecanvas.userservice.dto.response.PublicProfileResponse;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -42,6 +43,15 @@ public class UserController {
     @GetMapping("/profile")
     public UserResponse getProfile() {
         return userService.getProfile();
+    }
+
+    @GetMapping("/public/{username}")
+    public ResponseEntity<PublicProfileResponse> getPublicProfile(
+            @PathVariable String username) {
+
+        return ResponseEntity.ok(
+                userService.getPublicProfile(username)
+        );
     }
 
     // UPDATE USER

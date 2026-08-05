@@ -23,7 +23,9 @@ public interface SnippetService {
     );
 
 
-    List<SnippetResponse> getPublicSnippets();
+    List<SnippetResponse> getPublicSnippets(
+            UUID currentUserId
+    );
 
 
     List<SnippetResponse> getSnippetsByUserId(
@@ -58,4 +60,10 @@ public interface SnippetService {
 
 
     List<SnippetResponse> getAllSnippets();
+
+
+    List<SnippetResponse> getProfileSnippets(
+            UUID profileUserId,
+            UUID currentUserId
+    );
 }

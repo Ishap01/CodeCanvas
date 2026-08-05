@@ -19,7 +19,11 @@ import {
     FaSearch,
     FaTimes,
 } from "react-icons/fa";
-
+import {
+    searchSnippets,
+    getPopularSearches,
+    getSearchHistory,
+} from "../../services/searchService";
 import "./SearchPage.css";
 
 /*
@@ -245,65 +249,43 @@ export default function SearchPage() {
         setSelectedCategory,
     ] = useState("All");
 
+    const [snippets, setSnippets] = useState([]);
+
+    const [loading, setLoading] = useState(false);
+
+    const [totalResults, setTotalResults] = useState(0);
+
+    const [currentPage, setCurrentPage] = useState(0);
+
+    const [popularSearches, setPopularSearches] = useState([]);
+
+    const [searchHistory, setSearchHistory] = useState([]);
+
+    const [showHistory, setShowHistory] = useState(false);
+
     useEffect(() => {
         setSearchText(queryFromUrl);
     }, [queryFromUrl]);
 
-    const filteredSnippets =
-        useMemo(() => {
+    useEffect(() => {
 
-            const normalizedSearch =
-                queryFromUrl
-                    .trim()
-                    .toLowerCase();
+        fetchSnippets();
 
-            return DEMO_SNIPPETS.filter(
-                (snippet) => {
+    }, [
+        queryFromUrl,
+        selectedCategory,
+        currentPage,
+    ]);
 
-                    const matchesCategory =
-                        selectedCategory ===
-                            "All" ||
-                        snippet.language ===
-                            selectedCategory ||
-                        snippet.framework ===
-                            selectedCategory ||
-                        snippet.tags.some(
-                            (tag) =>
-                                tag.toLowerCase() ===
-                                selectedCategory
-                                    .toLowerCase()
-                        );
+    useEffect(() => {
 
-                    if (!matchesCategory) {
-                        return false;
-                    }
+        fetchPopularSearches();
 
-                    if (!normalizedSearch) {
-                        return true;
-                    }
+        fetchSearchHistory();
 
-                    const searchableContent = [
-                        snippet.title,
-                        snippet.description,
-                        snippet.language,
-                        snippet.framework,
-                        snippet.categoryName,
-                        snippet.visibility,
-                        ...snippet.tags,
-                    ]
-                        .join(" ")
-                        .toLowerCase();
+    }, []);
 
-                    return searchableContent.includes(
-                        normalizedSearch
-                    );
-                }
-            );
-
-        }, [
-            queryFromUrl,
-            selectedCategory,
-        ]);
+    const filteredSnippets = snippets;
 
     const handleSearchSubmit = (event) => {
 
@@ -317,6 +299,8 @@ export default function SearchPage() {
             return;
         }
 
+        setCurrentPage(0);
+
         setSearchParams({
             q: normalizedSearch,
         });
@@ -327,6 +311,8 @@ export default function SearchPage() {
 
             setSearchText(searchValue);
 
+            setCurrentPage(0);
+
             setSearchParams({
                 q: searchValue,
             });
@@ -336,6 +322,95 @@ export default function SearchPage() {
 
         setSearchText("");
         setSearchParams({});
+    };
+
+    const fetchSnippets = async () => {
+
+        try {
+
+            setLoading(true);
+
+            const response = await searchSnippets({
+
+                keyword: queryFromUrl,
+
+                language:
+                    selectedCategory === "All"
+                        ? null
+                        : selectedCategory,
+
+                framework: null,
+
+                category: null,
+
+                sortBy: null,
+
+                page: currentPage,
+
+                size: 12,
+
+            });
+
+            console.log(response);
+
+            setSnippets(response.data.snippets);
+
+            setTotalResults(
+                response.data.totalElements
+            );
+
+        } catch (error) {
+
+            console.error(error);
+
+        } finally {
+
+            setLoading(false);
+
+        }
+    };
+
+    const fetchPopularSearches = async () => {
+
+        try {
+
+            const response =
+                await getPopularSearches();
+
+            setPopularSearches(
+                response.data
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Popular searches error:",
+                error
+            );
+
+        }
+    };
+
+    const fetchSearchHistory = async () => {
+
+        try {
+
+            const response =
+                await getSearchHistory();
+
+            setSearchHistory(
+                response.data
+            );
+
+        } catch (error) {
+
+            console.error(
+                "History error:",
+                error
+            );
+
+        }
+
     };
 
     return (
@@ -377,11 +452,24 @@ export default function SearchPage() {
                         <input
                             type="text"
                             value={searchText}
-                            onChange={(event) =>
-                                setSearchText(
-                                    event.target.value
-                                )
-                            }
+
+                            onFocus={() => {
+                                if (!searchText.trim()) {
+                                    setShowHistory(true);
+                                }
+                            }}
+
+                            onChange={(event) => {
+
+                                const value = event.target.value;
+
+                                setSearchText(value);
+
+                                setShowHistory(value.trim() === "");
+
+                            }}
+
+
                             placeholder="Search Java, React, Kafka, CSS..."
                             autoComplete="off"
                             aria-label="Search snippets"
@@ -407,26 +495,25 @@ export default function SearchPage() {
 
                     </form>
 
+
                     <div className="trendingSearches">
 
                         <span>
                             Trending:
                         </span>
 
-                        {TRENDING_SEARCHES.map(
-                            (searchValue) => (
+                        {popularSearches.map(
+                            (search) => (
                                 <button
-                                    key={
-                                        searchValue
-                                    }
+                                    key={search.keyword}
                                     type="button"
                                     onClick={() =>
                                         handleTrendingSearch(
-                                            searchValue
+                                            search.keyword
                                         )
                                     }
                                 >
-                                    {searchValue}
+                                    {search.keyword}
                                 </button>
                             )
                         )}
@@ -491,15 +578,14 @@ export default function SearchPage() {
                                 type="button"
                                 className={
                                     selectedCategory ===
-                                    category
+                                        category
                                         ? "activeSearchCategory"
                                         : ""
                                 }
-                                onClick={() =>
-                                    setSelectedCategory(
-                                        category
-                                    )
-                                }
+                                onClick={() => {
+                                    setCurrentPage(0);
+                                    setSelectedCategory(category);
+                                }}
                             >
                                 {category}
                             </button>
@@ -548,16 +634,14 @@ export default function SearchPage() {
                                     key={
                                         snippet.snippetId
                                     }
-                                    className={`searchExploreCard ${
-                                        snippet.featured
-                                            ? "searchFeaturedCard"
-                                            : ""
-                                    } ${
-                                        index === 0 &&
-                                        !queryFromUrl
+                                    className={`searchExploreCard ${snippet.featured
+                                        ? "searchFeaturedCard"
+                                        : ""
+                                        } ${index === 0 &&
+                                            !queryFromUrl
                                             ? "searchLargeCard"
                                             : ""
-                                    }`}
+                                        }`}
                                 >
 
                                     <Link
@@ -574,7 +658,7 @@ export default function SearchPage() {
                                             </span>
 
                                             <span
-                                                className={`searchVisibilityBadge searchVisibility${snippet.visibility}`}
+                                                className={`searchVisibilityBadge searchVisibility${snippet.visibility ?? "PUBLIC"}`}
                                             >
                                                 {
                                                     snippet.visibility
@@ -601,9 +685,7 @@ export default function SearchPage() {
 
                                             <pre>
                                                 <code>
-                                                    {
-                                                        snippet.code
-                                                    }
+                                                    {snippet.description}
                                                 </code>
                                             </pre>
 
@@ -613,7 +695,7 @@ export default function SearchPage() {
 
                                             <p className="searchCardCategory">
                                                 {
-                                                    snippet.categoryName
+                                                    snippet.category
                                                 }
                                             </p>
 
@@ -662,7 +744,7 @@ export default function SearchPage() {
                                                 <FaHeart />
 
                                                 {formatCount(
-                                                    snippet.likeCount
+                                                    snippet.likes
                                                 )}
                                             </span>
 
@@ -670,7 +752,7 @@ export default function SearchPage() {
                                                 <FaEye />
 
                                                 {formatCount(
-                                                    snippet.viewCount
+                                                    snippet.views
                                                 )}
                                             </span>
 
@@ -678,7 +760,7 @@ export default function SearchPage() {
                                                 <FaCodeBranch />
 
                                                 {formatCount(
-                                                    snippet.forkCount
+                                                    snippet.forks
                                                 )}
                                             </span>
 
@@ -691,7 +773,7 @@ export default function SearchPage() {
                                             <FaBookmark />
 
                                             {formatCount(
-                                                snippet.bookmarkCount
+                                                snippet.bookmarks
                                             )}
                                         </button>
 

@@ -2,6 +2,7 @@ package com.codecanvas.searchservice.dto.response;
 
 import lombok.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -30,5 +31,11 @@ public class SearchResponse {
     private Long forks;
 
     private Boolean bookmarked;
+
+    private String category;
+
+    private List<String> tags;
+
+    private Long bookmarks;
 
 }

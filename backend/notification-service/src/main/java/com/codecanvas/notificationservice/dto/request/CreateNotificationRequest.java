@@ -3,11 +3,17 @@ package com.codecanvas.notificationservice.dto.request;
 import com.codecanvas.notificationservice.enums.NotificationType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CreateNotificationRequest {
 
     @NotNull(message = "User Id is required")

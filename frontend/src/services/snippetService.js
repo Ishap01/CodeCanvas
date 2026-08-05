@@ -590,3 +590,25 @@ export const getCommentReplies = async (
         );
     }
 };
+
+/*
+ * GET PUBLIC USER SNIPPETS
+ *
+ * GET /api/snippets/user/{userId}
+ */
+export const getUserSnippets = async (userId) => {
+    try {
+        const response = await axiosInstance.get(
+            `${SNIPPET_BASE_URL}/user/${userId}`
+        );
+
+        return response.data;
+    } catch (error) {
+        throw new Error(
+            extractErrorMessage(
+                error,
+                "Unable to load user snippets."
+            )
+        );
+    }
+};

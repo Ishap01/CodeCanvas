@@ -44,6 +44,11 @@ public class SecurityConfig {
                                 "/eureka/**"
                         ).permitAll()
 
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/users/public/**"
+                        ).permitAll()
+
                         // Public snippet APIs
                         .requestMatchers(
                                 HttpMethod.GET,

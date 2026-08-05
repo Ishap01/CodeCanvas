@@ -119,4 +119,33 @@ public class FollowServiceImpl implements FollowService {
         return followRepository.countByFollowerId(userId);
     }
 
+    @Override
+    public boolean isFollowing(UUID followingUserId) {
+
+        Authentication authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getName())) {
+
+            return false;
+        }
+
+        String email = authentication.getName();
+
+        User follower = userRepository.findByEmail(email)
+                .orElse(null);
+
+        if (follower == null) {
+            return false;
+        }
+
+        return followRepository.existsByFollowerIdAndFollowingId(
+                follower.getUserId(),
+                followingUserId
+        );
+    }
+
 }

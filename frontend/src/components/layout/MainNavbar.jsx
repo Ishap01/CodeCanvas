@@ -105,6 +105,10 @@ export default function MainNavbar() {
                         PREMIUM
                     </NavLink>
 
+                    <NavLink to="/public-profile">
+                        PUBLIC PROFILE
+                    </NavLink>
+
                     <NavLink to="/admin">
                         ADMIN
                     </NavLink>

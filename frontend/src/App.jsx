@@ -18,6 +18,7 @@ import UserDashboard from "./pages/user/UserDashboard/UserDashboard";
 import Profile from "./pages/user/Profile/Profile";
 import EditProfile from "./pages/user/EditProfile/EditProfile";
 import Settings from "./pages/user/settings/Settings";
+import PublicProfile from "./pages/user/PublicProfile/PublicProfile";
 
 import PricingPage from "./pages/Pricing/PricingPage";
 
@@ -26,6 +27,7 @@ import CreateSnippet from "./pages/snippets/CreateSnippet/CreateSnippet";
 import MySnippets from "./pages/snippets/MySnippets/MySnippets";
 import SnippetDetails from "./pages/snippets/SnippetDetails/SnippetDetails";
 import EditSnippet from "./pages/snippets/EditSnippet/EditSnippet";
+
 
 import SearchPage from "./pages/Search/SearchPage";
 
@@ -106,6 +108,13 @@ function App() {
                             <Profile />
                         </ProtectedRoute>
                     }
+                />
+
+
+
+                <Route
+                    path="/users/:username"
+                    element={<PublicProfile />}
                 />
 
                 <Route

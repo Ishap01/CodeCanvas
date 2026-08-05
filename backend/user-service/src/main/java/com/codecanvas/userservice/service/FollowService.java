@@ -13,4 +13,6 @@ public interface FollowService {
     long getFollowersCount(UUID userId);
 
     long getFollowingCount(UUID userId);
+
+    boolean isFollowing(UUID followingUserId);
 }

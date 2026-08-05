@@ -1,14 +1,30 @@
 import axiosInstance from "../api/axios";
 
-// Get logged-in user's profile
+// ===============================
+// PROFILE
+// ===============================
+
+// Logged-in profile
 export const getProfile = async () => {
   const response = await axiosInstance.get("/api/users/profile");
   return response.data;
 };
 
-// Get user by ID
+// Public profile
+export const getPublicProfile = async (username) => {
+  const response = await axiosInstance.get(
+    `/api/users/public/${username}`
+  );
+
+  return response.data;
+};
+
+// User by ID
 export const getUserById = async (userId) => {
-  const response = await axiosInstance.get(`/api/users/${userId}`);
+  const response = await axiosInstance.get(
+    `/api/users/${userId}`
+  );
+
   return response.data;
 };
 
@@ -25,6 +41,7 @@ export const updateProfile = async (profileData) => {
 // Upload profile image
 export const uploadProfileImage = async (imageFile) => {
   const formData = new FormData();
+
   formData.append("image", imageFile);
 
   const response = await axiosInstance.put(
@@ -44,6 +61,52 @@ export const uploadProfileImage = async (imageFile) => {
 export const deleteProfile = async () => {
   const response = await axiosInstance.delete(
     "/api/users/profile"
+  );
+
+  return response.data;
+};
+
+// ===============================
+// FOLLOW
+// ===============================
+
+export const followUser = async (userId) => {
+  const response = await axiosInstance.post(
+    `/api/users/follow/${userId}`
+  );
+
+  return response.data;
+};
+
+export const unfollowUser = async (userId) => {
+  const response = await axiosInstance.delete(
+    `/api/users/unfollow/${userId}`
+  );
+
+  return response.data;
+};
+
+export const getFollowersCount = async (userId) => {
+  const response = await axiosInstance.get(
+    `/api/users/${userId}/followers/count`
+  );
+
+  return response.data;
+};
+
+export const getFollowingCount = async (userId) => {
+  const response = await axiosInstance.get(
+    `/api/users/${userId}/following/count`
+  );
+
+  return response.data;
+};
+
+// Requires backend endpoint:
+// GET /api/users/following/{userId}
+export const isFollowing = async (userId) => {
+  const response = await axiosInstance.get(
+    `/api/users/following/${userId}`
   );
 
   return response.data;
