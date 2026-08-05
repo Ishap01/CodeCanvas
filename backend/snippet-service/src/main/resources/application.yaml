@@ -6,9 +6,9 @@ spring:
     name: snippet-service
 
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://localhost:5432/codecanvas
+    username: postgres
+    password: Yash@123
 
   jpa:
     hibernate:
@@ -26,6 +26,15 @@ spring:
       time-to-live: 600000
       use-key-prefix: true
       key-prefix: "snippet-service::"
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: snippet-service
+      auto-offset-reset: earliest
 
 eureka:
   client:

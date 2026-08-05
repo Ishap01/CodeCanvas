@@ -20,7 +20,7 @@ public class KafkaProducerConfig {
     /*
      * Reads Kafka bootstrap server from application.yaml
      */
-    @Value("${spring.kafka.bootstrap-servers}")
+    @Value("${spring.kafka.bootstrap-servers:localhost:9092}")
     private String bootstrapServers;
 
     /*

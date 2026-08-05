@@ -10,4 +10,5 @@ public final class KafkaTopics {
     public static final String SNIPPET_UPDATED = "snippet-updated";
 
     public static final String SNIPPET_DELETED = "snippet-deleted";
+    
 }

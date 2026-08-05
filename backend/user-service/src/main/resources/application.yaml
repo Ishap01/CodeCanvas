@@ -21,9 +21,12 @@ spring:
           writetimeout: 5000
 
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/codecanvas_user_db}
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:root}
+    #    url: ${DB_URL}
+    #    username: ${DB_USERNAME}
+    #    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://localhost:5432/codecanvas
+    username: postgres
+    password: Yash@123
 
 
   jpa:
