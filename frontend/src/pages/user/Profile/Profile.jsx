@@ -11,6 +11,9 @@ import {
     FaUser,
 } from "react-icons/fa";
 
+import NotificationTimeline
+from "../../../components/notification/NotificationTimeline";
+
 import { useNavigate } from "react-router-dom";
 
 import profileBanner from "../../../assets/images/hero.png";
@@ -730,7 +733,14 @@ export default function Profile() {
 
                         <div className="emptyProfileTab">
 
-                            <NotificationTimeline />
+                            <h2>
+                                Activity
+                            </h2>
+
+                            <p>
+                                Recent activity will
+                                appear here later.
+                            </p>
 
                         </div>
                     )}

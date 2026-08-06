@@ -1097,3 +1097,52 @@ body::-webkit-scrollbar-thumb:hover {
         transition: none;
     }
 }
+
+.formMessage {
+    width: 100%;
+
+    margin: 2px 0 4px;
+    padding: 11px 13px;
+
+    border-radius: 9px;
+
+    font-size: 0.78rem;
+    line-height: 1.5;
+    text-align: left;
+}
+
+.formMessageInfo {
+    border: 1px solid rgba(124, 92, 246, 0.32);
+
+    background: rgba(108, 76, 225, 0.1);
+
+    color: #c4b5fd;
+}
+
+.formMessageError {
+    border: 1px solid rgba(255, 89, 124, 0.32);
+
+    background: rgba(190, 39, 72, 0.1);
+
+    color: #ff9eb2;
+}
+
+.inputBox .eye {
+    display: grid;
+
+    flex: 0 0 32px;
+
+    width: 32px;
+    height: 32px;
+
+    place-items: center;
+
+    padding: 0;
+
+    border: 0;
+
+    background: transparent;
+    color: inherit;
+
+    cursor: pointer;
+}

@@ -27,7 +27,7 @@ import CreateSnippet from "./pages/snippets/CreateSnippet/CreateSnippet";
 import MySnippets from "./pages/snippets/MySnippets/MySnippets";
 import SnippetDetails from "./pages/snippets/SnippetDetails/SnippetDetails";
 import EditSnippet from "./pages/snippets/EditSnippet/EditSnippet";
-
+import BookmarkedSnippets from "./pages/snippets/BookmarkedSnippets/BookmarkedSnippets";
 
 import SearchPage from "./pages/Search/SearchPage";
 

@@ -1,259 +1,586 @@
-import React, { useState } from "react";
-import "./Login.css";
-import { Link, useNavigate } from "react-router-dom";
+import {
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
 
 import {
-  FaUser,
-  FaLock,
-  FaEye,
-  FaEyeSlash,
-  FaGithub,
-  FaGoogle,
-  FaCode,
-  FaSignInAlt,
+    Link,
+    useLocation,
+    useNavigate,
+} from "react-router-dom";
+
+import {
+    FaCode,
+    FaEye,
+    FaEyeSlash,
+    FaGithub,
+    FaGoogle,
+    FaLock,
+    FaSignInAlt,
+    FaUser,
 } from "react-icons/fa";
+
+import {
+    loginUser,
+} from "../../../services/authService";
+
+import {
+    useAuth,
+} from "../../../context/AuthContext";
 
 import bg from "../../../assets/images/login-bg.jpg";
 
-import { loginUser } from "../../../services/authService";
-import { useAuth } from "../../../context/AuthContext";
+import "./Login.css";
+
+function getSafeRedirectPath(
+    locationState
+) {
+
+    const redirectTo =
+        locationState?.redirectTo;
+
+    /*
+     * ProtectedRoute ke purane ya alternate
+     * state format ko bhi support karega.
+     */
+    const locationFromState =
+        locationState?.from;
+
+    let destination =
+        "/dashboard";
+
+    if (
+        typeof redirectTo === "string" &&
+        redirectTo.startsWith("/") &&
+        !redirectTo.startsWith("//") &&
+        redirectTo !== "/login"
+    ) {
+        destination = redirectTo;
+    } else if (
+        locationFromState &&
+        typeof locationFromState === "object"
+    ) {
+
+        const pathname =
+            locationFromState.pathname || "";
+
+        const search =
+            locationFromState.search || "";
+
+        const hash =
+            locationFromState.hash || "";
+
+        const combinedPath =
+            `${pathname}${search}${hash}`;
+
+        if (
+            combinedPath.startsWith("/") &&
+            !combinedPath.startsWith("//") &&
+            pathname !== "/login"
+        ) {
+            destination =
+                combinedPath;
+        }
+    }
+
+    return destination;
+}
 
 export default function Login() {
 
-  const navigate = useNavigate();
+    const navigate =
+        useNavigate();
 
-  const { login } = useAuth();
+    const location =
+        useLocation();
 
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+    const {
+        login,
+        isAuthenticated,
+    } = useAuth();
 
-  const [showPassword, setShowPassword] = useState(false);
-
-  const [message, setMessage] = useState("");
-
-  const [loading, setLoading] = useState(false);
-
-  const handleChange = (event) => {
-
-    const { name, value } = event.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-  };
-
-  const handleLogin = async (event) => {
-
-    event.preventDefault();
-
-    setMessage("");
-
-    if (!formData.email.trim() || !formData.password.trim()) {
-      setMessage("Email and Password are required.");
-      return;
-    }
-
-    try {
-
-      setLoading(true);
-
-  const loginRequest = {
-    email: formData.email.trim(),
-    password: formData.password,
-  };
-
-const data = await loginUser(loginRequest);
-
-      if (data.token) {
-
-        login(data.token);
-
-        navigate("/dashboard");
-
-      } else {
-
-        setMessage(data.message || "Login failed.");
-
-      }
-
-    } catch (error) {
-
-      console.error(error);
-
-      if (error.response) {
-
-        setMessage(
-          error.response.data.message || "Invalid credentials."
+    const redirectPath =
+        useMemo(
+            () =>
+                getSafeRedirectPath(
+                    location.state
+                ),
+            [location.state]
         );
 
-      } else {
+    const redirectMessage =
+        location.state?.message ||
+        "";
 
-        setMessage("Unable to connect to the server.");
+    const [formData, setFormData] =
+        useState({
+            email: "",
+            password: "",
+        });
 
-      }
+    const [
+        showPassword,
+        setShowPassword,
+    ] = useState(false);
 
-    } finally {
+    const [
+        message,
+        setMessage,
+    ] = useState(
+        redirectMessage
+    );
 
-      setLoading(false);
+    const [
+        messageType,
+        setMessageType,
+    ] = useState(
+        redirectMessage
+            ? "info"
+            : ""
+    );
 
-    }
+    const [
+        loading,
+        setLoading,
+    ] = useState(false);
 
-  };
+    /*
+     * Already logged-in user manually /login open kare
+     * to destination page par bhej denge.
+     */
+    useEffect(() => {
 
-  return (
+        if (isAuthenticated) {
 
-    <div className="loginPage">
+            navigate(
+                redirectPath,
+                {
+                    replace: true,
+                }
+            );
+        }
 
-      {/* LEFT PANEL */}
+    }, [
+        isAuthenticated,
+        navigate,
+        redirectPath,
+    ]);
 
-      <div
-        className="leftPanel"
-        style={{ backgroundImage: `url(${bg})` }}
-      >
-        <div className="overlay"></div>
+    /*
+     * Route state message change hone par
+     * login page par updated information show hogi.
+     */
+    useEffect(() => {
 
-        <div className="leftContent">
-          <h1>
-            Welcome back to <br />
-            <span>CodeCanvas.</span>
-          </h1>
+        if (redirectMessage) {
 
-          <p>
-            The visual code collaboration platform
-            <br />
-            for modern developers.
-          </p>
-        </div>
-      </div>
+            setMessage(
+                redirectMessage
+            );
 
-      {/* RIGHT PANEL */}
+            setMessageType(
+                "info"
+            );
+        }
 
-      <div className="rightPanel">
+    }, [redirectMessage]);
 
-        <form
-          className="loginCard"
-          onSubmit={handleLogin}
-        >
+    const handleChange = (
+        event
+    ) => {
 
-          <div className="logo">
-            <FaCode />
-          </div>
+        const {
+            name,
+            value,
+        } = event.target;
 
-          <h2>Welcome Back</h2>
+        setFormData(
+            (previousData) => ({
+                ...previousData,
+                [name]: value,
+            })
+        );
 
-          <p>Sign in to your CodeCanvas account</p>
+        /*
+         * User form edit kar raha hai to purana
+         * validation error clear kar denge.
+         *
+         * Login suggestion/info message preserve rahega.
+         */
+        if (
+            messageType === "error"
+        ) {
+            setMessage("");
+            setMessageType("");
+        }
+    };
 
-          <div className="inputBox">
+    const handleLogin = async (
+        event
+    ) => {
 
-            <FaUser />
+        event.preventDefault();
 
-            <input
-              autoFocus
-              type="email"
-              name="email"
-              placeholder="Enter Email"
-              value={formData.email}
-              onChange={handleChange}
-            />
+        const normalizedEmail =
+            formData.email.trim();
 
-          </div>
+        if (
+            !normalizedEmail ||
+            !formData.password.trim()
+        ) {
 
-          <div className="inputBox">
+            setMessage(
+                "Email and password are required."
+            );
 
-            <FaLock />
+            setMessageType(
+                "error"
+            );
 
-            <input
-              autoFocus
-              type={showPassword ? "text" : "password"}
-              name="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-            />
+            return;
+        }
 
-            <span
-              className="eye"
-              onClick={() =>
-                setShowPassword(!showPassword)
-              }
+        try {
+
+            setLoading(true);
+            setMessage("");
+            setMessageType("");
+
+            const loginRequest = {
+                email:
+                    normalizedEmail,
+
+                password:
+                    formData.password,
+            };
+
+            const response =
+                await loginUser(
+                    loginRequest
+                );
+
+            /*
+             * Response direct ho sakta hai:
+             *
+             * {
+             *     token: "..."
+             * }
+             *
+             * Ya wrapper:
+             *
+             * {
+             *     data: {
+             *         token: "..."
+             *     }
+             * }
+             */
+            const payload =
+                response?.data &&
+                typeof response.data ===
+                    "object"
+                    ? response.data
+                    : response;
+
+            const token =
+                payload?.token;
+
+            if (!token) {
+
+                setMessage(
+                    payload?.message ||
+                    "Login failed. Token was not received."
+                );
+
+                setMessageType(
+                    "error"
+                );
+
+                return;
+            }
+
+            /*
+             * AuthContext token ko localStorage aur
+             * application state mein save karega.
+             */
+            login(token);
+
+            /*
+             * Successful login ke baad:
+             *
+             * Protected page se aaye the
+             * → wahi page open hoga.
+             *
+             * Direct login kiya tha
+             * → dashboard open hoga.
+             */
+            navigate(
+                redirectPath,
+                {
+                    replace: true,
+                }
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Login error:",
+                error
+            );
+
+            const backendMessage =
+                error?.response
+                    ?.data
+                    ?.message;
+
+            if (
+                error?.response
+            ) {
+
+                setMessage(
+                    backendMessage ||
+                    "Invalid email or password."
+                );
+
+            } else {
+
+                setMessage(
+                    error?.message ||
+                    "Unable to connect to the server."
+                );
+            }
+
+            setMessageType(
+                "error"
+            );
+
+        } finally {
+
+            setLoading(false);
+        }
+    };
+
+    return (
+
+        <main className="loginPage">
+
+            {/* ================= LEFT PANEL ================= */}
+
+            <section
+                className="leftPanel"
+                style={{
+                    backgroundImage:
+                        `url(${bg})`,
+                }}
             >
-              {showPassword ? <FaEyeSlash /> : <FaEye />}
-            </span>
 
-          </div>
+                <div className="overlay" />
 
-          <div className="options">
+                <div className="leftContent">
 
-            <label>
+                    <h1>
+                        Welcome back to
+                        <br />
 
-              <input autoFocus type="checkbox" />
+                        <span>
+                            CodeCanvas.
+                        </span>
+                    </h1>
 
-              Remember me
+                    <p>
+                        The visual code collaboration
+                        platform
+                        <br />
 
-            </label>
+                        for modern developers.
+                    </p>
 
-            <Link to="/forgot-password">
-              Forgot Password?
-            </Link>
+                </div>
 
-          </div>
+            </section>
 
-          {message && (
-            <p className="formMessage">
-              {message}
-            </p>
-          )}
+            {/* ================= RIGHT PANEL ================= */}
 
-          <button
-            type="submit"
-            className="loginBtn"
-            disabled={loading}
-          >
+            <section className="rightPanel">
 
-            <FaSignInAlt />
+                <form
+                    className="loginCard"
+                    onSubmit={
+                        handleLogin
+                    }
+                >
 
-            {loading
-              ? "Signing In..."
-              : "Sign In"}
+                    <div className="logo">
+                        <FaCode />
+                    </div>
 
-          </button>
+                    <h2>
+                        Welcome Back
+                    </h2>
 
-          <button
-            type="button"
-            className="socialBtn"
-          >
-            <FaGithub />
-            Continue with GitHub
-          </button>
+                    <p>
+                        Sign in to your CodeCanvas
+                        account
+                    </p>
 
-          <button
-            type="button"
-            className="socialBtn"
-          >
-            <FaGoogle />
-            Continue with Google
-          </button>
+                    {message && (
 
-          <div className="signup">
+                        <div
+                            className={`formMessage ${
+                                messageType === "info"
+                                    ? "formMessageInfo"
+                                    : "formMessageError"
+                            }`}
+                            role={
+                                messageType === "error"
+                                    ? "alert"
+                                    : "status"
+                            }
+                        >
+                            {message}
+                        </div>
 
-            Don't have an account?
+                    )}
 
-            <Link to="/register">
-              <span>Create one</span>
-            </Link>
+                    <div className="inputBox">
 
-          </div>
+                        <FaUser />
 
-        </form>
+                        <input
+                            autoFocus
+                            type="email"
+                            name="email"
+                            placeholder="Enter Email"
+                            value={
+                                formData.email
+                            }
+                            onChange={
+                                handleChange
+                            }
+                            autoComplete="email"
+                        />
 
-      </div>
+                    </div>
 
-    </div>
+                    <div className="inputBox">
 
-  );
+                        <FaLock />
 
+                        <input
+                            type={
+                                showPassword
+                                    ? "text"
+                                    : "password"
+                            }
+                            name="password"
+                            placeholder="Password"
+                            value={
+                                formData.password
+                            }
+                            onChange={
+                                handleChange
+                            }
+                            autoComplete="current-password"
+                        />
+
+                        <button
+                            type="button"
+                            className="eye"
+                            onClick={() =>
+                                setShowPassword(
+                                    (
+                                        previousValue
+                                    ) =>
+                                        !previousValue
+                                )
+                            }
+                            aria-label={
+                                showPassword
+                                    ? "Hide password"
+                                    : "Show password"
+                            }
+                        >
+                            {showPassword
+                                ? <FaEyeSlash />
+                                : <FaEye />}
+                        </button>
+
+                    </div>
+
+                    <div className="options">
+
+                        <label>
+
+                            <input
+                                type="checkbox"
+                            />
+
+                            Remember me
+
+                        </label>
+
+                        <Link to="/forgot-password">
+                            Forgot Password?
+                        </Link>
+
+                    </div>
+
+                    <button
+                        type="submit"
+                        className="loginBtn"
+                        disabled={
+                            loading
+                        }
+                    >
+
+                        <FaSignInAlt />
+
+                        {loading
+                            ? "Signing In..."
+                            : "Sign In"}
+
+                    </button>
+
+                    <button
+                        type="button"
+                        className="socialBtn"
+                    >
+                        <FaGithub />
+
+                        Continue with GitHub
+                    </button>
+
+                    <button
+                        type="button"
+                        className="socialBtn"
+                    >
+                        <FaGoogle />
+
+                        Continue with Google
+                    </button>
+
+                    <div className="signup">
+
+                        Don't have an account?
+
+                        <Link
+                            to="/register"
+                            state={{
+                                redirectTo:
+                                    redirectPath,
+                            }}
+                        >
+                            <span>
+                                Create one
+                            </span>
+                        </Link>
+
+                    </div>
+
+                </form>
+
+            </section>
+
+        </main>
+    );
 }

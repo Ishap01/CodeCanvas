@@ -291,9 +291,7 @@ function SnippetCard({
             );
 
             if (response?.snippetId) {
-                navigate(
-                    `/snippets/${response.snippetId}`
-                );
+                navigate(`/snippets/${response.snippetId}/edit`);
             }
 
         } catch (error) {
@@ -471,6 +469,16 @@ function SnippetCard({
                                 <FaCode />
                             </span>
 
+                            {snippet.files?.length > 0 && (
+
+                                <div className="instagramSnippetFilename">
+
+                                    📄 {snippet.files[0].filename}
+
+                                </div>
+
+                            )}
+
                             <pre
                                 className={
                                     isPremiumLocked
@@ -480,14 +488,18 @@ function SnippetCard({
                             >
                                 <code>
                                     {createCodePreview(
-                                        snippet.code ||
-                                        `public class ${snippet.title.replaceAll(" ", "")} {
+
+                                        snippet.files?.length > 0
+                                            ? snippet.files[0].code
+                                            : snippet.code ||
+
+                                            `public class ${snippet.title.replaceAll(" ", "")} {
 
     // Premium code hidden...
 
 }`
-                                    )}
-                                </code>
+
+                                    )}                              </code>
                             </pre>
 
                         </>

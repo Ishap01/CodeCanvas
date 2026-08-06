@@ -135,3 +135,28 @@ code {
     filter: invert(1) brightness(2);
   }
 }
+.snippetTemporaryPage,
+.snippetNotFoundPage {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 40px 20px;
+    background: #070912;
+    color: #ffffff;
+    text-align: center;
+}
+
+.snippetTemporaryPage h1,
+.snippetNotFoundPage h1 {
+    margin: 0 0 12px;
+    font-size: 2rem;
+}
+
+.snippetTemporaryPage p,
+.snippetNotFoundPage p {
+    margin: 0;
+    color: #949bb3;
+    line-height: 1.6;
+}

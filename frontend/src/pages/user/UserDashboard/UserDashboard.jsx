@@ -1,27 +1,26 @@
-import React, {
+import {
+    useCallback,
     useEffect,
     useMemo,
     useState,
 } from "react";
 
-import "./UserDashboard.css";
-
-import {
-    FaChartLine,
-    FaCodeBranch,
-    FaHashtag,
-    FaHome,
-    FaRegBookmark,
-    FaRegComment,
-    FaRegHeart,
-    FaStar,
-    FaUsers,
-} from "react-icons/fa";
-
 import {
     Link,
     useNavigate,
 } from "react-router-dom";
+
+import {
+    FaChartLine,
+    FaCode,
+    FaHashtag,
+    FaHome,
+    FaRegBookmark,
+    FaSyncAlt,
+    FaUsers,
+} from "react-icons/fa";
+
+import SnippetCard from "../../../components/snippets/SnippetCard/SnippetCard";
 
 import {
     getProfile,
@@ -33,20 +32,283 @@ import {
 
 import {
     getMySnippets,
+    getPublicSnippets,
 } from "../../../services/snippetService";
 
-export default function UserDashboard() {
+import "./UserDashboard.css";
 
-    const navigate = useNavigate();
+const DASHBOARD_FEED_LIMIT = 12;
+
+/*
+ * API response kabhi direct hota hai:
+ *
+ * [
+ *     {...}
+ * ]
+ *
+ * Ya wrapper ke andar hota hai:
+ *
+ * {
+ *     data: [...]
+ * }
+ */
+function unwrapResponseData(response) {
+    if (response == null) {
+        return {};
+    }
+
+    if (
+        typeof response === "object" &&
+        response.data !== undefined
+    ) {
+        return response.data;
+    }
+
+    return response;
+}
+
+/*
+ * Different possible API response structures se
+ * snippet array extract karta hai.
+ */
+function extractSnippetArray(response) {
+    const payload =
+        unwrapResponseData(response);
+
+    if (Array.isArray(payload)) {
+        return payload;
+    }
+
+    if (
+        Array.isArray(
+            payload?.snippets
+        )
+    ) {
+        return payload.snippets;
+    }
+
+    if (
+        Array.isArray(
+            payload?.content
+        )
+    ) {
+        return payload.content;
+    }
+
+    if (
+        Array.isArray(
+            payload?.results
+        )
+    ) {
+        return payload.results;
+    }
+
+    return [];
+}
+
+/*
+ * Backend ke different field names ko
+ * frontend ke standard SnippetCard format mein
+ * normalize karta hai.
+ */
+function normalizeSnippet(snippet) {
+    return {
+        ...snippet,
+
+        snippetId:
+            snippet?.snippetId ||
+            snippet?.id,
+
+        userId:
+            snippet?.userId ||
+            snippet?.ownerId ||
+            snippet?.createdByUserId ||
+            null,
+
+        title:
+            snippet?.title ||
+            "Untitled snippet",
+
+        description:
+            snippet?.description ||
+            "",
+
+        code:
+            snippet?.code ||
+            "",
+
+        language:
+            snippet?.language ||
+            "Code",
+
+        framework:
+            snippet?.framework ||
+            "",
+
+        categoryName:
+            snippet?.categoryName ||
+            snippet?.category ||
+            "General",
+
+        visibility:
+            String(
+                snippet?.visibility ||
+                ""
+            )
+                .trim()
+                .toUpperCase(),
+
+        tags:
+            Array.isArray(
+                snippet?.tags
+            )
+                ? snippet.tags
+                : [],
+
+        previewImageUrl:
+            snippet?.previewImageUrl ||
+            snippet?.imageUrl ||
+            null,
+
+        likeCount:
+            getNumberValue(
+                snippet?.likeCount ??
+                snippet?.likes
+            ),
+
+        commentCount:
+            getNumberValue(
+                snippet?.commentCount ??
+                snippet?.comments
+            ),
+
+        bookmarkCount:
+            getNumberValue(
+                snippet?.bookmarkCount ??
+                snippet?.bookmarks
+            ),
+
+        viewCount:
+            getNumberValue(
+                snippet?.viewCount ??
+                snippet?.views
+            ),
+
+        forkCount:
+            getNumberValue(
+                snippet?.forkCount ??
+                snippet?.forks
+            ),
+
+        createdAt:
+            snippet?.createdAt ||
+            null,
+    };
+}
+
+/*
+ * Popularity calculation:
+ *
+ * Like      = 5 points
+ * Fork      = 6 points
+ * Bookmark  = 4 points
+ * Comment   = 3 points
+ * View      = 1 point
+ */
+function calculatePopularityScore(snippet) {
+    return (
+        getNumberValue(
+            snippet?.likeCount
+        ) * 5 +
+
+        getNumberValue(
+            snippet?.forkCount
+        ) * 6 +
+
+        getNumberValue(
+            snippet?.bookmarkCount
+        ) * 4 +
+
+        getNumberValue(
+            snippet?.commentCount
+        ) * 3 +
+
+        getNumberValue(
+            snippet?.viewCount
+        )
+    );
+}
+
+function getSnippetTimestamp(snippet) {
+    if (!snippet?.createdAt) {
+        return 0;
+    }
+
+    const timestamp =
+        new Date(
+            snippet.createdAt
+        ).getTime();
+
+    return Number.isNaN(timestamp)
+        ? 0
+        : timestamp;
+}
+
+/*
+ * Duplicate snippet IDs remove karta hai.
+ */
+function removeDuplicateSnippets(snippets) {
+    const uniqueSnippets =
+        new Map();
+
+    snippets.forEach((snippet) => {
+        if (!snippet?.snippetId) {
+            return;
+        }
+
+        uniqueSnippets.set(
+            String(
+                snippet.snippetId
+            ),
+            snippet
+        );
+    });
+
+    return Array.from(
+        uniqueSnippets.values()
+    );
+}
+
+export default function UserDashboard() {
+    const navigate =
+        useNavigate();
 
     const [profile, setProfile] =
         useState(null);
 
-    const [statistics, setStatistics] =
-        useState(null);
+    const [
+        statistics,
+        setStatistics,
+    ] = useState(null);
 
-    const [snippets, setSnippets] =
-        useState([]);
+    /*
+     * Logged-in user ke apne snippets.
+     * Welcome statistics ke liye use honge.
+     */
+    const [
+        mySnippets,
+        setMySnippets,
+    ] = useState([]);
+
+    /*
+     * Dashboard community feed.
+     *
+     * Ismein sirf PUBLIC snippets honge.
+     */
+    const [
+        feedSnippets,
+        setFeedSnippets,
+    ] = useState([]);
 
     const [
         selectedLanguage,
@@ -61,125 +323,284 @@ export default function UserDashboard() {
     const [loading, setLoading] =
         useState(true);
 
+    const [
+        refreshing,
+        setRefreshing,
+    ] = useState(false);
+
     const [error, setError] =
         useState("");
 
-    useEffect(() => {
-
-        const loadDashboard = async () => {
-
-            try {
-
-                setLoading(true);
-                setError("");
-
-                /*
-                 * Profile aur snippets independently
-                 * load ho sakte hain, isliye Promise.all.
-                 */
-                const [
-                    profileData,
-                    snippetData,
-                ] = await Promise.all([
-                    getProfile(),
-                    getMySnippets(),
-                ]);
-
-                setProfile(profileData);
-
-                setSnippets(
-                    Array.isArray(snippetData)
-                        ? snippetData
-                        : []
-                );
-
-                /*
-                 * Statistics request profile userId
-                 * milne ke baad call hogi.
-                 */
+    const loadDashboard =
+        useCallback(
+            async (
+                showRefreshState = false
+            ) => {
                 try {
+                    if (
+                        showRefreshState
+                    ) {
+                        setRefreshing(true);
+                    } else {
+                        setLoading(true);
+                    }
 
-                    const statisticsData =
-                        await getUserStatistics(
-                            profileData.userId
+                    setError("");
+
+                    const [
+                        profileResponse,
+                        mySnippetResponse,
+                        publicSnippetResponse,
+                    ] = await Promise.all([
+                        getProfile(),
+                        getMySnippets(),
+                        getPublicSnippets(),
+                    ]);
+
+                    const profilePayload =
+                        unwrapResponseData(
+                            profileResponse
                         );
 
-                    setStatistics(
-                        statisticsData
+                    const normalizedProfile =
+                        profilePayload?.user ||
+                        profilePayload?.profile ||
+                        profilePayload;
+
+                    /*
+                     * Logged-in user's own snippets.
+                     */
+                    const normalizedMySnippets =
+                        extractSnippetArray(
+                            mySnippetResponse
+                        )
+                            .map(
+                                normalizeSnippet
+                            )
+                            .filter(
+                                (snippet) =>
+                                    Boolean(
+                                        snippet.snippetId
+                                    )
+                            );
+
+                    /*
+                     * Public endpoint response normalize karne
+                     * ke baad strict visibility filter.
+                     *
+                     * Sirf PUBLIC allowed hai.
+                     *
+                     * PREMIUM remove.
+                     * PRIVATE remove.
+                     */
+                    const normalizedPublicSnippets =
+                        extractSnippetArray(
+                            publicSnippetResponse
+                        )
+                            .map(
+                                normalizeSnippet
+                            )
+                            .filter(
+                                (snippet) =>
+                                    Boolean(
+                                        snippet.snippetId
+                                    )
+                            )
+                            .filter(
+                                (snippet) =>
+                                    snippet.visibility ===
+                                    "PUBLIC"
+                            );
+
+                    /*
+                     * Logged-in user's apne public snippets
+                     * community feed mein hide karne ki koshish.
+                     *
+                     * Agar backend snippet response userId nahi deta,
+                     * tab snippet feed mein reh sakta hai.
+                     */
+                    const communitySnippets =
+                        normalizedPublicSnippets.filter(
+                            (snippet) => {
+                                if (
+                                    snippet.visibility !==
+                                    "PUBLIC"
+                                ) {
+                                    return false;
+                                }
+
+                                if (
+                                    !normalizedProfile
+                                        ?.userId ||
+                                    !snippet.userId
+                                ) {
+                                    return true;
+                                }
+
+                                return (
+                                    String(
+                                        snippet.userId
+                                    ) !==
+                                    String(
+                                        normalizedProfile
+                                            .userId
+                                    )
+                                );
+                            }
+                        );
+
+                    /*
+                     * Popularity ke according sort.
+                     *
+                     * Same score hone par newest snippet pehle.
+                     */
+                    const sortedPopularSnippets =
+                        removeDuplicateSnippets(
+                            communitySnippets
+                        )
+                            .sort(
+                                (
+                                    firstSnippet,
+                                    secondSnippet
+                                ) => {
+                                    const scoreDifference =
+                                        calculatePopularityScore(
+                                            secondSnippet
+                                        ) -
+                                        calculatePopularityScore(
+                                            firstSnippet
+                                        );
+
+                                    if (
+                                        scoreDifference !==
+                                        0
+                                    ) {
+                                        return scoreDifference;
+                                    }
+
+                                    return (
+                                        getSnippetTimestamp(
+                                            secondSnippet
+                                        ) -
+                                        getSnippetTimestamp(
+                                            firstSnippet
+                                        )
+                                    );
+                                }
+                            )
+                            .slice(
+                                0,
+                                DASHBOARD_FEED_LIMIT
+                            );
+
+                    setProfile(
+                        normalizedProfile
                     );
 
-                } catch (
-                    statisticsError
-                ) {
+                    setMySnippets(
+                        normalizedMySnippets
+                    );
 
-                    console.error(
-                        "Unable to load dashboard statistics:",
-                        statisticsError
+                    setFeedSnippets(
+                        sortedPopularSnippets
                     );
 
                     /*
-                     * Statistics service fail hone par bhi
-                     * dashboard aur snippets dikhte rahenge.
+                     * Statistics request fail hone par bhi
+                     * dashboard feed load rahegi.
                      */
-                    setStatistics({
-                        totalSnippets: 0,
-                        totalViews: 0,
-                        totalLikes: 0,
-                        totalFavorites: 0,
-                        followers: 0,
-                        following: 0,
-                    });
-                }
+                    if (
+                        normalizedProfile?.userId
+                    ) {
+                        try {
+                            const statisticsResponse =
+                                await getUserStatistics(
+                                    normalizedProfile
+                                        .userId
+                                );
 
-            } catch (requestError) {
+                            setStatistics(
+                                unwrapResponseData(
+                                    statisticsResponse
+                                )
+                            );
+                        } catch (
+                            statisticsError
+                        ) {
+                            console.error(
+                                "Unable to load dashboard statistics:",
+                                statisticsError
+                            );
 
-                console.error(
-                    "Unable to load dashboard:",
+                            setStatistics({
+                                totalSnippets:
+                                    normalizedMySnippets
+                                        .length,
+
+                                totalViews: 0,
+                                totalLikes: 0,
+                                totalFavorites: 0,
+                                followers: 0,
+                                following: 0,
+                            });
+                        }
+                    }
+                } catch (
                     requestError
-                );
+                ) {
+                    console.error(
+                        "Unable to load dashboard:",
+                        requestError
+                    );
 
-                setError(
-                    requestError?.response?.data
-                        ?.message ||
-                    requestError?.message ||
-                    "Unable to load dashboard."
-                );
+                    setError(
+                        requestError
+                            ?.response
+                            ?.data
+                            ?.message ||
+                        requestError
+                            ?.message ||
+                        "Unable to load dashboard."
+                    );
 
-                setProfile(null);
-                setSnippets([]);
+                    setProfile(null);
+                    setMySnippets([]);
+                    setFeedSnippets([]);
+                } finally {
+                    setLoading(false);
+                    setRefreshing(false);
+                }
+            },
+            []
+        );
 
-            } finally {
-
-                setLoading(false);
-
-            }
-
-        };
-
+    useEffect(() => {
         loadDashboard();
-
-    }, []);
+    }, [loadDashboard]);
 
     /*
-     * Real snippets se available languages
-     * automatically niklenge.
+     * Public feed se language filters.
      */
     const languageFilters =
         useMemo(() => {
-
             const languages =
                 new Set();
 
-            snippets.forEach((snippet) => {
+            feedSnippets.forEach(
+                (snippet) => {
+                    const language =
+                        String(
+                            snippet?.language ||
+                            ""
+                        ).trim();
 
-                const language =
-                    snippet?.language?.trim();
-
-                if (language) {
-                    languages.add(language);
+                    if (language) {
+                        languages.add(
+                            language
+                        );
+                    }
                 }
-
-            });
+            );
 
             return [
                 "All",
@@ -195,29 +616,31 @@ export default function UserDashboard() {
                         )
                 ),
             ];
-
-        }, [snippets]);
+        }, [feedSnippets]);
 
     /*
-     * Real snippets se frameworks
-     * automatically niklenge.
+     * Public feed se framework filters.
      */
     const frameworkFilters =
         useMemo(() => {
-
             const frameworks =
                 new Set();
 
-            snippets.forEach((snippet) => {
+            feedSnippets.forEach(
+                (snippet) => {
+                    const framework =
+                        String(
+                            snippet?.framework ||
+                            ""
+                        ).trim();
 
-                const framework =
-                    snippet?.framework?.trim();
-
-                if (framework) {
-                    frameworks.add(framework);
+                    if (framework) {
+                        frameworks.add(
+                            framework
+                        );
+                    }
                 }
-
-            });
+            );
 
             return [
                 "All",
@@ -233,22 +656,18 @@ export default function UserDashboard() {
                         )
                 ),
             ];
-
-        }, [snippets]);
+        }, [feedSnippets]);
 
     /*
-     * My Snippets ke actual data se
-     * dashboard totals calculate honge.
+     * Logged-in user's own snippet statistics.
      */
-    const snippetStatistics =
+    const mySnippetStatistics =
         useMemo(() => {
-
-            return snippets.reduce(
+            return mySnippets.reduce(
                 (
                     calculatedStatistics,
                     snippet
                 ) => {
-
                     calculatedStatistics
                         .totalSnippets += 1;
 
@@ -283,7 +702,6 @@ export default function UserDashboard() {
                         );
 
                     return calculatedStatistics;
-
                 },
                 {
                     totalSnippets: 0,
@@ -294,37 +712,72 @@ export default function UserDashboard() {
                     totalForks: 0,
                 }
             );
+        }, [mySnippets]);
 
-        }, [snippets]);
-
-    const filteredSnippets =
+    /*
+     * Language and framework filters.
+     *
+     * Visibility safety check yahan bhi rakha hai.
+     */
+    const filteredFeed =
         useMemo(() => {
-
-            return snippets.filter(
+            return feedSnippets.filter(
                 (snippet) => {
+                    const visibility =
+                        String(
+                            snippet?.visibility ||
+                            ""
+                        )
+                            .trim()
+                            .toUpperCase();
+
+                    if (
+                        visibility !==
+                        "PUBLIC"
+                    ) {
+                        return false;
+                    }
+
+                    const snippetLanguage =
+                        String(
+                            snippet?.language ||
+                            ""
+                        )
+                            .trim()
+                            .toLowerCase();
+
+                    const snippetFramework =
+                        String(
+                            snippet?.framework ||
+                            ""
+                        )
+                            .trim()
+                            .toLowerCase();
 
                     const languageMatch =
                         selectedLanguage ===
                             "All" ||
-                        snippet?.language ===
-                            selectedLanguage;
+                        snippetLanguage ===
+                            selectedLanguage
+                                .trim()
+                                .toLowerCase();
 
                     const frameworkMatch =
                         selectedFramework ===
                             "All" ||
-                        snippet?.framework ===
-                            selectedFramework;
+                        snippetFramework ===
+                            selectedFramework
+                                .trim()
+                                .toLowerCase();
 
                     return (
                         languageMatch &&
                         frameworkMatch
                     );
-
                 }
             );
-
         }, [
-            snippets,
+            feedSnippets,
             selectedLanguage,
             selectedFramework,
         ]);
@@ -335,41 +788,40 @@ export default function UserDashboard() {
     };
 
     if (loading) {
-
         return (
             <div className="userDashboardPage">
 
                 <main className="userDashboardContent">
 
-                    <div className="dashboardState">
+                    <section className="dashboardLoadingState">
+
+                        <span className="dashboardLoadingSpinner" />
 
                         <h2>
-                            Loading dashboard...
+                            Loading your dashboard
                         </h2>
 
                         <p>
-                            Please wait while your
-                            profile and snippets are
-                            loaded.
+                            Fetching your profile,
+                            statistics and public
+                            community feed.
                         </p>
 
-                    </div>
+                    </section>
 
                 </main>
 
             </div>
         );
-
     }
 
     if (error) {
-
         return (
             <div className="userDashboardPage">
 
                 <main className="userDashboardContent">
 
-                    <div className="dashboardState">
+                    <section className="dashboardState">
 
                         <h2>
                             Unable to load dashboard
@@ -382,19 +834,18 @@ export default function UserDashboard() {
                         <button
                             type="button"
                             onClick={() =>
-                                window.location.reload()
+                                loadDashboard()
                             }
                         >
                             Try Again
                         </button>
 
-                    </div>
+                    </section>
 
                 </main>
 
             </div>
         );
-
     }
 
     if (!profile) {
@@ -414,7 +865,10 @@ export default function UserDashboard() {
 
                 <nav className="sidebarNavigation">
 
-                    <Link to="/dashboard">
+                    <Link
+                        to="/dashboard"
+                        className="activeSidebarLink"
+                    >
                         <FaHome />
                         Home
                     </Link>
@@ -450,20 +904,20 @@ export default function UserDashboard() {
                         "DevOps",
                         "Database",
                         "Mobile",
-                    ].map((category) => (
+                    ].map(
+                        (category) => (
+                            <Link
+                                to={`/search?q=${encodeURIComponent(
+                                    category
+                                )}`}
+                                key={category}
+                            >
+                                <FaHashtag />
 
-                        <Link
-                            to={`/search?q=${encodeURIComponent(
-                                category
-                            )}`}
-                            key={category}
-                        >
-                            <FaHashtag />
-
-                            {category}
-                        </Link>
-
-                    ))}
+                                {category}
+                            </Link>
+                        )
+                    )}
 
                 </nav>
 
@@ -487,7 +941,6 @@ export default function UserDashboard() {
 
                             {languageFilters.map(
                                 (language) => (
-
                                     <button
                                         key={language}
                                         type="button"
@@ -505,7 +958,6 @@ export default function UserDashboard() {
                                     >
                                         {language}
                                     </button>
-
                                 )
                             )}
 
@@ -523,7 +975,6 @@ export default function UserDashboard() {
 
                             {frameworkFilters.map(
                                 (framework) => (
-
                                     <button
                                         key={framework}
                                         type="button"
@@ -541,7 +992,6 @@ export default function UserDashboard() {
                                     >
                                         {framework}
                                     </button>
-
                                 )
                             )}
 
@@ -560,12 +1010,18 @@ export default function UserDashboard() {
                     <div className="welcomeUser">
 
                         <span>
-                            Hello
+                            Welcome back
                         </span>
 
                         <h1>
                             {profile.fullName}
                         </h1>
+
+                        <p>
+                            Discover popular public
+                            code shared by the
+                            CodeCanvas community.
+                        </p>
 
                     </div>
 
@@ -574,14 +1030,12 @@ export default function UserDashboard() {
                         <span>
                             <strong>
                                 {
-                                    snippetStatistics
+                                    mySnippetStatistics
                                         .totalSnippets
                                 }
                             </strong>{" "}
-                            snippets
+                            your snippets
                         </span>
-
-                        <span>•</span>
 
                         <span>
                             <strong>
@@ -592,24 +1046,20 @@ export default function UserDashboard() {
                             followers
                         </span>
 
-                        <span>•</span>
-
                         <span>
                             <strong>
                                 {
-                                    snippetStatistics
+                                    mySnippetStatistics
                                         .totalViews
                                 }
                             </strong>{" "}
                             total views
                         </span>
 
-                        <span>•</span>
-
                         <span>
                             <strong>
                                 {
-                                    snippetStatistics
+                                    mySnippetStatistics
                                         .totalLikes
                                 }
                             </strong>{" "}
@@ -620,20 +1070,87 @@ export default function UserDashboard() {
 
                 </section>
 
-                {/* ================= EMPTY SNIPPET STATE ================= */}
+                {/* ================= FEED HEADER ================= */}
 
-                {snippets.length === 0 && (
+                <section className="dashboardFeedHeader">
 
-                    <section className="dashboardState">
+                    <div>
+
+                        <span>
+                            <FaChartLine />
+
+                            COMMUNITY FEED
+                        </span>
 
                         <h2>
-                            No snippets yet
+                            Popular public snippets
                         </h2>
 
                         <p>
-                            Create your first snippet
-                            to see it on your
-                            dashboard.
+                            Only public snippets are
+                            displayed here. Premium and
+                            private snippets are excluded.
+                        </p>
+
+                    </div>
+
+                    <div className="dashboardFeedActions">
+
+                        <button
+                            type="button"
+                            className="dashboardRefreshButton"
+                            disabled={refreshing}
+                            onClick={() =>
+                                loadDashboard(true)
+                            }
+                        >
+                            <FaSyncAlt
+                                className={
+                                    refreshing
+                                        ? "dashboardRefreshingIcon"
+                                        : ""
+                                }
+                            />
+
+                            {refreshing
+                                ? "Refreshing..."
+                                : "Refresh"}
+                        </button>
+
+                        <button
+                            type="button"
+                            className="dashboardExploreButton"
+                            onClick={() =>
+                                navigate(
+                                    "/snippets"
+                                )
+                            }
+                        >
+                            <FaCode />
+
+                            Explore all
+                        </button>
+
+                    </div>
+
+                </section>
+
+                {/* ================= EMPTY FEED ================= */}
+
+                {feedSnippets.length ===
+                    0 && (
+
+                    <section className="dashboardState">
+
+                        <FaCode className="dashboardStateIcon" />
+
+                        <h2>
+                            No public snippets found
+                        </h2>
+
+                        <p>
+                            Community members have not
+                            shared public snippets yet.
                         </p>
 
                         <button
@@ -644,17 +1161,17 @@ export default function UserDashboard() {
                                 )
                             }
                         >
-                            Create Snippet
+                            Create a Snippet
                         </button>
 
                     </section>
-
                 )}
 
-                {/* ================= FILTERED EMPTY STATE ================= */}
+                {/* ================= FILTERED EMPTY ================= */}
 
-                {snippets.length > 0 &&
-                    filteredSnippets.length ===
+                {feedSnippets.length >
+                    0 &&
+                    filteredFeed.length ===
                         0 && (
 
                     <section className="dashboardState">
@@ -664,9 +1181,9 @@ export default function UserDashboard() {
                         </h2>
 
                         <p>
-                            No snippets match the
+                            No public snippets match the
                             selected language and
-                            framework filters.
+                            framework.
                         </p>
 
                         <button
@@ -677,114 +1194,39 @@ export default function UserDashboard() {
                         </button>
 
                     </section>
-
                 )}
 
-                {/* ================= REAL SNIPPET CARDS ================= */}
+                {/* ================= PUBLIC FEED ================= */}
 
-                {filteredSnippets.length > 0 && (
+                {filteredFeed.length >
+                    0 && (
 
-                    <section className="userSnippetGrid">
+                    <section className="dashboardSnippetGrid">
 
-                        {filteredSnippets.map(
+                        {filteredFeed.map(
                             (snippet) => (
-
-                                <article
-                                    className="userSnippetCard"
+                                <div
                                     key={
                                         snippet.snippetId
                                     }
+                                    className="dashboardSnippetCardWrapper"
                                 >
-
-                                    <div className="userSnippetHeader">
-
-                                        <div>
-
-                                            <h2>
-                                                {snippet.title}
-                                            </h2>
-
-                                            <span className="userLanguageBadge">
-                                                {snippet.language}
-                                            </span>
-
-                                        </div>
-
-                                        <button
-                                            type="button"
-                                            className="dashboardStarButton"
-                                            aria-label={`Open ${snippet.title}`}
-                                            onClick={() =>
-                                                navigate(
-                                                    `/snippets/${snippet.snippetId}`
-                                                )
-                                            }
-                                        >
-                                            <FaStar />
-                                        </button>
-
-                                    </div>
-
-                                    <pre
-                                        className="userCodePreview"
-                                        onClick={() =>
-                                            navigate(
-                                                `/snippets/${snippet.snippetId}`
-                                            )
+                                    <SnippetCard
+                                        snippet={
+                                            snippet
                                         }
-                                    >
-                                        <code>
-                                            {snippet.code}
-                                        </code>
-                                    </pre>
-
-                                    <div className="userSnippetFooter">
-
-                                        <div className="userSnippetStats">
-
-                                            <span>
-                                                <FaRegHeart />
-
-                                                {getNumberValue(
-                                                    snippet.likeCount
-                                                )}
-                                            </span>
-
-                                            <span>
-                                                <FaRegComment />
-
-                                                {getNumberValue(
-                                                    snippet.commentCount
-                                                )}
-                                            </span>
-
-                                            <span>
-                                                <FaCodeBranch />
-
-                                                {getNumberValue(
-                                                    snippet.forkCount
-                                                )}
-                                            </span>
-
-                                        </div>
-
-                                        <button
-                                            type="button"
-                                            className="userBookmarkButton"
-                                            aria-label={`${snippet.bookmarkCount || 0} bookmarks`}
-                                        >
-                                            <FaRegBookmark />
-                                        </button>
-
-                                    </div>
-
-                                </article>
-
+                                        showOwnerActions={
+                                            false
+                                        }
+                                        showBookmarkAction={
+                                            true
+                                        }
+                                    />
+                                </div>
                             )
                         )}
 
                     </section>
-
                 )}
 
             </main>
@@ -794,7 +1236,6 @@ export default function UserDashboard() {
 }
 
 function getNumberValue(value) {
-
     const numberValue =
         Number(value);
 
