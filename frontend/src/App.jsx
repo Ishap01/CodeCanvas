@@ -5,32 +5,32 @@ import {
 
 import MainLayout from "./components/layout/MainLayout";
 
+import ChangePassword from "./pages/auth/ChangePassword/ChangePassword";
+import ForgotPassword from "./pages/auth/ForgotPassword/ForgotPassword";
 import Login from "./pages/auth/Login/Login";
 import Register from "./pages/auth/Register/Register";
-import ForgotPassword from "./pages/auth/ForgotPassword/ForgotPassword";
-import VerifyOtp from "./pages/auth/VerifyOtp/VerifyOtp";
 import ResetPassword from "./pages/auth/ResetPassword/ResetPassword";
-import ChangePassword from "./pages/auth/ChangePassword/ChangePassword";
+import VerifyOtp from "./pages/auth/VerifyOtp/VerifyOtp";
 
 import LandingPage from "./pages/LandingPage/LandingPage";
 
-import UserDashboard from "./pages/user/UserDashboard/UserDashboard";
-import Profile from "./pages/user/Profile/Profile";
 import EditProfile from "./pages/user/EditProfile/EditProfile";
-import Settings from "./pages/user/settings/Settings";
+import Profile from "./pages/user/Profile/Profile";
 import PublicProfile from "./pages/user/PublicProfile/PublicProfile";
+import Settings from "./pages/user/settings/Settings";
+import UserDashboard from "./pages/user/UserDashboard/UserDashboard";
 
 import PricingPage from "./pages/Pricing/PricingPage";
 
-import PublicSnippets from "./pages/snippets/PublicSnippets/PublicSnippets";
 import CreateSnippet from "./pages/snippets/CreateSnippet/CreateSnippet";
-import MySnippets from "./pages/snippets/MySnippets/MySnippets";
-import SnippetDetails from "./pages/snippets/SnippetDetails/SnippetDetails";
 import EditSnippet from "./pages/snippets/EditSnippet/EditSnippet";
+import MySnippets from "./pages/snippets/MySnippets/MySnippets";
+import PublicSnippets from "./pages/snippets/PublicSnippets/PublicSnippets";
+import SnippetDetails from "./pages/snippets/SnippetDetails/SnippetDetails";
 
 
+import Notifications from "./pages/notification/Notifications";
 import SearchPage from "./pages/Search/SearchPage";
-
 import ProtectedRoute from "./routes/ProtectedRoute";
 
 function App() {
@@ -54,6 +54,11 @@ function App() {
             />
 
             <Route element={<MainLayout />}>
+
+                <Route
+                    path="/notifications"
+                    element={<Notifications />}
+                />
 
                 <Route
                     path="/dashboard"

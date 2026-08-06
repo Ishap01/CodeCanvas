@@ -1,5 +1,6 @@
 import React from "react";
-
+import NotificationBell from
+"../notification/NotificationBell";
 import "./MainNavbar.css";
 
 import {
@@ -169,13 +170,7 @@ export default function MainNavbar() {
                         <FaSearch />
                     </button>
 
-                    <button
-                        type="button"
-                        aria-label="Notifications"
-                        title="Notifications"
-                    >
-                        <FaBell />
-                    </button>
+                    <NotificationBell />
 
                     <button
                         type="button"
