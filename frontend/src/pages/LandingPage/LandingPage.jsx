@@ -159,9 +159,6 @@ function normalizeSnippet(snippet) {
 function LandingPage() {
   const navigate = useNavigate();
 
-  const token =
-    localStorage.getItem("token");
-
   const [searchText, setSearchText] =
     useState("");
 
@@ -512,17 +509,10 @@ function LandingPage() {
           <div className="landingHeroButtons">
 
             <Link
-              to={
-                token
-                  ? "/snippets/create"
-                  : "/register"
-              }
+              to="/register"
               className="landingHeroPrimaryButton"
             >
-              {token
-                ? "Create snippet"
-                : "Start building"}
-
+              Start building
               <FaArrowRight />
             </Link>
 
@@ -782,15 +772,9 @@ function LandingPage() {
                 share a public snippet.
               </p>
 
-              <Link
-                to={
-                  token
-                    ? "/snippets/create"
-                    : "/register"
-                }
-              >
-                Create snippet
-              </Link>
+              <Link to="/register">
+  Start building
+</Link>
 
             </div>
           )}

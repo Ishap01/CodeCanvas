@@ -1,0 +1,132 @@
+.notificationsPage {
+    min-height: calc(100vh - 80px);
+    padding: 2.5rem 5%;
+    background:
+        radial-gradient(circle at top left, rgba(124, 58, 237, 0.08), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(99, 102, 241, 0.08), transparent 30%),
+        #09090f;
+}
+
+.notificationsContainer {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.notificationsHeading {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 2rem;
+}
+
+.notificationsList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.notificationCard {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+
+    padding: 1.25rem;
+
+    border-radius: 18px;
+
+    background: rgba(18, 19, 34, 0.92);
+
+    border: 1px solid rgba(138, 92, 246, 0.18);
+
+    transition: all .25s ease;
+}
+
+.notificationCard:hover {
+    transform: translateY(-2px);
+
+    border-color: #8b5cf6;
+
+    box-shadow:
+        0 8px 24px rgba(139, 92, 246, .18);
+}
+
+.notificationIcon {
+    width: 52px;
+    height: 52px;
+
+    border-radius: 50%;
+
+    background: rgba(139, 92, 246, .12);
+
+    color: #a78bfa;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    flex-shrink: 0;
+
+    font-size: 1.2rem;
+}
+
+.notificationContent {
+    flex: 1;
+}
+
+.notificationTitle {
+    color: white;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: .4rem;
+}
+
+.notificationMessage {
+    color: #b4b8d0;
+    line-height: 1.5;
+    margin-bottom: .75rem;
+}
+
+.notificationTime {
+    color: #7d82a7;
+    font-size: .82rem;
+}
+
+.emptyNotifications {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    min-height: 350px;
+
+    border-radius: 20px;
+
+    background: rgba(18, 19, 34, 0.92);
+
+    border: 1px dashed rgba(139, 92, 246, .35);
+}
+
+.emptyNotifications h2 {
+    color: white;
+    margin-bottom: .75rem;
+}
+
+.emptyNotifications p {
+    color: #9aa0bd;
+}
+
+@media (max-width:768px){
+
+    .notificationsPage{
+        padding:1.5rem;
+    }
+
+    .notificationCard{
+        padding:1rem;
+    }
+
+    .notificationsHeading{
+        font-size:1.6rem;
+    }
+
+}

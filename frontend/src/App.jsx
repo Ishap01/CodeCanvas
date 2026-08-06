@@ -30,6 +30,7 @@ import EditSnippet from "./pages/snippets/EditSnippet/EditSnippet";
 import BookmarkedSnippets from "./pages/snippets/BookmarkedSnippets/BookmarkedSnippets";
 
 import SearchPage from "./pages/Search/SearchPage";
+import NotificationsPage from "./pages/notifications/NotificationsPage";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 
@@ -170,6 +171,24 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <EditSnippet />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/snippets/bookmarks"
+                    element={
+                        <ProtectedRoute>
+                            <BookmarkedSnippets />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/notifications"
+                    element={
+                        <ProtectedRoute>
+                            <NotificationsPage />
                         </ProtectedRoute>
                     }
                 />
