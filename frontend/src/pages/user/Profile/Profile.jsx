@@ -730,14 +730,7 @@ export default function Profile() {
 
                         <div className="emptyProfileTab">
 
-                            <h2>
-                                Activity
-                            </h2>
-
-                            <p>
-                                Recent activity will
-                                appear here later.
-                            </p>
+                            <NotificationTimeline />
 
                         </div>
                     )}
