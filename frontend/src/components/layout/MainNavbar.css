@@ -720,3 +720,84 @@
         transition: none;
     }
 }
+
+.globalSearch {
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+    max-width: 520px;
+    min-width: 0;
+    height: 40px;
+
+    border: 1px solid #303039;
+    border-radius: 12px;
+
+    overflow: hidden;
+
+    background: #17171d;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.globalSearch:hover {
+    border-color: #4b4b58;
+}
+
+.globalSearch:focus-within {
+    border-color: #6c5ce7;
+    box-shadow: 0 0 0 3px rgba(108,92,231,.15);
+}
+
+.globalSearchSubmit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 46px;
+    height: 100%;
+
+    border: none;
+    border-right: 1px solid #303039;
+
+    background: #202028;
+
+    color: #9ca3af;
+
+    cursor: pointer;
+
+    transition: all .2s ease;
+}
+
+.globalSearchSubmit:hover {
+    background: #282832;
+    color: #ffffff;
+}
+
+.globalSearch svg {
+    font-size: 15px;
+}
+
+
+.globalSearch input {
+    flex: 1;
+
+    height: 100%;
+
+    padding: 0 14px;
+
+    border: none;
+    outline: none;
+
+    background: transparent;
+
+    color: #f3f4f6;
+
+    font-size: 13px;
+}
+
+.globalSearch input::placeholder {
+    color: #7b7b86;
+}

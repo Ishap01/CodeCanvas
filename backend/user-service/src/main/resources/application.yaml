@@ -1,9 +1,124 @@
+#server:
+#  port: 8081
+#
+#spring:
+#  application:
+#    name: user-service
+#
+#  mail:
+#    host: smtp.gmail.com
+#    port: 587
+#    username: ${MAIL_USERNAME}
+#    password: ${MAIL_PASSWORD}
+#
+#    properties:
+#      mail:
+#        smtp:
+#          auth: true
+#          starttls:
+#            enable: true
+#          connectiontimeout: 5000
+#          timeout: 5000
+#          writetimeout: 5000
+#
+#  datasource:
+#    url: ${DB_URL}
+#    username: ${DB_USERNAME}
+#    password: ${DB_PASSWORD}
+#    driver-class-name: org.postgresql.Driver
+#
+#  jpa:
+#    hibernate:
+#      ddl-auto: update
+#
+#    show-sql: true
+#    open-in-view: false
+#
+#    properties:
+#      hibernate:
+#        format_sql: true
+#
+#  kafka:
+#    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+#
+#    consumer:
+#      group-id: user-service-payment-group
+#
+#      auto-offset-reset: earliest
+#
+#      enable-auto-commit: false
+#
+#      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#
+#      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+#
+#      properties:
+#        spring.json.trusted.packages: com.codecanvas.userservice.kafka.event
+#        spring.json.value.default.type: com.codecanvas.userservice.kafka.event.PaymentSuccessEvent
+#        spring.json.use.type.headers: false
+#
+#    listener:
+#      ack-mode: record
+#      missing-topics-fatal: false
+#
+#app:
+#  kafka:
+#    topics:
+#      payment-success: payment-success-events
+#
+#subscription:
+#  plans:
+#    free:
+#      tier: FREE
+#      maxSnippetsPerMonth: 20
+#      aiRequestsPerMonth: 5
+#
+#    basicPremium:
+#      tier: BASIC_PREMIUM
+#      maxSnippetsPerMonth: 100
+#      aiRequestsPerMonth: 100
+#
+#    proPremium:
+#      tier: PRO_PREMIUM
+#      maxSnippetsPerMonth: 1000
+#      aiRequestsPerMonth: 1000
+#
+#eureka:
+#  client:
+#    service-url:
+#      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+#
+#    register-with-eureka: true
+#    fetch-registry: true
+#
+#  instance:
+#    prefer-ip-address: true
+#
+#logging:
+#  level:
+#    root: INFO
+#    com.codecanvas.userservice: DEBUG
+#    org.springframework.security: INFO
+#    org.springframework.kafka: INFO
+#    org.apache.kafka: WARN
+#
+#jwt:
+#  secret: ${JWT_SECRET}
+#  expiration: ${JWT_EXPIRATION:3600000}
+#
+#cloudinary:
+#  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+#  api-key: ${CLOUDINARY_API_KEY}
+#  api-secret: ${CLOUDINARY_API_SECRET}
+
+
 server:
   port: 8081
 
 spring:
   application:
     name: user-service
+
   mail:
     host: smtp.gmail.com
     port: 587
@@ -24,13 +139,14 @@ spring:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
-
+    driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
       ddl-auto: update
 
     show-sql: true
+    open-in-view: false
 
     properties:
       hibernate:
@@ -39,14 +155,23 @@ spring:
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
 
-
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-
     consumer:
-      group-id: user-service
+      group-id: user-service-payment-group
       auto-offset-reset: earliest
+      enable-auto-commit: false
+
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
+    listener:
+      ack-mode: record
+      missing-topics-fatal: false
+
+app:
+  kafka:
+    topics:
+      payment-success: payment-success-events
+      payment-failed: payment-failed-events
 
 subscription:
   plans:
@@ -54,10 +179,12 @@ subscription:
       tier: FREE
       maxSnippetsPerMonth: 20
       aiRequestsPerMonth: 5
+
     basicPremium:
       tier: BASIC_PREMIUM
       maxSnippetsPerMonth: 100
       aiRequestsPerMonth: 100
+
     proPremium:
       tier: PRO_PREMIUM
       maxSnippetsPerMonth: 1000
@@ -66,18 +193,27 @@ subscription:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+
+    register-with-eureka: true
+    fetch-registry: true
+
+  instance:
+    prefer-ip-address: true
 
 logging:
   level:
+    root: INFO
+    com.codecanvas.userservice: DEBUG
     org.springframework.security: INFO
-
+    org.springframework.kafka: INFO
+    org.apache.kafka: WARN
 
 jwt:
   secret: ${JWT_SECRET}
-  expiration: ${JWT_EXPIRATION}
+  expiration: ${JWT_EXPIRATION:3600000}
 
 cloudinary:
-  cloud-name: wqxaugxx
-  api-key: 916333465954846
-  api-secret: O3wWyyinEI4MWawHlxuj3mrJtaY
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}

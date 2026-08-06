@@ -48,6 +48,13 @@ import {
     getUserById,
 } from "../../../services/userService";
 
+import {
+    summarizeCode,
+    explainCode,
+} from "../../../services/aiService";
+
+import ReactMarkdown from "react-markdown";
+
 import "./SnippetDetails.css";
 
 function SnippetDetails() {
@@ -144,6 +151,24 @@ function SnippetDetails() {
 
     const [copySuccess, setCopySuccess] =
         useState(false);
+
+    const [aiLoading, setAiLoading] =
+    useState("");
+
+const [aiResult, setAiResult] =
+    useState("");
+
+const [aiOperation, setAiOperation] =
+    useState("");
+
+const [aiCache, setAiCache] =
+    useState({
+
+        summary: "",
+
+        explanation: "",
+
+    });
 
     const isOwner =
         Boolean(
@@ -460,30 +485,189 @@ function SnippetDetails() {
         return false;
     };
 
-    const handleCopyCode =
-        async () => {
+    const buildAISource = () => {
 
-            if (!snippet?.code) {
-                return;
-            }
+    if (
+        Array.isArray(snippet.files) &&
+        snippet.files.length > 0
+    ) {
 
-            try {
-                await navigator.clipboard.writeText(
-                    snippet.code
-                );
+        return snippet.files
+            .map(
+                (file) =>
 
-                setCopySuccess(true);
+`FILE NAME:
+${file.filename}
 
-                window.setTimeout(() => {
-                    setCopySuccess(false);
-                }, 1600);
+SOURCE CODE:
+${file.code}`
+            )
+            .join(
+                "\n\n=====================================\n\n"
+            );
+    }
 
-            } catch {
-                setErrorMessage(
-                    "Unable to copy code."
-                );
-            }
-        };
+    return snippet.code || "";
+};
+
+const handleSummarize = async () => {
+
+    if (aiCache.summary) {
+
+    setAiOperation("Summary");
+
+    setAiResult(aiCache.summary);
+
+    return;
+
+}
+
+    try {
+
+        setAiLoading("SUMMARY");
+
+        setAiResult("");
+
+        setErrorMessage("");
+
+        const response =
+            await summarizeCode(
+                buildAISource()
+            );
+
+        setAiOperation("Summary");
+
+        setAiCache(previous => ({
+
+    ...previous,
+
+    summary: response.result,
+
+}));
+
+setAiCache(previous => ({
+
+    ...previous,
+
+    summary: response.result,
+
+}));
+
+setAiResult(
+    response.result
+);
+
+    } catch (error) {
+
+        setErrorMessage(
+            error.message ||
+            "Unable to summarize code."
+        );
+
+    } finally {
+
+        setAiLoading("");
+
+    }
+
+};
+
+const handleExplain = async () => {
+
+    if (aiCache.explanation) {
+
+    setAiOperation("Explanation");
+
+    setAiResult(aiCache.explanation);
+
+    return;
+
+}
+
+    try {
+
+        setAiLoading("EXPLAIN");
+
+        setAiResult("");
+
+        setErrorMessage("");
+
+        const response =
+            await explainCode(
+                buildAISource()
+            );
+
+        setAiOperation("Explanation");
+
+        setAiCache(previous => ({
+
+    ...previous,
+
+    explanation: response.result,
+
+}));
+
+setAiResult(
+    response.result
+);
+
+    } catch (error) {
+
+        setErrorMessage(
+            error.message ||
+            "Unable to explain code."
+        );
+
+    } finally {
+
+        setAiLoading("");
+
+    }
+
+};
+
+    const handleCopyCode = async () => {
+
+    try {
+
+        let codeToCopy = "";
+
+        if (
+            Array.isArray(snippet.files) &&
+            snippet.files.length > 0
+        ) {
+
+            codeToCopy = snippet.files
+                .map(file =>
+`// ${file.filename}
+
+${file.code}`)
+                .join("\n\n\n");
+
+        } else {
+
+            codeToCopy = snippet.code || "";
+        }
+
+        await navigator.clipboard.writeText(
+            codeToCopy
+        );
+
+        setCopySuccess(true);
+
+        setTimeout(() => {
+            setCopySuccess(false);
+        }, 1600);
+
+    } catch {
+
+        setErrorMessage(
+            "Unable to copy code."
+        );
+
+    }
+
+};
 
     const handleLikeToggle =
         async () => {
@@ -1277,38 +1461,143 @@ function SnippetDetails() {
 
                 <section className="snippetDetailsCodeSection">
 
-                    <div className="snippetDetailsCodeHeader">
+    <div className="snippetDetailsCodeHeader">
 
-                        <div>
-                            <FaCode />
+        <div>
 
-                            <span>
-                                {snippet.language}
-                            </span>
-                        </div>
+            <FaCode />
 
-                        <button
-                            type="button"
-                            onClick={
-                                handleCopyCode
-                            }
-                        >
-                            <FaCopy />
+            <span>
+                {snippet.language}
+            </span>
 
-                            {copySuccess
-                                ? "Copied"
-                                : "Copy code"}
-                        </button>
+        </div>
 
-                    </div>
+        <button
+            type="button"
+            onClick={handleCopyCode}
+        >
+            <FaCopy />
 
-                    <pre>
-                        <code>
-                            {snippet.code}
-                        </code>
-                    </pre>
+            {copySuccess
+                ? "Copied"
+                : "Copy all"}
+        </button>
 
-                </section>
+    </div>
+
+    {Array.isArray(snippet.files) &&
+    snippet.files.length > 0 ? (
+
+        snippet.files.map((file) => (
+
+            <div
+                key={file.fileOrder}
+                className="snippetDetailsSingleFile"
+            >
+
+                <div className="snippetDetailsFileHeader">
+
+                    📄 {file.filename}
+
+                </div>
+
+                <pre>
+
+                    <code>
+
+                        {file.code}
+
+                    </code>
+
+                </pre>
+
+            </div>
+
+        ))
+
+    ) : (
+
+        <pre>
+
+            <code>
+
+                {snippet.code}
+
+            </code>
+
+        </pre>
+
+    )}
+
+</section>
+
+<section className="snippetDetailsAiSection">
+
+    <div className="snippetDetailsAiHeader">
+
+        <div>
+
+            <h2>
+                🤖 AI Assistant
+            </h2>
+
+            <p>
+                Understand this snippet using AI.
+            </p>
+
+        </div>
+
+        <div className="snippetDetailsAiActions">
+
+            <button
+                type="button"
+                onClick={handleSummarize}
+                disabled={Boolean(aiLoading)}
+            >
+                {aiLoading === "SUMMARY"
+                    ? "Summarizing..."
+                    : "📄 Summarize"}
+            </button>
+
+            <button
+                type="button"
+                onClick={handleExplain}
+                disabled={Boolean(aiLoading)}
+            >
+                {aiLoading === "EXPLAIN"
+                    ? "Explaining..."
+                    : "💎 Explain"}
+            </button>
+
+        </div>
+
+    </div>
+
+    {aiResult && (
+
+        <div className="snippetDetailsAiResult">
+
+            <h3>
+
+                {aiOperation}
+
+            </h3>
+
+            <div className="snippetDetailsMarkdown">
+
+    <ReactMarkdown>
+
+        {aiResult}
+
+    </ReactMarkdown>
+
+</div>
+        </div>
+
+    )}
+
+</section>
 
                 {Array.isArray(
                     snippet.tags
