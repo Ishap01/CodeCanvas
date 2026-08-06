@@ -1,0 +1,163 @@
+.notificationTimeline {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 28px;
+
+}
+
+.notificationSection {
+
+    position: relative;
+
+}
+
+.notificationSection h3 {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    margin: 0 0 18px;
+
+    color: #9e88ff;
+
+    font-size: .72rem;
+
+    font-weight: 800;
+
+    letter-spacing: 2px;
+
+    text-transform: uppercase;
+
+}
+
+.notificationSection h3::after {
+
+    content: "";
+
+    flex: 1;
+
+    height: 1px;
+
+    background:
+        linear-gradient(90deg,
+            rgba(139, 108, 255, .45),
+            transparent);
+
+}
+
+.notificationTimelineLoading,
+
+.notificationTimelineError,
+
+.notificationTimelineEmpty {
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    align-items: center;
+
+    gap: 12px;
+
+    min-height: 280px;
+
+    padding: 40px;
+
+    border: 1px solid rgba(145, 154, 196, .14);
+
+    border-radius: 18px;
+
+    background:
+        linear-gradient(145deg,
+            rgba(17, 20, 38, .98),
+            rgba(9, 11, 23, .99));
+
+    color: #9ca3af;
+
+}
+
+.notificationTimelineEmpty h2,
+
+.notificationTimelineError h2 {
+
+    margin: 0;
+
+    color: #f3f5fc;
+
+}
+
+.notificationTimelineEmpty p,
+
+.notificationTimelineError p {
+
+    max-width: 420px;
+
+    margin: 0;
+
+    text-align: center;
+
+    color: #7c859d;
+
+    line-height: 1.7;
+
+}
+
+.notificationTimelineLoading {
+
+    color: #a78bfa;
+
+    font-weight: 700;
+
+}
+
+.notificationTimelineLoading::before {
+
+    content: "";
+
+    width: 36px;
+
+    height: 36px;
+
+    border-radius: 50%;
+
+    border: 3px solid rgba(255, 255, 255, .12);
+
+    border-top-color: #8b5cf6;
+
+    animation: notificationSpin .8s linear infinite;
+
+}
+
+@keyframes notificationSpin {
+
+    to {
+
+        transform: rotate(360deg);
+
+    }
+
+}
+
+.notificationSection .notificationItem:last-child {
+
+    margin-bottom: 0;
+
+}
+
+@media(max-width:768px) {
+
+    .notificationSection h3 {
+
+        font-size: .68rem;
+
+    }
+
+}

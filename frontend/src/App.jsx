@@ -166,15 +166,6 @@ function App() {
                 />
 
                 <Route
-                    path="/snippets/bookmarks"
-                    element={
-                        <ProtectedRoute>
-                            <BookmarkedSnippets />
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
                     path="/snippets/:snippetId/edit"
                     element={
                         <ProtectedRoute>
@@ -184,13 +175,11 @@ function App() {
                 />
 
                 <Route
-    path="/snippets/:snippetId"
-    element={
-        <ProtectedRoute message="Please login to view this snippet.">
-            <SnippetDetails />
-        </ProtectedRoute>
-    }
-/>
+                    path="/snippets/:snippetId"
+                    element={
+                        <SnippetDetails />
+                    }
+                />
 
                 <Route
                     path="/admin"
