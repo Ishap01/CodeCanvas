@@ -54,7 +54,7 @@ const DASHBOARD_FEED_LIMIT = 12;
  */
 function unwrapResponseData(response) {
     if (response == null) {
-        return {};
+        return null;
     }
 
     if (
@@ -348,14 +348,35 @@ export default function UserDashboard() {
                     setError("");
 
                     const [
-                        profileResponse,
-                        mySnippetResponse,
-                        publicSnippetResponse,
-                    ] = await Promise.all([
+                        profileResult,
+                        mySnippetResult,
+                        publicSnippetResult,
+                    ] = await Promise.allSettled([
                         getProfile(),
                         getMySnippets(),
                         getPublicSnippets(),
                     ]);
+
+                    
+
+                    const profileResponse =
+                        profileResult.status === "fulfilled"
+                            ? profileResult.value
+                            : null;
+
+                    const mySnippetResponse =
+                        mySnippetResult.status === "fulfilled"
+                            ? mySnippetResult.value
+                            : null;
+
+                    const publicSnippetResponse =
+                        publicSnippetResult.status === "fulfilled"
+                            ? publicSnippetResult.value
+                            : null;
+
+                    if (!profileResponse) {
+    throw new Error("Unable to load profile.");
+}
 
                     const profilePayload =
                         unwrapResponseData(
@@ -525,7 +546,7 @@ export default function UserDashboard() {
                                 )
                             );
                         } catch (
-                            statisticsError
+                        statisticsError
                         ) {
                             console.error(
                                 "Unable to load dashboard statistics:",
@@ -546,7 +567,7 @@ export default function UserDashboard() {
                         }
                     }
                 } catch (
-                    requestError
+                requestError
                 ) {
                     console.error(
                         "Unable to load dashboard:",
@@ -756,19 +777,19 @@ export default function UserDashboard() {
 
                     const languageMatch =
                         selectedLanguage ===
-                            "All" ||
+                        "All" ||
                         snippetLanguage ===
-                            selectedLanguage
-                                .trim()
-                                .toLowerCase();
+                        selectedLanguage
+                            .trim()
+                            .toLowerCase();
 
                     const frameworkMatch =
                         selectedFramework ===
-                            "All" ||
+                        "All" ||
                         snippetFramework ===
-                            selectedFramework
-                                .trim()
-                                .toLowerCase();
+                        selectedFramework
+                            .trim()
+                            .toLowerCase();
 
                     return (
                         languageMatch &&
@@ -946,7 +967,7 @@ export default function UserDashboard() {
                                         type="button"
                                         className={
                                             selectedLanguage ===
-                                            language
+                                                language
                                                 ? "activeFilter"
                                                 : ""
                                         }
@@ -980,7 +1001,7 @@ export default function UserDashboard() {
                                         type="button"
                                         className={
                                             selectedFramework ===
-                                            framework
+                                                framework
                                                 ? "activeFilter"
                                                 : ""
                                         }
@@ -1140,94 +1161,94 @@ export default function UserDashboard() {
                 {feedSnippets.length ===
                     0 && (
 
-                    <section className="dashboardState">
+                        <section className="dashboardState">
 
-                        <FaCode className="dashboardStateIcon" />
+                            <FaCode className="dashboardStateIcon" />
 
-                        <h2>
-                            No public snippets found
-                        </h2>
+                            <h2>
+                                No public snippets found
+                            </h2>
 
-                        <p>
-                            Community members have not
-                            shared public snippets yet.
-                        </p>
+                            <p>
+                                Community members have not
+                                shared public snippets yet.
+                            </p>
 
-                        <button
-                            type="button"
-                            onClick={() =>
-                                navigate(
-                                    "/snippets/create"
-                                )
-                            }
-                        >
-                            Create a Snippet
-                        </button>
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    navigate(
+                                        "/snippets/create"
+                                    )
+                                }
+                            >
+                                Create a Snippet
+                            </button>
 
-                    </section>
-                )}
+                        </section>
+                    )}
 
                 {/* ================= FILTERED EMPTY ================= */}
 
                 {feedSnippets.length >
                     0 &&
                     filteredFeed.length ===
-                        0 && (
+                    0 && (
 
-                    <section className="dashboardState">
+                        <section className="dashboardState">
 
-                        <h2>
-                            No matching snippets
-                        </h2>
+                            <h2>
+                                No matching snippets
+                            </h2>
 
-                        <p>
-                            No public snippets match the
-                            selected language and
-                            framework.
-                        </p>
+                            <p>
+                                No public snippets match the
+                                selected language and
+                                framework.
+                            </p>
 
-                        <button
-                            type="button"
-                            onClick={clearFilters}
-                        >
-                            Clear Filters
-                        </button>
+                            <button
+                                type="button"
+                                onClick={clearFilters}
+                            >
+                                Clear Filters
+                            </button>
 
-                    </section>
-                )}
+                        </section>
+                    )}
 
                 {/* ================= PUBLIC FEED ================= */}
 
                 {filteredFeed.length >
                     0 && (
 
-                    <section className="dashboardSnippetGrid">
+                        <section className="dashboardSnippetGrid">
 
-                        {filteredFeed.map(
-                            (snippet) => (
-                                <div
-                                    key={
-                                        snippet.snippetId
-                                    }
-                                    className="dashboardSnippetCardWrapper"
-                                >
-                                    <SnippetCard
-                                        snippet={
-                                            snippet
+                            {filteredFeed.map(
+                                (snippet) => (
+                                    <div
+                                        key={
+                                            snippet.snippetId
                                         }
-                                        showOwnerActions={
-                                            false
-                                        }
-                                        showBookmarkAction={
-                                            true
-                                        }
-                                    />
-                                </div>
-                            )
-                        )}
+                                        className="dashboardSnippetCardWrapper"
+                                    >
+                                        <SnippetCard
+                                            snippet={
+                                                snippet
+                                            }
+                                            showOwnerActions={
+                                                false
+                                            }
+                                            showBookmarkAction={
+                                                true
+                                            }
+                                        />
+                                    </div>
+                                )
+                            )}
 
-                    </section>
-                )}
+                        </section>
+                    )}
 
             </main>
 

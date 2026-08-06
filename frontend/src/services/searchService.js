@@ -72,21 +72,7 @@
 //     return response.data;
 // };
 
-// /*
-//  * ============================================
-//  * USER AUTOCOMPLETE
-//  * ============================================
-//  */
-// export const getUserSuggestions = async (keyword) => {
-//     const response = await axiosInstance.get(
-//         "/api/search/users/suggestions",
-//         {
-//             params: { keyword },
-//         }
-//     );
 
-//     return response.data;
-// };
 
 
 import axiosInstance from "../api/axios";
@@ -148,3 +134,19 @@ export const getSuggestions = async (keyword) => {
 
   return response.data;
 };
+
+/*
+ * ============================================
+ * USER AUTOCOMPLETE
+ * ============================================
+ */
+export const getUserSuggestions = async (keyword) => {
+    const response = await axiosInstance.get(
+        "/api/search/users/suggestions",
+        {
+            params: { keyword },
+        }
+    );
+
+     return response.data;
+ };

@@ -198,12 +198,12 @@ function LandingPage() {
           Array.isArray(payload)
             ? payload
             : Array.isArray(
-                payload?.snippets
-              )
+              payload?.snippets
+            )
               ? payload.snippets
               : Array.isArray(
-                  payload?.content
-                )
+                payload?.content
+              )
                 ? payload.content
                 : [];
 
@@ -282,8 +282,8 @@ function LandingPage() {
     const destination =
       keyword
         ? `/search?q=${encodeURIComponent(
-            keyword
-          )}`
+          keyword
+        )}`
         : "/search";
 
     navigateWithLogin(
@@ -406,32 +406,19 @@ function LandingPage() {
         </nav>
 
         <div className="landingAuthActions">
+          <Link
+            to="/login"
+            className="landingLoginButton"
+          >
+            Login
+          </Link>
 
-          {token ? (
-            <Link
-              to="/dashboard"
-              className="landingPrimaryNavButton"
-            >
-              Dashboard
-            </Link>
-          ) : (
-            <>
-              <Link
-                to="/login"
-                className="landingLoginButton"
-              >
-                Login
-              </Link>
-
-              <Link
-                to="/register"
-                className="landingPrimaryNavButton"
-              >
-                Join free
-              </Link>
-            </>
-          )}
-
+          <Link
+            to="/register"
+            className="landingPrimaryNavButton"
+          >
+            Join free
+          </Link>
         </div>
 
       </header>
@@ -781,7 +768,7 @@ function LandingPage() {
         {!loading &&
           !errorMessage &&
           featuredSnippets.length ===
-            0 && (
+          0 && (
             <div className="landingSnippetState">
 
               <FaCode />
@@ -811,7 +798,7 @@ function LandingPage() {
         {!loading &&
           !errorMessage &&
           featuredSnippets.length >
-            0 && (
+          0 && (
             <div className="landingSnippetGrid">
 
               {featuredSnippets.map(

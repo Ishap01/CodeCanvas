@@ -32,6 +32,9 @@ function ProtectedRoute({
     const redirectTo =
         `${location.pathname}${location.search}${location.hash}`;
 
+    console.log("ProtectedRoute:", location.pathname);
+    console.log("Authenticated:", isAuthenticated);
+
     if (!isAuthenticated) {
 
         return (

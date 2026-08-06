@@ -96,11 +96,18 @@ function Register() {
       setMessage(data.message);
 
       if (data.success) {
-        setTimeout(() => {
-          navigate("/login");
-        }, 1500);
-      }
-    } catch (error) {
+    console.log("Navigating to /login");
+
+    navigate("/login", {
+        replace: true,
+        state: {
+            message: "Registration successful. Please sign in.",
+        },
+    });
+
+    return;
+}
+} catch (error) {
       console.error(error);
 
       if (error.response) {

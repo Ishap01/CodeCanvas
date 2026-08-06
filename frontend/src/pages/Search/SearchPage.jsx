@@ -29,6 +29,7 @@ import {
     getPopularSearches,
     getSearchHistory,
     getSuggestions,
+    getUserSuggestions,
     searchSnippets,
 } from "../../services/searchService";
 
@@ -341,6 +342,11 @@ export default function SearchPage() {
     const [
         snippetSuggestions,
         setSnippetSuggestions,
+    ] = useState([]);
+
+    const [
+        userSuggestions,
+        setUserSuggestions,
     ] = useState([]);
 
     const [
@@ -813,12 +819,13 @@ export default function SearchPage() {
     }, [token]);
 
     /*
-     * Snippet autocomplete only.
-     *
-     * User search ab exact username User Service se hoti hai,
-     * isliye /api/search/users/suggestions use nahi hoga.
+     * ==========================================
+     * AUTOCOMPLETE
+     * Snippets + Users
+     * ==========================================
      */
     useEffect(() => {
+
         const normalizedKeyword =
             searchText.trim();
 
@@ -827,22 +834,58 @@ export default function SearchPage() {
         const currentRequestId =
             autocompleteRequestId.current;
 
-        if (
-            activeTab === SEARCH_TABS.USERS ||
-            normalizedKeyword.length < 2
-        ) {
+        if (normalizedKeyword.length < 2) {
+
             setSnippetSuggestions([]);
+
+            setUserSuggestions([]);
+
             setSuggestionLoading(false);
+
             return;
+
         }
 
         const timeoutId =
-            window.setTimeout(
-                async () => {
-                    try {
-                        setSuggestionLoading(
-                            true
+            window.setTimeout(async () => {
+
+                try {
+
+                    setSuggestionLoading(true);
+
+                    if (
+                        activeTab ===
+                        SEARCH_TABS.USERS
+                    ) {
+
+                        const response =
+                            await getUserSuggestions(
+                                normalizedKeyword
+                            );
+
+                        if (
+                            currentRequestId !==
+                            autocompleteRequestId.current
+                        ) {
+                            return;
+                        }
+
+                        const payload =
+    unwrapResponseData(
+        response
+    );
+
+const suggestions =
+    Array.isArray(payload)
+        ? payload
+        : [];
+                        setUserSuggestions(
+                            suggestions
                         );
+
+                        setSnippetSuggestions([]);
+
+                    } else {
 
                         const response =
                             await getSuggestions(
@@ -851,8 +894,7 @@ export default function SearchPage() {
 
                         if (
                             currentRequestId !==
-                            autocompleteRequestId
-                                .current
+                            autocompleteRequestId.current
                         ) {
                             return;
                         }
@@ -862,7 +904,7 @@ export default function SearchPage() {
                                 response
                             );
 
-                        const rawSuggestions =
+                        const suggestions =
                             Array.isArray(payload)
                                 ? payload
                                 : Array.isArray(
@@ -872,42 +914,53 @@ export default function SearchPage() {
                                     : [];
 
                         setSnippetSuggestions(
-                            rawSuggestions
-                        );
-                    } catch (requestError) {
-                        console.error(
-                            "Snippet autocomplete error:",
-                            requestError
+                            suggestions
                         );
 
-                        if (
-                            currentRequestId ===
-                            autocompleteRequestId
-                                .current
-                        ) {
-                            setSnippetSuggestions(
-                                []
-                            );
-                        }
-                    } finally {
-                        if (
-                            currentRequestId ===
-                            autocompleteRequestId
-                                .current
-                        ) {
-                            setSuggestionLoading(
-                                false
-                            );
-                        }
+                        setUserSuggestions([]);
+
                     }
-                },
-                AUTOCOMPLETE_DELAY
-            );
+
+                } catch (error) {
+
+                    console.error(
+                        "Autocomplete error:",
+                        error
+                    );
+
+                    if (
+                        currentRequestId ===
+                        autocompleteRequestId.current
+                    ) {
+
+                        setSnippetSuggestions([]);
+
+                        setUserSuggestions([]);
+
+                    }
+
+                } finally {
+
+                    if (
+                        currentRequestId ===
+                        autocompleteRequestId.current
+                    ) {
+
+                        setSuggestionLoading(
+                            false
+                        );
+
+                    }
+
+                }
+
+            }, AUTOCOMPLETE_DELAY);
 
         return () =>
             window.clearTimeout(
                 timeoutId
             );
+
     }, [
         searchText,
         activeTab,
@@ -1258,21 +1311,28 @@ export default function SearchPage() {
     const showRecentHistory =
         showSuggestionPanel &&
         activeTab ===
-            SEARCH_TABS.SNIPPETS &&
+        SEARCH_TABS.SNIPPETS &&
         searchText.trim().length === 0 &&
         historyItems.length > 0;
 
     const showSnippetSuggestions =
         showSuggestionPanel &&
         activeTab ===
-            SEARCH_TABS.SNIPPETS &&
+        SEARCH_TABS.SNIPPETS &&
         searchText.trim().length >= 2 &&
         snippetSuggestions.length > 0;
+
+    const showUserSuggestions =
+        showSuggestionPanel &&
+        activeTab ===
+        SEARCH_TABS.USERS &&
+        searchText.trim().length >= 2 &&
+        userSuggestions.length > 0;
 
     const showSuggestionLoader =
         showSuggestionPanel &&
         activeTab ===
-            SEARCH_TABS.SNIPPETS &&
+        SEARCH_TABS.SNIPPETS &&
         searchText.trim().length >= 2 &&
         suggestionLoading;
 
@@ -1334,7 +1394,7 @@ export default function SearchPage() {
                                 value={searchText}
                                 placeholder={
                                     activeTab ===
-                                    SEARCH_TABS.USERS
+                                        SEARCH_TABS.USERS
                                         ? "Enter exact username..."
                                         : "Search username, Java, React, Kafka..."
                                 }
@@ -1387,117 +1447,176 @@ export default function SearchPage() {
 
                         {(showRecentHistory ||
                             showSnippetSuggestions ||
+                            showUserSuggestions ||
                             showSuggestionLoader) && (
 
-                            <div className="searchSuggestionPanel">
+                                <div className="searchSuggestionPanel">
 
-                                {showSuggestionLoader && (
-                                    <div className="searchSuggestionLoading">
-                                        <span />
-                                        Loading suggestions...
-                                    </div>
-                                )}
+                                    {showSuggestionLoader && (
+                                        <div className="searchSuggestionLoading">
+                                            <span />
+                                            Loading suggestions...
+                                        </div>
+                                    )}
 
-                                {!suggestionLoading &&
-                                    showRecentHistory && (
+                                    {!suggestionLoading &&
+                                        showRecentHistory && (
 
-                                    <div className="searchSuggestionGroup">
+                                            <div className="searchSuggestionGroup">
 
-                                        <p>
-                                            Recent searches
-                                        </p>
+                                                <p>
+                                                    Recent searches
+                                                </p>
 
-                                        {historyItems.map(
-                                            (historyItem) => (
+                                                {historyItems.map(
+                                                    (historyItem) => (
 
-                                                <button
-                                                    key={
-                                                        historyItem
-                                                    }
-                                                    type="button"
-                                                    onMouseDown={(
-                                                        event
-                                                    ) =>
-                                                        event
-                                                            .preventDefault()
-                                                    }
-                                                    onClick={() =>
-                                                        handleQuickSearch(
-                                                            historyItem
-                                                        )
-                                                    }
-                                                >
-                                                    <FaSearch />
+                                                        <button
+                                                            key={
+                                                                historyItem
+                                                            }
+                                                            type="button"
+                                                            onMouseDown={(
+                                                                event
+                                                            ) =>
+                                                                event
+                                                                    .preventDefault()
+                                                            }
+                                                            onClick={() =>
+                                                                handleQuickSearch(
+                                                                    historyItem
+                                                                )
+                                                            }
+                                                        >
+                                                            <FaSearch />
 
-                                                    <span>
-                                                        {historyItem}
-                                                    </span>
-                                                </button>
+                                                            <span>
+                                                                {historyItem}
+                                                            </span>
+                                                        </button>
 
-                                            )
+                                                    )
+                                                )}
+
+                                            </div>
                                         )}
 
-                                    </div>
-                                )}
+                                    {!suggestionLoading &&
+                                        showSnippetSuggestions && (
 
-                                {!suggestionLoading &&
-                                    showSnippetSuggestions && (
+                                            <div className="searchSuggestionGroup">
 
-                                    <div className="searchSuggestionGroup">
+                                                <p>
+                                                    Snippet suggestions
+                                                </p>
 
-                                        <p>
-                                            Snippet suggestions
-                                        </p>
+                                                {snippetSuggestions.map(
+                                                    (
+                                                        suggestion,
+                                                        index
+                                                    ) => {
+                                                        const text =
+                                                            getSuggestionText(
+                                                                suggestion
+                                                            );
 
-                                        {snippetSuggestions.map(
-                                            (
-                                                suggestion,
-                                                index
-                                            ) => {
-                                                const text =
-                                                    getSuggestionText(
-                                                        suggestion
-                                                    );
-
-                                                if (!text) {
-                                                    return null;
-                                                }
-
-                                                return (
-                                                    <button
-                                                        key={
-                                                            suggestion
-                                                                ?.snippetId ||
-                                                            `${text}-${index}`
+                                                        if (!text) {
+                                                            return null;
                                                         }
-                                                        type="button"
-                                                        onMouseDown={(
-                                                            event
-                                                        ) =>
-                                                            event
-                                                                .preventDefault()
-                                                        }
-                                                        onClick={() =>
-                                                            handleQuickSearch(
-                                                                text
-                                                            )
-                                                        }
-                                                    >
-                                                        <FaCode />
 
-                                                        <span>
-                                                            {text}
-                                                        </span>
-                                                    </button>
-                                                );
-                                            }
+                                                        return (
+                                                            <button
+                                                                key={
+                                                                    suggestion
+                                                                        ?.snippetId ||
+                                                                    `${text}-${index}`
+                                                                }
+                                                                type="button"
+                                                                onMouseDown={(
+                                                                    event
+                                                                ) =>
+                                                                    event
+                                                                        .preventDefault()
+                                                                }
+                                                                onClick={() =>
+                                                                    handleQuickSearch(
+                                                                        text
+                                                                    )
+                                                                }
+                                                            >
+                                                                <FaCode />
+
+                                                                <span>
+                                                                    {text}
+                                                                </span>
+                                                            </button>
+                                                        );
+                                                    }
+                                                )}
+
+                                                {!suggestionLoading &&
+                                                    showUserSuggestions && (
+
+                                                        <div className="searchSuggestionGroup">
+
+                                                            <p>
+                                                                User suggestions
+                                                            </p>
+
+                                                            {userSuggestions.map((user) => (
+
+                                                                <button
+                                                                    key={user.userId}
+                                                                    type="button"
+                                                                    onMouseDown={(event) =>
+                                                                        event.preventDefault()
+                                                                    }
+                                                                    onClick={() => {
+
+                                                                        setSearchText(
+                                                                            user.username
+                                                                        );
+
+                                                                        handleQuickSearch(
+                                                                            user.username
+                                                                        );
+
+                                                                    }}
+                                                                >
+
+                                                                    <FaUser />
+
+                                                                    <div
+                                                                        className="searchSuggestionUser"
+                                                                    >
+
+                                                                        <strong>
+
+                                                                            {user.fullName}
+
+                                                                        </strong>
+
+                                                                        <small>
+
+                                                                            @{user.username}
+
+                                                                        </small>
+
+                                                                    </div>
+
+                                                                </button>
+
+                                                            ))}
+
+                                                        </div>
+
+                                                    )}
+
+                                            </div>
                                         )}
 
-                                    </div>
-                                )}
-
-                            </div>
-                        )}
+                                </div>
+                            )}
 
                     </div>
 
@@ -1594,7 +1713,7 @@ export default function SearchPage() {
                         type="button"
                         className={
                             activeTab ===
-                            SEARCH_TABS.SNIPPETS
+                                SEARCH_TABS.SNIPPETS
                                 ? "activeSearchTypeTab"
                                 : ""
                         }
@@ -1621,7 +1740,7 @@ export default function SearchPage() {
                         type="button"
                         className={
                             activeTab ===
-                            SEARCH_TABS.USERS
+                                SEARCH_TABS.USERS
                                 ? "activeSearchTypeTab"
                                 : ""
                         }
@@ -1645,34 +1764,34 @@ export default function SearchPage() {
                 {activeTab ===
                     SEARCH_TABS.SNIPPETS && (
 
-                    <div className="searchCategoryBar">
+                        <div className="searchCategoryBar">
 
-                        {SEARCH_CATEGORIES.map(
-                            (category) => (
+                            {SEARCH_CATEGORIES.map(
+                                (category) => (
 
-                                <button
-                                    key={category}
-                                    type="button"
-                                    className={
-                                        selectedCategory ===
-                                        category
-                                            ? "activeSearchCategory"
-                                            : ""
-                                    }
-                                    onClick={() =>
-                                        handleCategoryChange(
-                                            category
-                                        )
-                                    }
-                                >
-                                    {category}
-                                </button>
+                                    <button
+                                        key={category}
+                                        type="button"
+                                        className={
+                                            selectedCategory ===
+                                                category
+                                                ? "activeSearchCategory"
+                                                : ""
+                                        }
+                                        onClick={() =>
+                                            handleCategoryChange(
+                                                category
+                                            )
+                                        }
+                                    >
+                                        {category}
+                                    </button>
 
-                            )
-                        )}
+                                )
+                            )}
 
-                    </div>
-                )}
+                        </div>
+                    )}
 
                 <div className="searchResultHeading">
 
@@ -1686,7 +1805,7 @@ export default function SearchPage() {
 
                         <h2>
                             {activeTab ===
-                            SEARCH_TABS.USERS
+                                SEARCH_TABS.USERS
                                 ? matchedUser
                                     ? `User matching “${queryFromUrl}”`
                                     : queryFromUrl
@@ -1744,229 +1863,229 @@ export default function SearchPage() {
                 {loading &&
                     !errorMessage &&
                     activeTab ===
-                        SEARCH_TABS.SNIPPETS && (
+                    SEARCH_TABS.SNIPPETS && (
 
-                    <div className="searchSnippetGrid">
+                        <div className="searchSnippetGrid">
 
-                        {Array.from({
-                            length: 8,
-                        }).map(
-                            (_, index) => (
+                            {Array.from({
+                                length: 8,
+                            }).map(
+                                (_, index) => (
 
-                                <div
-                                    key={index}
-                                    className="searchSnippetSkeleton"
-                                >
-                                    <div className="searchSnippetSkeletonHeader" />
+                                    <div
+                                        key={index}
+                                        className="searchSnippetSkeleton"
+                                    >
+                                        <div className="searchSnippetSkeletonHeader" />
 
-                                    <div className="searchSnippetSkeletonImage" />
+                                        <div className="searchSnippetSkeletonImage" />
 
-                                    <div className="searchSnippetSkeletonBody">
-                                        <span />
-                                        <span />
-                                        <span />
-                                        <span />
+                                        <div className="searchSnippetSkeletonBody">
+                                            <span />
+                                            <span />
+                                            <span />
+                                            <span />
+                                        </div>
                                     </div>
-                                </div>
 
-                            )
-                        )}
+                                )
+                            )}
 
-                    </div>
-                )}
+                        </div>
+                    )}
 
                 {/* ================= USER LOADING ================= */}
 
                 {loading &&
                     !errorMessage &&
                     activeTab ===
-                        SEARCH_TABS.USERS && (
+                    SEARCH_TABS.USERS && (
 
-                    <div className="searchUserGrid">
+                        <div className="searchUserGrid">
 
-                        <div className="searchUserSkeleton">
+                            <div className="searchUserSkeleton">
 
-                            <span />
+                                <span />
 
-                            <div>
-                                <strong />
-                                <small />
-                                <small />
+                                <div>
+                                    <strong />
+                                    <small />
+                                    <small />
+                                </div>
+
                             </div>
 
                         </div>
-
-                    </div>
-                )}
+                    )}
 
                 {/* ================= SNIPPET RESULTS ================= */}
 
                 {!loading &&
                     !errorMessage &&
                     activeTab ===
-                        SEARCH_TABS.SNIPPETS &&
+                    SEARCH_TABS.SNIPPETS &&
                     visibleSnippets.length > 0 && (
 
-                    <div className="searchSnippetGrid">
+                        <div className="searchSnippetGrid">
 
-                        {visibleSnippets.map(
-                            (snippet) => (
+                            {visibleSnippets.map(
+                                (snippet) => (
 
-                                <div
-                                    key={
-                                        snippet.snippetId
-                                    }
-                                    className="searchSnippetCardWrapper"
-                                >
+                                    <div
+                                        key={
+                                            snippet.snippetId
+                                        }
+                                        className="searchSnippetCardWrapper"
+                                    >
 
-                                    <SnippetCard
-                                        snippet={snippet}
-                                        showOwnerActions={false}
-                                        showBookmarkAction={true}
-                                        isBookmarked={
-                                            Boolean(
-                                                bookmarkStatus[
+                                        <SnippetCard
+                                            snippet={snippet}
+                                            showOwnerActions={false}
+                                            showBookmarkAction={true}
+                                            isBookmarked={
+                                                Boolean(
+                                                    bookmarkStatus[
                                                     snippet
                                                         .snippetId
-                                                ]
-                                            )
-                                        }
-                                        bookmarkLoading={
-                                            Boolean(
-                                                bookmarkLoading[
+                                                    ]
+                                                )
+                                            }
+                                            bookmarkLoading={
+                                                Boolean(
+                                                    bookmarkLoading[
                                                     snippet
                                                         .snippetId
-                                                ]
-                                            )
-                                        }
-                                        onBookmarkToggle={
-                                            handleBookmarkToggle
-                                        }
-                                    />
+                                                    ]
+                                                )
+                                            }
+                                            onBookmarkToggle={
+                                                handleBookmarkToggle
+                                            }
+                                        />
 
-                                    {bookmarkLoading[
-                                        snippet.snippetId
-                                    ] && (
+                                        {bookmarkLoading[
+                                            snippet.snippetId
+                                        ] && (
 
-                                        <div className="searchBookmarkLoader">
-                                            <span />
-                                        </div>
-                                    )}
+                                                <div className="searchBookmarkLoader">
+                                                    <span />
+                                                </div>
+                                            )}
 
-                                </div>
+                                    </div>
 
-                            )
-                        )}
+                                )
+                            )}
 
-                    </div>
-                )}
+                        </div>
+                    )}
 
                 {/* ================= USER RESULT ================= */}
 
                 {!loading &&
                     !errorMessage &&
                     activeTab ===
-                        SEARCH_TABS.USERS &&
+                    SEARCH_TABS.USERS &&
                     users.length > 0 && (
 
-                    <div className="searchUserGrid">
+                        <div className="searchUserGrid">
 
-                        {users.map(
-                            (user) => (
+                            {users.map(
+                                (user) => (
 
-                                <Link
-                                    key={
-                                        user.userId ||
-                                        user.username
-                                    }
-                                    to={
-                                        buildPublicProfilePath(
+                                    <Link
+                                        key={
+                                            user.userId ||
                                             user.username
-                                        )
-                                    }
-                                    className="searchUserResultCard"
-                                >
+                                        }
+                                        to={
+                                            buildPublicProfilePath(
+                                                user.username
+                                            )
+                                        }
+                                        className="searchUserResultCard"
+                                    >
 
-                                    <div className="searchUserResultHeader">
+                                        <div className="searchUserResultHeader">
 
-                                        <UserAvatar
-                                            user={user}
-                                        />
+                                            <UserAvatar
+                                                user={user}
+                                            />
 
-                                        <div className="searchUserIdentity">
+                                            <div className="searchUserIdentity">
 
-                                            <h3>
-                                                {user.fullName}
-                                            </h3>
+                                                <h3>
+                                                    {user.fullName}
+                                                </h3>
 
-                                            <p>
-                                                @{user.username}
-                                            </p>
+                                                <p>
+                                                    @{user.username}
+                                                </p>
+
+                                            </div>
+
+                                            {user.premium && (
+
+                                                <span className="searchPremiumUserBadge">
+
+                                                    <FaCrown />
+
+                                                    Premium
+
+                                                </span>
+                                            )}
 
                                         </div>
 
-                                        {user.premium && (
+                                        <p className="searchUserBio">
 
-                                            <span className="searchPremiumUserBadge">
+                                            {user.bio?.trim()
+                                                ? user.bio
+                                                : "CodeCanvas developer and community member."}
 
-                                                <FaCrown />
+                                        </p>
 
-                                                Premium
+                                        <div className="searchUserStatistics">
 
+                                            <span>
+                                                <strong>
+                                                    {user.followers}
+                                                </strong>
+
+                                                Followers
                                             </span>
-                                        )}
 
-                                    </div>
+                                            <span>
+                                                <strong>
+                                                    {user.following}
+                                                </strong>
 
-                                    <p className="searchUserBio">
+                                                Following
+                                            </span>
 
-                                        {user.bio?.trim()
-                                            ? user.bio
-                                            : "CodeCanvas developer and community member."}
+                                            <span>
+                                                <strong>
+                                                    {
+                                                        snippets.length
+                                                    }
+                                                </strong>
 
-                                    </p>
+                                                Snippets
+                                            </span>
 
-                                    <div className="searchUserStatistics">
+                                        </div>
 
-                                        <span>
-                                            <strong>
-                                                {user.followers}
-                                            </strong>
-
-                                            Followers
+                                        <span className="searchViewProfileButton">
+                                            View profile
                                         </span>
 
-                                        <span>
-                                            <strong>
-                                                {user.following}
-                                            </strong>
+                                    </Link>
 
-                                            Following
-                                        </span>
+                                )
+                            )}
 
-                                        <span>
-                                            <strong>
-                                                {
-                                                    snippets.length
-                                                }
-                                            </strong>
-
-                                            Snippets
-                                        </span>
-
-                                    </div>
-
-                                    <span className="searchViewProfileButton">
-                                        View profile
-                                    </span>
-
-                                </Link>
-
-                            )
-                        )}
-
-                    </div>
-                )}
+                        </div>
+                    )}
 
                 {/* ================= EMPTY STATE ================= */}
 
@@ -1974,60 +2093,60 @@ export default function SearchPage() {
                     !errorMessage &&
                     currentResultCount === 0 && (
 
-                    <div className="searchEmptyState">
+                        <div className="searchEmptyState">
 
-                        <span>
-                            {activeTab ===
-                            SEARCH_TABS.USERS
-                                ? <FaUser />
-                                : <FaSearch />}
-                        </span>
+                            <span>
+                                {activeTab ===
+                                    SEARCH_TABS.USERS
+                                    ? <FaUser />
+                                    : <FaSearch />}
+                            </span>
 
-                        <h2>
-                            {activeTab ===
-                            SEARCH_TABS.USERS
-                                ? queryFromUrl
-                                    ? "User not found"
-                                    : "Search for a user"
-                                : matchedUser
-                                    ? "No snippets uploaded"
-                                    : "No snippets found"}
-                        </h2>
+                            <h2>
+                                {activeTab ===
+                                    SEARCH_TABS.USERS
+                                    ? queryFromUrl
+                                        ? "User not found"
+                                        : "Search for a user"
+                                    : matchedUser
+                                        ? "No snippets uploaded"
+                                        : "No snippets found"}
+                            </h2>
 
-                        <p>
-                            {activeTab ===
-                            SEARCH_TABS.USERS
-                                ? queryFromUrl
-                                    ? "Enter the exact username used by the developer."
-                                    : "Enter an exact username, for example: sakshi"
-                                : matchedUser
-                                    ? `${matchedUser.fullName} has not uploaded any active snippets yet.`
-                                    : "Try another keyword or select a different category."}
-                        </p>
+                            <p>
+                                {activeTab ===
+                                    SEARCH_TABS.USERS
+                                    ? queryFromUrl
+                                        ? "Enter the exact username used by the developer."
+                                        : "Enter an exact username, for example: sakshi"
+                                    : matchedUser
+                                        ? `${matchedUser.fullName} has not uploaded any active snippets yet.`
+                                        : "Try another keyword or select a different category."}
+                            </p>
 
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setSelectedCategory(
-                                    "All"
-                                );
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setSelectedCategory(
+                                        "All"
+                                    );
 
-                                clearSearch();
-                            }}
-                        >
-                            {activeTab ===
-                            SEARCH_TABS.USERS
-                                ? <FaUsers />
-                                : <FaCode />}
+                                    clearSearch();
+                                }}
+                            >
+                                {activeTab ===
+                                    SEARCH_TABS.USERS
+                                    ? <FaUsers />
+                                    : <FaCode />}
 
-                            {activeTab ===
-                            SEARCH_TABS.USERS
-                                ? "Clear username"
-                                : "Explore all"}
-                        </button>
+                                {activeTab ===
+                                    SEARCH_TABS.USERS
+                                    ? "Clear username"
+                                    : "Explore all"}
+                            </button>
 
-                    </div>
-                )}
+                        </div>
+                    )}
 
             </section>
 
