@@ -6,6 +6,7 @@ import React, {
 
 
 import {
+    FaCrown,
     FaShareAlt,
     FaUser,
 } from "react-icons/fa";
@@ -43,12 +44,105 @@ const tabs = [
         key: "Saved",
         label: "Saved",
     },
-    
+
     {
         key: "Activity",
         label: "Activity",
     },
 ];
+
+function unwrapResponseData(response) {
+    if (response == null) {
+        return {};
+    }
+
+    if (
+        typeof response === "object" &&
+        response.data !== undefined
+    ) {
+        return response.data;
+    }
+
+    return response;
+}
+
+function extractSnippetArray(response) {
+    const payload =
+        unwrapResponseData(response);
+
+    if (Array.isArray(payload)) {
+        return payload;
+    }
+
+    if (
+        Array.isArray(
+            payload?.snippets
+        )
+    ) {
+        return payload.snippets;
+    }
+
+    if (
+        Array.isArray(
+            payload?.content
+        )
+    ) {
+        return payload.content;
+    }
+
+    if (
+        Array.isArray(
+            payload?.results
+        )
+    ) {
+        return payload.results;
+    }
+
+    return [];
+}
+
+function normalizeSubscription(
+    response
+) {
+    const payload =
+        unwrapResponseData(response);
+
+    return {
+        isPremium:
+            Boolean(
+                payload?.isPremium
+            ),
+
+        tier:
+            String(
+                payload?.tier ||
+                ""
+            )
+                .trim()
+                .toUpperCase(),
+    };
+}
+
+function formatTierName(tier) {
+    const normalizedTier =
+        String(tier || "")
+            .trim();
+
+    if (!normalizedTier) {
+        return "Premium Member";
+    }
+
+    return normalizedTier
+        .replaceAll("_", " ")
+        .toLowerCase()
+        .replace(
+            /\b\w/g,
+            (character) =>
+                character.toUpperCase()
+        );
+}
+
+
 
 export default function Profile() {
 
@@ -56,6 +150,14 @@ export default function Profile() {
 
     const [profile, setProfile] =
         useState(null);
+
+    const [
+        subscription,
+        setSubscription,
+    ] = useState({
+        isPremium: false,
+        tier: "",
+    });
 
     const [statistics, setStatistics] =
         useState(null);
@@ -121,7 +223,7 @@ export default function Profile() {
 
                     setStatistics(
                         unwrapResponseData(
-                            statisticsResponse
+                            statisticsData
                         )
                     );
                 } catch (
@@ -136,6 +238,33 @@ export default function Profile() {
                         followers: 0,
                         following: 0,
                     });
+                }
+
+                try {
+
+                    const subscriptionResponse =
+                        await getSubscriptionStatus(
+                            profileData.userId
+                        );
+
+                    setSubscription(
+                        normalizeSubscription(
+                            subscriptionResponse
+                        )
+                    );
+
+                } catch (subscriptionError) {
+
+                    console.error(
+                        "Unable to load subscription status:",
+                        subscriptionError
+                    );
+
+                    setSubscription({
+                        isPremium: false,
+                        tier: "",
+                    });
+
                 }
 
             } catch (requestError) {
@@ -273,6 +402,19 @@ export default function Profile() {
             statistics?.followers
         );
 
+    const isPremium =
+        subscription.isPremium;
+
+    const premiumTierLabel =
+        formatTierName(
+            subscription.tier
+        );
+
+    const profilePageClassName =
+        isPremium
+            ? "profilePage premiumProfilePage"
+            : "profilePage";
+
     const following =
         getNumberValue(
             statistics?.following
@@ -383,7 +525,7 @@ export default function Profile() {
     }
 
     return (
-        <div className="profilePage">
+        <div className={profilePageClassName}>
 
             {/* PROFILE HEADER */}
 
@@ -400,6 +542,13 @@ export default function Profile() {
                 </div>
 
                 <div className="profileHeaderContent">
+
+                    {isPremium && (
+                        <div className="premiumMemberRibbon">
+                            <FaCrown />
+                            Premium Member
+                        </div>
+                    )}
 
                     <div className="profileAvatar">
 
@@ -425,9 +574,19 @@ export default function Profile() {
 
                     <div className="profileIdentity">
 
-                        <h1>
-                            {profile.fullName}
-                        </h1>
+                        <div className="profileNameRow">
+
+                            <h1>
+                                {profile.fullName}
+                            </h1>
+
+                            {isPremium && (
+                                <span className="premiumIdentityBadge">
+                                    <FaCrown />
+                                    {premiumTierLabel}
+                                </span>
+                            )}
+                        </div>
 
                         <p>
                             @{profile.username}
@@ -710,7 +869,7 @@ export default function Profile() {
                             </>
                         )}
 
-                
+
 
                     {activeTab === "Activity" && (
                         <div className="emptyProfileTab">
