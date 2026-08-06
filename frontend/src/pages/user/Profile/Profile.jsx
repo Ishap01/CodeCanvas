@@ -1,4 +1,4 @@
-import React, {
+import {
     useEffect,
     useMemo,
     useState,
@@ -11,8 +11,7 @@ import {
     FaUser,
 } from "react-icons/fa";
 
-import NotificationTimeline
-from "../../../components/notification/NotificationTimeline";
+import NotificationTimeline from "../../../components/notification/NotificationTimeline";
 
 import { useNavigate } from "react-router-dom";
 
@@ -126,7 +125,7 @@ export default function Profile() {
                     );
 
                 } catch (
-                    statisticsError
+                statisticsError
                 ) {
 
                     console.error(
@@ -302,9 +301,8 @@ export default function Profile() {
                             profile?.fullName ||
                             "CodeCanvas Profile",
                         text:
-                            `View ${
-                                profile?.fullName ||
-                                "this user"
+                            `View ${profile?.fullName ||
+                            "this user"
                             } on CodeCanvas.`,
                         url: profileUrl,
                     });
@@ -567,25 +565,25 @@ export default function Profile() {
                         profile.skills
                     ) &&
                         profile.skills.length >
-                            0 && (
+                        0 && (
 
-                        <div className="profileSkills">
+                            <div className="profileSkills">
 
-                            {profile.skills.map(
-                                (skill) => (
+                                {profile.skills.map(
+                                    (skill) => (
 
-                                    <span
-                                        key={skill}
-                                    >
-                                        {skill}
-                                    </span>
+                                        <span
+                                            key={skill}
+                                        >
+                                            {skill}
+                                        </span>
 
-                                )
-                            )}
+                                    )
+                                )}
 
-                        </div>
+                            </div>
 
-                    )}
+                        )}
 
                 </section>
 
@@ -600,7 +598,7 @@ export default function Profile() {
                                 type="button"
                                 className={
                                     activeTab ===
-                                    tab.key
+                                        tab.key
                                         ? "activeProfileTab"
                                         : ""
                                 }
@@ -619,99 +617,99 @@ export default function Profile() {
 
                     {(activeTab === "Uploaded" ||
                         activeTab === "Saved") && (
-                        <>
+                            <>
 
-                            {activeTab === "Saved" &&
-                                savedTabLoading && (
+                                {activeTab === "Saved" &&
+                                    savedTabLoading && (
 
-                                <div className="emptyProfileTab">
+                                        <div className="emptyProfileTab">
 
-                                    <h2>
-                                        Loading saved snippets...
-                                    </h2>
+                                            <h2>
+                                                Loading saved snippets...
+                                            </h2>
 
-                                    <p>
-                                        Please wait while saved
-                                        snippets are loaded.
-                                    </p>
+                                            <p>
+                                                Please wait while saved
+                                                snippets are loaded.
+                                            </p>
 
-                                </div>
-                            )}
-
-                            {activeTab === "Saved" &&
-                                !savedTabLoading &&
-                                savedTabError && (
-
-                                <div className="emptyProfileTab">
-
-                                    <h2>
-                                        Unable to load saved
-                                        snippets
-                                    </h2>
-
-                                    <p>
-                                        {savedTabError}
-                                    </p>
-
-                                </div>
-                            )}
-
-                            {!savedTabLoading &&
-                                !savedTabError &&
-                                displayedSnippets.length ===
-                                    0 && (
-
-                                <div className="emptyProfileTab">
-
-                                    <h2>
-                                        {activeTab ===
-                                        "Uploaded"
-                                            ? "No Snippets Yet"
-                                            : "No Saved Snippets"}
-                                    </h2>
-
-                                    <p>
-                                        {activeTab ===
-                                        "Uploaded"
-                                            ? "You haven't uploaded any snippets yet."
-                                            : "You haven't bookmarked any snippets yet."}
-                                    </p>
-
-                                </div>
-                            )}
-
-                            {!savedTabLoading &&
-                                !savedTabError &&
-                                displayedSnippets.length >
-                                    0 && (
-
-                                <div className="profileSnippetGrid">
-
-                                    {displayedSnippets.map(
-                                        (snippet) => (
-
-                                            <SnippetCard
-                                                key={
-                                                    snippet
-                                                        .snippetId
-                                                }
-                                                snippet={
-                                                    snippet
-                                                }
-                                                showOwnerActions={
-                                                    activeTab ===
-                                                    "Uploaded"
-                                                }
-                                            />
-
-                                        )
+                                        </div>
                                     )}
 
-                                </div>
-                            )}
+                                {activeTab === "Saved" &&
+                                    !savedTabLoading &&
+                                    savedTabError && (
 
-                        </>
-                    )}
+                                        <div className="emptyProfileTab">
+
+                                            <h2>
+                                                Unable to load saved
+                                                snippets
+                                            </h2>
+
+                                            <p>
+                                                {savedTabError}
+                                            </p>
+
+                                        </div>
+                                    )}
+
+                                {!savedTabLoading &&
+                                    !savedTabError &&
+                                    displayedSnippets.length ===
+                                    0 && (
+
+                                        <div className="emptyProfileTab">
+
+                                            <h2>
+                                                {activeTab ===
+                                                    "Uploaded"
+                                                    ? "No Snippets Yet"
+                                                    : "No Saved Snippets"}
+                                            </h2>
+
+                                            <p>
+                                                {activeTab ===
+                                                    "Uploaded"
+                                                    ? "You haven't uploaded any snippets yet."
+                                                    : "You haven't bookmarked any snippets yet."}
+                                            </p>
+
+                                        </div>
+                                    )}
+
+                                {!savedTabLoading &&
+                                    !savedTabError &&
+                                    displayedSnippets.length >
+                                    0 && (
+
+                                        <div className="profileSnippetGrid">
+
+                                            {displayedSnippets.map(
+                                                (snippet) => (
+
+                                                    <SnippetCard
+                                                        key={
+                                                            snippet
+                                                                .snippetId
+                                                        }
+                                                        snippet={
+                                                            snippet
+                                                        }
+                                                        showOwnerActions={
+                                                            activeTab ===
+                                                            "Uploaded"
+                                                        }
+                                                    />
+
+                                                )
+                                            )}
+
+                                        </div>
+                                    )}
+
+                            </>
+                        )}
 
                     {activeTab === "Liked" && (
 
@@ -731,18 +729,7 @@ export default function Profile() {
 
                     {activeTab === "Activity" && (
 
-                        <div className="emptyProfileTab">
-
-                            <h2>
-                                Activity
-                            </h2>
-
-                            <p>
-                                Recent activity will
-                                appear here later.
-                            </p>
-
-                        </div>
+                        <NotificationTimeline />
                     )}
 
                 </section>
