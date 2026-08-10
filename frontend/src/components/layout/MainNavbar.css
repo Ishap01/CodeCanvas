@@ -1,0 +1,803 @@
+/* =========================================================
+   GLOBAL NAVBAR WRAPPER
+   ========================================================= */
+
+.globalTopNavbar,
+.globalMainNavbar,
+.globalTopNavbar *,
+.globalMainNavbar *,
+.globalTopNavbar *::before,
+.globalTopNavbar *::after,
+.globalMainNavbar *::before,
+.globalMainNavbar *::after {
+    box-sizing: border-box;
+}
+
+/* =========================================================
+   TOP NAVBAR
+   ========================================================= */
+
+.globalTopNavbar {
+    position: relative;
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+    min-height: 42px;
+
+    padding: 0 22px;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    border-bottom: 1px solid #25252d;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(20, 20, 26, 0.98),
+            rgba(11, 11, 15, 0.98)
+        );
+
+    color: #f9fafb;
+
+    font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+
+    box-shadow:
+        0 4px 18px rgba(0, 0, 0, 0.18),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.012);
+
+    scrollbar-width: thin;
+    scrollbar-color: #4d426f transparent;
+}
+
+.globalTopNavbar::-webkit-scrollbar {
+    height: 4px;
+}
+
+.globalTopNavbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.globalTopNavbar::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+
+    background: #4d426f;
+}
+
+/* =========================================================
+   TOP BRAND
+   ========================================================= */
+
+.globalBrand {
+    position: relative;
+    z-index: 2;
+
+    display: flex;
+    align-items: center;
+
+    min-width: 145px;
+    min-height: 42px;
+
+    gap: 8px;
+
+    color: #f3f4f6;
+
+    text-decoration: none;
+
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.25px;
+    white-space: nowrap;
+}
+
+.globalBrandDot {
+    width: 8px;
+    height: 8px;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    background:
+        linear-gradient(
+            135deg,
+            #8b7cf6,
+            #6c5ce7
+        );
+
+    box-shadow:
+        0 0 14px rgba(108, 92, 231, 0.78);
+}
+
+/* =========================================================
+   TOP LINKS
+   ========================================================= */
+
+.globalTopLinks {
+    display: flex;
+    align-items: center;
+
+    min-width: max-content;
+    min-height: 42px;
+
+    gap: 30px;
+
+    overflow: visible;
+}
+
+.globalTopLinks a {
+    position: relative;
+
+    display: inline-flex;
+    align-items: center;
+
+    min-height: 42px;
+
+    color: #777783;
+
+    text-decoration: none;
+
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+
+    transition:
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.globalTopLinks a:hover {
+    color: #e5e7eb;
+}
+
+.globalTopLinks a.active {
+    color: #c4b5fd;
+}
+
+.globalTopLinks a.active::after {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
+    height: 2px;
+
+    border-radius: 999px 999px 0 0;
+
+    background:
+        linear-gradient(
+            90deg,
+            #8b7cf6,
+            #6c5ce7
+        );
+
+    box-shadow:
+        0 0 12px rgba(108, 92, 231, 0.55);
+
+    content: "";
+}
+
+/* =========================================================
+   MAIN NAVBAR
+   ========================================================= */
+
+.globalMainNavbar {
+    position: relative;
+    z-index: 999;
+
+    display: grid;
+    grid-template-columns:
+        minmax(150px, auto)
+        minmax(250px, 1fr)
+        auto;
+    align-items: center;
+
+    width: 100%;
+    min-height: 68px;
+
+    gap: 22px;
+
+    padding: 12px 24px;
+
+    overflow: visible;
+
+    border-bottom: 1px solid #24242c;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(13, 13, 18, 0.98),
+            rgba(7, 7, 11, 0.98)
+        );
+
+    color: #f9fafb;
+
+    font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+
+    box-shadow:
+        0 8px 26px rgba(0, 0, 0, 0.18),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.012);
+}
+
+/* =========================================================
+   MAIN LOGO
+   ========================================================= */
+
+.globalLogo {
+    display: inline-flex;
+    align-items: center;
+
+    min-width: 0;
+
+    gap: 11px;
+
+    color: #f8fafc;
+
+    text-decoration: none;
+
+    font-size: 14px;
+    font-weight: 850;
+    letter-spacing: -0.25px;
+    white-space: nowrap;
+}
+
+.globalLogoBox {
+    display: grid;
+    place-items: center;
+
+    width: 38px;
+    height: 38px;
+
+    flex-shrink: 0;
+
+    border: 1px solid rgba(139, 124, 246, 0.48);
+    border-radius: 10px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #7c5cff,
+            #5945cf
+        );
+
+    color: #ffffff;
+
+    font-size: 16px;
+
+    box-shadow:
+        0 10px 28px rgba(108, 92, 231, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.globalLogo:hover .globalLogoBox {
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 14px 34px rgba(108, 92, 231, 0.34),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* =========================================================
+   GLOBAL SEARCH
+   ========================================================= */
+
+.globalSearch {
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+    max-width: 520px;
+    min-width: 0;
+    min-height: 42px;
+
+    gap: 11px;
+
+    padding: 0 14px;
+
+    border: 1px solid #303039;
+    border-radius: 11px;
+
+    background: rgba(21, 21, 27, 0.96);
+
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.globalSearch:hover {
+    border-color: #44444f;
+}
+
+.globalSearch:focus-within {
+    border-color: rgba(124, 108, 242, 0.92);
+
+    background: rgba(24, 23, 32, 0.98);
+
+    box-shadow:
+        0 0 0 3px rgba(108, 92, 231, 0.12),
+        0 10px 28px rgba(0, 0, 0, 0.22);
+}
+
+.globalSearch svg {
+    flex-shrink: 0;
+
+    color: #777783;
+
+    font-size: 14px;
+
+    transition: color 0.2s ease;
+}
+
+.globalSearch:focus-within svg {
+    color: #a78bfa;
+}
+
+.globalSearch input {
+    width: 100%;
+    min-width: 0;
+    height: 40px;
+
+    border: none;
+    outline: none;
+
+    background: transparent;
+
+    color: #e5e7eb;
+
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.globalSearch input::placeholder {
+    color: #686874;
+}
+
+/* =========================================================
+   NAVBAR ACTIONS
+   ========================================================= */
+
+.globalNavbarActions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    min-width: max-content;
+
+    gap: 8px;
+}
+
+.globalNavbarActions button,
+.globalProfileButton {
+    display: grid;
+    place-items: center;
+
+    width: 38px;
+    height: 38px;
+
+    flex-shrink: 0;
+
+    padding: 0;
+
+    border: 1px solid transparent;
+    border-radius: 10px;
+
+    background: transparent;
+
+    color: #85858f;
+
+    cursor: pointer;
+
+    font-family: inherit;
+    text-decoration: none;
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.globalNavbarActions button:hover,
+.globalProfileButton:hover {
+    border-color: rgba(139, 124, 246, 0.3);
+
+    background: rgba(108, 92, 231, 0.1);
+
+    color: #c4b5fd;
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 9px 22px rgba(0, 0, 0, 0.2);
+}
+
+.globalNavbarActions button:active,
+.globalProfileButton:active {
+    transform: translateY(0);
+}
+
+.globalNavbarActions button svg,
+.globalProfileButton svg {
+    font-size: 15px;
+}
+
+/* =========================================================
+   PROFILE BUTTON
+   ========================================================= */
+
+.globalProfileButton {
+    position: relative;
+
+    border-color: #34343e;
+
+    background: #15151a;
+}
+
+.globalProfileButton::after {
+    position: absolute;
+    right: 2px;
+    bottom: 2px;
+
+    width: 8px;
+    height: 8px;
+
+    border: 2px solid #111116;
+    border-radius: 50%;
+
+    background: #22c55e;
+
+    content: "";
+}
+
+/* =========================================================
+   FOCUS
+   ========================================================= */
+
+.globalBrand:focus-visible,
+.globalTopLinks a:focus-visible,
+.globalLogo:focus-visible,
+.globalProfileButton:focus-visible,
+.globalNavbarActions button:focus-visible {
+    outline: 3px solid rgba(139, 124, 246, 0.3);
+    outline-offset: 3px;
+}
+
+/* =========================================================
+   MAIN APPLICATION LAYOUT
+   ========================================================= */
+
+.mainApplicationLayout {
+    width: 100%;
+    min-height: 100vh;
+    height: auto;
+
+    overflow-x: hidden;
+    overflow-y: visible;
+
+    background:
+        linear-gradient(
+            180deg,
+            #08080b,
+            #050506
+        );
+}
+
+/* =========================================================
+   RESPONSIVE - TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+    .globalTopNavbar {
+        padding-right: 16px;
+        padding-left: 16px;
+    }
+
+    .globalBrand {
+        position: sticky;
+        left: 0;
+        z-index: 5;
+
+        min-width: 145px;
+
+        background:
+            linear-gradient(
+                180deg,
+                rgba(20, 20, 26, 1),
+                rgba(11, 11, 15, 1)
+            );
+    }
+
+    .globalTopLinks {
+        padding-right: 20px;
+    }
+
+    .globalMainNavbar {
+        grid-template-columns:
+            auto
+            minmax(180px, 1fr)
+            auto;
+
+        gap: 14px;
+
+        padding-right: 18px;
+        padding-left: 18px;
+    }
+
+    .globalLogo span:last-child {
+        display: none;
+    }
+
+    .globalSearch {
+        max-width: none;
+    }
+}
+
+/* =========================================================
+   RESPONSIVE - MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+    .globalTopNavbar {
+        min-height: 40px;
+
+        padding-right: 11px;
+        padding-left: 11px;
+    }
+
+    .globalBrand {
+        min-width: 132px;
+        min-height: 40px;
+
+        font-size: 11px;
+    }
+
+    .globalTopLinks {
+        min-height: 40px;
+
+        gap: 22px;
+    }
+
+    .globalTopLinks a {
+        min-height: 40px;
+
+        font-size: 10px;
+    }
+
+    .globalMainNavbar {
+        grid-template-columns:
+            auto
+            minmax(0, 1fr)
+            auto;
+
+        min-height: 62px;
+
+        gap: 10px;
+
+        padding: 10px 12px;
+    }
+
+    .globalLogoBox {
+        width: 35px;
+        height: 35px;
+
+        border-radius: 9px;
+
+        font-size: 15px;
+    }
+
+    .globalSearch {
+        min-height: 38px;
+
+        padding-right: 11px;
+        padding-left: 11px;
+
+        border-radius: 9px;
+    }
+
+    .globalSearch input {
+        height: 36px;
+
+        font-size: 11px;
+    }
+
+    .globalNavbarActions {
+        gap: 4px;
+    }
+
+    .globalNavbarActions button,
+    .globalProfileButton {
+        width: 35px;
+        height: 35px;
+
+        border-radius: 9px;
+    }
+
+    .globalNavbarActions button:nth-child(2) {
+        display: none;
+    }
+}
+
+/* =========================================================
+   RESPONSIVE - SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 420px) {
+    .globalMainNavbar {
+        grid-template-columns:
+            auto
+            minmax(0, 1fr)
+            auto;
+
+        padding-right: 8px;
+        padding-left: 8px;
+    }
+
+    .globalSearch {
+        min-width: 0;
+    }
+
+    .globalSearch svg {
+        font-size: 12px;
+    }
+
+    .globalSearch input {
+        font-size: 10px;
+    }
+
+    .globalNavbarActions button {
+        display: none;
+    }
+
+    .globalProfileButton {
+        display: grid;
+    }
+}
+
+/* =========================================================
+   VERY SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 340px) {
+    .globalMainNavbar {
+        gap: 6px;
+    }
+
+    .globalLogoBox {
+        width: 32px;
+        height: 32px;
+    }
+
+    .globalProfileButton {
+        width: 32px;
+        height: 32px;
+    }
+
+    .globalSearch {
+        padding-right: 8px;
+        padding-left: 8px;
+    }
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    .globalTopLinks a,
+    .globalLogoBox,
+    .globalSearch,
+    .globalSearch svg,
+    .globalNavbarActions button,
+    .globalProfileButton {
+        transition: none;
+    }
+}
+
+.globalSearch {
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+    max-width: 520px;
+    min-width: 0;
+    height: 40px;
+
+    border: 1px solid #303039;
+    border-radius: 12px;
+
+    overflow: hidden;
+
+    background: #17171d;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.globalSearch:hover {
+    border-color: #4b4b58;
+}
+
+.globalSearch:focus-within {
+    border-color: #6c5ce7;
+    box-shadow: 0 0 0 3px rgba(108,92,231,.15);
+}
+
+.globalSearchSubmit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 46px;
+    height: 100%;
+
+    border: none;
+    border-right: 1px solid #303039;
+
+    background: #202028;
+
+    color: #9ca3af;
+
+    cursor: pointer;
+
+    transition: all .2s ease;
+}
+
+.globalSearchSubmit:hover {
+    background: #282832;
+    color: #ffffff;
+}
+
+.globalSearch svg {
+    font-size: 15px;
+}
+
+
+.globalSearch input {
+    flex: 1;
+
+    height: 100%;
+
+    padding: 0 14px;
+
+    border: none;
+    outline: none;
+
+    background: transparent;
+
+    color: #f3f4f6;
+
+    font-size: 13px;
+}
+
+.globalSearch input::placeholder {
+    color: #7b7b86;
+}

@@ -1,0 +1,113 @@
+/* =========================
+   CONTAINER
+========================= */
+
+.cc-container{
+
+    width:min(100% - 2rem,var(--container));
+
+    margin-inline:auto;
+
+}
+
+/* =========================
+   SECTION
+========================= */
+
+.cc-section{
+
+    padding:5rem 0;
+
+}
+
+/* =========================
+   CARD
+========================= */
+
+.cc-card{
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    border-radius:var(--radius-lg);
+
+    box-shadow:var(--shadow);
+
+}
+
+/* =========================
+   FLEX
+========================= */
+
+.flex{
+
+    display:flex;
+
+}
+
+.flex-between{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+}
+
+.flex-center{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+}
+
+/* =========================
+   GRID
+========================= */
+
+.grid{
+
+    display:grid;
+
+}
+
+.grid-2{
+
+    display:grid;
+
+    grid-template-columns:
+
+        repeat(2,1fr);
+
+    gap:1.5rem;
+
+}
+
+.grid-3{
+
+    display:grid;
+
+    grid-template-columns:
+
+        repeat(3,1fr);
+
+    gap:1.5rem;
+
+}
+
+.grid-4{
+
+    display:grid;
+
+    grid-template-columns:
+
+        repeat(4,1fr);
+
+    gap:1.5rem;
+
+}

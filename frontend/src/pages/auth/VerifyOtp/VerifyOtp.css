@@ -1,0 +1,993 @@
+.verifyPage,
+.verifyPage *,
+.verifyPage *::before,
+.verifyPage *::after {
+    box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+    width: 100%;
+    min-height: 100%;
+    height: auto;
+
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: #6c5ce7 #09090b;
+}
+
+body {
+    min-height: 100vh;
+    height: auto;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    background: #050506;
+}
+
+#root {
+    min-height: 100vh;
+    height: auto;
+
+    overflow-x: hidden;
+    overflow-y: visible;
+}
+
+/* =========================================================
+   VERIFY OTP PAGE
+   ========================================================= */
+
+.verifyPage {
+    position: relative;
+
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+
+    width: 100%;
+    min-height: 100vh;
+    height: auto;
+
+    gap: 34px;
+
+    padding: 34px;
+
+    overflow-x: hidden;
+    overflow-y: visible;
+
+    background:
+        radial-gradient(
+            circle at 10% 5%,
+            rgba(108, 92, 231, 0.17),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 90% 25%,
+            rgba(124, 58, 237, 0.1),
+            transparent 32%
+        ),
+        linear-gradient(
+            180deg,
+            #08080b 0%,
+            #050506 55%,
+            #030304 100%
+        );
+
+    color: #f9fafb;
+
+    font-family:
+        Inter,
+        "Segoe UI",
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        sans-serif;
+}
+
+.verifyPage::before {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+
+    width: 100%;
+    min-height: 100%;
+
+    pointer-events: none;
+
+    opacity: 0.15;
+
+    background-image:
+        linear-gradient(
+            rgba(255, 255, 255, 0.025) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.025) 1px,
+            transparent 1px
+        );
+
+    background-size: 42px 42px;
+
+    content: "";
+}
+
+.verifyPage > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* =========================================================
+   LEFT PANEL
+   ========================================================= */
+
+.verifyLeftPanel {
+    position: relative;
+
+    flex: 1.65;
+
+    min-width: 0;
+    min-height: calc(100vh - 68px);
+
+    overflow: hidden;
+
+    border: 1px solid #2d2d36;
+    border-radius: 22px;
+
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+
+    box-shadow:
+        0 28px 80px rgba(0, 0, 0, 0.42),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.verifyLeftPanel::before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+
+    width: 100%;
+    height: 1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(167, 139, 250, 0.58),
+            transparent
+        );
+
+    content: "";
+}
+
+.verifyOverlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(108, 92, 231, 0.2),
+            transparent 42%
+        ),
+        linear-gradient(
+            180deg,
+            rgba(4, 4, 7, 0.18),
+            rgba(5, 5, 8, 0.52) 55%,
+            rgba(5, 5, 8, 0.93)
+        );
+}
+
+/* =========================================================
+   LEFT CONTENT
+   ========================================================= */
+
+.verifyLeftContent {
+    position: absolute;
+    right: 44px;
+    bottom: 48px;
+    left: 44px;
+    z-index: 3;
+
+    max-width: 670px;
+}
+
+.verifyLeftContent h1 {
+    margin: 0;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ffffff 0%,
+            #e5e7eb 62%,
+            #c4b5fd 100%
+        );
+
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    color: #ffffff;
+
+    font-size: clamp(40px, 4.3vw, 68px);
+    font-weight: 850;
+    line-height: 1.07;
+    letter-spacing: -2px;
+}
+
+.verifyLeftContent h1 span {
+    background:
+        linear-gradient(
+            135deg,
+            #a78bfa,
+            #7c5cff
+        );
+
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.verifyLeftContent p {
+    max-width: 560px;
+
+    margin-top: 22px;
+
+    color: #b4b4bf;
+
+    font-size: 15px;
+    line-height: 1.75;
+}
+
+/* =========================================================
+   RIGHT PANEL
+   ========================================================= */
+
+.verifyRightPanel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 1;
+
+    width: 100%;
+    min-width: 390px;
+    min-height: calc(100vh - 68px);
+
+    overflow: visible;
+}
+
+/* =========================================================
+   CARD
+   ========================================================= */
+
+.verifyCard {
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    width: 100%;
+    max-width: 520px;
+    min-height: calc(100vh - 68px);
+
+    padding: 48px;
+
+    overflow: visible;
+
+    border: 1px solid #2d2d36;
+    border-radius: 22px;
+
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(108, 92, 231, 0.1),
+            transparent 38%
+        ),
+        linear-gradient(
+            145deg,
+            rgba(23, 23, 29, 0.98),
+            rgba(11, 11, 15, 0.98)
+        );
+
+    box-shadow:
+        0 28px 80px rgba(0, 0, 0, 0.42),
+        0 0 0 1px rgba(108, 92, 231, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.verifyCard::before {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 1px;
+
+    border-radius: 22px 22px 0 0;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(139, 124, 246, 0.52),
+            transparent
+        );
+
+    content: "";
+}
+
+.verifyCard:hover {
+    border-color: rgba(124, 108, 242, 0.48);
+
+    box-shadow:
+        0 32px 90px rgba(0, 0, 0, 0.46),
+        0 0 0 1px rgba(108, 92, 231, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* =========================================================
+   LOGO
+   ========================================================= */
+
+.verifyLogo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 64px;
+    height: 64px;
+
+    margin: 0 auto 28px;
+
+    border: 1px solid rgba(139, 124, 246, 0.5);
+    border-radius: 16px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #7c5cff,
+            #5945cf
+        );
+
+    color: #ffffff;
+
+    font-size: 28px;
+
+    box-shadow:
+        0 14px 34px rgba(108, 92, 231, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* =========================================================
+   HEADING
+   ========================================================= */
+
+.verifyCard h2 {
+    margin: 0 0 10px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ffffff,
+            #d8d5f5
+        );
+
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    color: #ffffff;
+
+    font-size: clamp(32px, 4vw, 46px);
+    font-weight: 850;
+    line-height: 1.12;
+    letter-spacing: -1.5px;
+    text-align: center;
+}
+
+.verifySubtitle {
+    margin: 0 0 34px;
+
+    color: #92929d;
+
+    font-size: 14px;
+    line-height: 1.65;
+    text-align: center;
+}
+
+/* =========================================================
+   INPUT
+   ========================================================= */
+
+.verifyInputBox {
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+    min-height: 54px;
+
+    gap: 12px;
+
+    margin-bottom: 18px;
+    padding: 0 16px;
+
+    border: 1px solid #34343e;
+    border-radius: 11px;
+
+    background: #0d0d11;
+
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.verifyInputBox:hover {
+    border-color: #464650;
+}
+
+.verifyInputBox:focus-within {
+    border-color: rgba(124, 108, 242, 0.92);
+
+    background: #101016;
+
+    box-shadow:
+        0 0 0 3px rgba(108, 92, 231, 0.13),
+        0 12px 30px rgba(0, 0, 0, 0.18);
+}
+
+.verifyInputBox svg {
+    flex-shrink: 0;
+
+    color: #777783;
+
+    font-size: 16px;
+
+    transition: color 0.2s ease;
+}
+
+.verifyInputBox:focus-within svg {
+    color: #a78bfa;
+}
+
+.verifyInputBox input {
+    width: 100%;
+    min-width: 0;
+    height: 52px;
+
+    border: none;
+    outline: none;
+
+    background: transparent;
+
+    color: #f3f4f6;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.5;
+    letter-spacing: 3px;
+    text-align: center;
+}
+
+.verifyInputBox input::placeholder {
+    color: #676773;
+
+    font-weight: 500;
+    letter-spacing: normal;
+
+    opacity: 1;
+}
+
+/* Remove number input arrows */
+
+.verifyInputBox input[type="number"]::-webkit-inner-spin-button,
+.verifyInputBox input[type="number"]::-webkit-outer-spin-button {
+    margin: 0;
+
+    -webkit-appearance: none;
+}
+
+.verifyInputBox input[type="number"] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+/* =========================================================
+   MESSAGE
+   ========================================================= */
+
+.verifyMessage {
+    width: 100%;
+
+    margin: 0 0 18px;
+    padding: 11px 13px;
+
+    border-radius: 9px;
+
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.5;
+    text-align: center;
+
+    overflow-wrap: anywhere;
+}
+
+.verifyError {
+    border: 1px solid rgba(239, 68, 68, 0.34);
+
+    background: rgba(239, 68, 68, 0.1);
+
+    color: #fca5a5;
+}
+
+.verifySuccess {
+    border: 1px solid rgba(34, 197, 94, 0.34);
+
+    background: rgba(34, 197, 94, 0.1);
+
+    color: #86efac;
+}
+
+/* =========================================================
+   BUTTON
+   ========================================================= */
+
+.verifyButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    min-height: 52px;
+
+    gap: 10px;
+
+    padding: 12px 20px;
+
+    border: 1px solid transparent;
+    border-radius: 10px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #745cf2,
+            #5b4bd6
+        );
+
+    color: #ffffff;
+
+    cursor: pointer;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 800;
+
+    box-shadow:
+        0 12px 28px rgba(108, 92, 231, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.17);
+
+    transition:
+        transform 0.2s ease,
+        background-color 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.verifyButton:hover:not(:disabled) {
+    background:
+        linear-gradient(
+            135deg,
+            #806cff,
+            #6654e4
+        );
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 16px 36px rgba(108, 92, 231, 0.37),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.verifyButton:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.verifyButton:disabled {
+    cursor: not-allowed;
+
+    opacity: 0.6;
+
+    box-shadow: none;
+}
+
+/* =========================================================
+   BACK TO LOGIN
+   ========================================================= */
+
+.verifyBack {
+    margin-top: 24px;
+
+    text-align: center;
+}
+
+.verifyBack a {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 8px;
+
+    color: #a78bfa;
+
+    text-decoration: none;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    transition:
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.verifyBack a:hover {
+    color: #c4b5fd;
+
+    transform: translateX(-2px);
+}
+
+/* =========================================================
+   FOCUS
+   ========================================================= */
+
+.verifyButton:focus-visible,
+.verifyBack a:focus-visible {
+    outline: 3px solid rgba(139, 124, 246, 0.28);
+    outline-offset: 3px;
+}
+
+/* =========================================================
+   GLOBAL SCROLLBAR
+   ========================================================= */
+
+body::-webkit-scrollbar {
+    width: 9px;
+}
+
+body::-webkit-scrollbar-track {
+    background: #09090b;
+}
+
+body::-webkit-scrollbar-thumb {
+    border: 2px solid #09090b;
+    border-radius: 999px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #806cff,
+            #5b4bd6
+        );
+}
+
+body::-webkit-scrollbar-thumb:hover {
+    background:
+        linear-gradient(
+            180deg,
+            #927fff,
+            #6c5ce7
+        );
+}
+
+/* =========================================================
+   LARGE LAPTOP
+   ========================================================= */
+
+@media (max-width: 1400px) {
+    .verifyPage {
+        gap: 28px;
+
+        padding: 27px;
+    }
+
+    .verifyLeftPanel {
+        flex: 1.5;
+
+        min-height: calc(100vh - 54px);
+    }
+
+    .verifyRightPanel {
+        min-height: calc(100vh - 54px);
+    }
+
+    .verifyCard {
+        min-height: calc(100vh - 54px);
+
+        padding: 42px;
+    }
+
+    .verifyLeftContent {
+        right: 38px;
+        bottom: 40px;
+        left: 38px;
+    }
+}
+
+/* =========================================================
+   LAPTOP
+   ========================================================= */
+
+@media (max-width: 1200px) {
+    .verifyPage {
+        gap: 24px;
+
+        padding: 22px;
+    }
+
+    .verifyLeftPanel {
+        flex: 1.3;
+
+        min-height: calc(100vh - 44px);
+    }
+
+    .verifyRightPanel {
+        min-width: 370px;
+        min-height: calc(100vh - 44px);
+    }
+
+    .verifyCard {
+        min-height: calc(100vh - 44px);
+
+        padding: 36px;
+    }
+
+    .verifyLeftContent {
+        right: 32px;
+        bottom: 34px;
+        left: 32px;
+    }
+
+    .verifyLeftContent h1 {
+        font-size: 44px;
+    }
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 992px) {
+    .verifyPage {
+        flex-direction: column;
+
+        min-height: 100vh;
+
+        gap: 22px;
+
+        padding: 22px;
+    }
+
+    .verifyLeftPanel {
+        flex: none;
+
+        width: 100%;
+        min-height: 340px;
+        height: 340px;
+    }
+
+    .verifyRightPanel {
+        flex: none;
+
+        width: 100%;
+        min-width: 0;
+        min-height: auto;
+    }
+
+    .verifyCard {
+        width: 100%;
+        max-width: 650px;
+        min-height: auto;
+
+        padding: 42px;
+    }
+
+    .verifyLeftContent {
+        right: 30px;
+        bottom: 30px;
+        left: 30px;
+    }
+
+    .verifyLeftContent h1 {
+        font-size: 40px;
+    }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 768px) {
+    .verifyPage {
+        display: block;
+
+        min-height: 100vh;
+
+        padding: 18px;
+    }
+
+    .verifyLeftPanel {
+        display: none;
+    }
+
+    .verifyRightPanel {
+        width: 100%;
+        min-height: calc(100vh - 36px);
+    }
+
+    .verifyCard {
+        width: 100%;
+        max-width: 560px;
+        min-height: calc(100vh - 36px);
+
+        padding: 34px;
+
+        border-radius: 18px;
+    }
+
+    .verifyCard::before {
+        border-radius: 18px 18px 0 0;
+    }
+
+    .verifyLogo {
+        width: 58px;
+        height: 58px;
+
+        margin-bottom: 24px;
+
+        border-radius: 14px;
+
+        font-size: 25px;
+    }
+
+    .verifyCard h2 {
+        font-size: 34px;
+    }
+
+    .verifySubtitle {
+        margin-bottom: 28px;
+
+        font-size: 13px;
+    }
+
+    .verifyInputBox {
+        min-height: 51px;
+    }
+
+    .verifyInputBox input {
+        height: 49px;
+    }
+
+    .verifyButton {
+        min-height: 50px;
+    }
+}
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 480px) {
+    .verifyPage {
+        padding: 10px;
+    }
+
+    .verifyRightPanel {
+        min-height: calc(100vh - 20px);
+    }
+
+    .verifyCard {
+        min-height: calc(100vh - 20px);
+
+        padding: 28px 18px;
+
+        border-radius: 14px;
+    }
+
+    .verifyCard::before {
+        border-radius: 14px 14px 0 0;
+    }
+
+    .verifyLogo {
+        width: 52px;
+        height: 52px;
+
+        margin-bottom: 22px;
+
+        font-size: 22px;
+    }
+
+    .verifyCard h2 {
+        font-size: 29px;
+        letter-spacing: -1px;
+    }
+
+    .verifySubtitle {
+        margin-bottom: 25px;
+
+        font-size: 12px;
+    }
+
+    .verifyInputBox {
+        min-height: 48px;
+
+        padding: 0 13px;
+    }
+
+    .verifyInputBox input {
+        height: 46px;
+
+        font-size: 13px;
+    }
+
+    .verifyButton {
+        min-height: 48px;
+
+        font-size: 13px;
+    }
+
+    .verifyBack a {
+        font-size: 12px;
+    }
+}
+
+/* =========================================================
+   VERY SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 360px) {
+    .verifyCard {
+        padding-right: 14px;
+        padding-left: 14px;
+    }
+
+    .verifyCard h2 {
+        font-size: 26px;
+    }
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    .verifyCard,
+    .verifyInputBox,
+    .verifyInputBox svg,
+    .verifyButton,
+    .verifyBack a {
+        transition: none;
+    }
+}

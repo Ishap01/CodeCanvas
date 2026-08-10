@@ -1,0 +1,1186 @@
+html,
+body,
+#root {
+    width: 100%;
+    min-height: 100%;
+
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    scroll-behavior: smooth;
+}
+
+body {
+    min-height: 100vh;
+
+    overflow-x: hidden;
+
+    background: #050506;
+}
+
+.userDashboardPage,
+.userDashboardPage *,
+.userDashboardPage *::before,
+.userDashboardPage *::after {
+    box-sizing: border-box;
+}
+
+/* =========================================================
+   PAGE
+   ========================================================= */
+
+.userDashboardPage {
+    position: relative;
+
+    display: grid;
+    grid-template-columns:
+        220px minmax(0, 1fr);
+
+    width: 100%;
+    min-height: calc(100vh - 96px);
+
+    overflow-x: hidden;
+
+    background:
+        radial-gradient(
+            circle at 9% 4%,
+            rgba(108, 92, 231, 0.16),
+            transparent 28%
+        ),
+        radial-gradient(
+            circle at 89% 18%,
+            rgba(124, 58, 237, 0.09),
+            transparent 31%
+        ),
+        linear-gradient(
+            180deg,
+            #08080c 0%,
+            #050506 55%,
+            #030304 100%
+        );
+
+    color: #f9fafb;
+
+    font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+}
+
+.userDashboardPage::before {
+    position: absolute;
+    z-index: 0;
+
+    inset: 0;
+
+    pointer-events: none;
+
+    opacity: 0.13;
+
+    background-image:
+        linear-gradient(
+            rgba(255, 255, 255, 0.025) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.025) 1px,
+            transparent 1px
+        );
+
+    background-size: 42px 42px;
+
+    content: "";
+}
+
+.userDashboardPage > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+.userSidebar {
+    position: sticky;
+    top: 0;
+
+    align-self: start;
+
+    width: 100%;
+    height: calc(100vh - 96px);
+
+    padding: 28px 18px;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    border-right: 1px solid #24242c;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(17, 17, 22, 0.98),
+            rgba(8, 8, 12, 0.98)
+        );
+
+    backdrop-filter: blur(14px);
+
+    box-shadow:
+        12px 0 40px
+        rgba(0, 0, 0, 0.18);
+}
+
+.userSidebar::-webkit-scrollbar {
+    width: 5px;
+}
+
+.userSidebar::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+
+    background: #4d426f;
+}
+
+.sidebarHeading {
+    margin: 0 0 18px;
+    padding: 0 10px;
+
+    color: #777783;
+
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.sidebarNavigation {
+    display: flex;
+    flex-direction: column;
+
+    gap: 7px;
+}
+
+.sidebarNavigation a {
+    display: flex;
+
+    width: 100%;
+    min-height: 42px;
+
+    align-items: center;
+    gap: 12px;
+
+    padding: 10px 11px;
+
+    border: 1px solid transparent;
+    border-radius: 9px;
+
+    color: #85858f;
+
+    font-size: 12px;
+    font-weight: 650;
+
+    text-decoration: none;
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.sidebarNavigation a svg {
+    width: 16px;
+    min-width: 16px;
+
+    color: #716882;
+}
+
+.sidebarNavigation a:hover {
+    border-color:
+        rgba(139, 124, 246, 0.18);
+
+    background:
+        rgba(108, 92, 231, 0.08);
+
+    color: #d8d5f5;
+
+    transform: translateX(3px);
+}
+
+.sidebarNavigation
+.activeSidebarLink {
+    border-color:
+        rgba(139, 124, 246, 0.32);
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(108, 92, 231, 0.18),
+            rgba(108, 92, 231, 0.05)
+        );
+
+    color: #c4b5fd;
+}
+
+.sidebarNavigation
+.activeSidebarLink svg {
+    color: #a78bfa;
+}
+
+.sidebarDivider {
+    width: 100%;
+    height: 1px;
+
+    margin: 27px 0;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            #2a2a33,
+            transparent
+        );
+}
+
+/* =========================================================
+   MAIN CONTENT
+   ========================================================= */
+
+.userDashboardContent {
+    width: 100%;
+    min-width: 0;
+    min-height: calc(100vh - 96px);
+
+    padding: 34px 34px 110px;
+
+    overflow-x: hidden;
+}
+
+/* =========================================================
+   FILTERS
+   ========================================================= */
+
+.dashboardFilters {
+    width: 100%;
+
+    margin-bottom: 26px;
+    padding: 18px 20px;
+
+    border: 1px solid #2b2b34;
+    border-radius: 14px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(22, 22, 28, 0.96),
+            rgba(12, 12, 16, 0.96)
+        );
+
+    box-shadow:
+        0 16px 45px
+        rgba(0, 0, 0, 0.22),
+        inset 0 1px 0
+        rgba(255, 255, 255, 0.025);
+}
+
+.filterRow {
+    display: flex;
+
+    width: 100%;
+    min-height: 42px;
+
+    align-items: center;
+    gap: 18px;
+}
+
+.filterRow + .filterRow {
+    margin-top: 8px;
+    padding-top: 14px;
+
+    border-top: 1px solid #26262f;
+}
+
+.filterLabel {
+    width: 90px;
+    min-width: 90px;
+
+    color: #7f7f8b;
+
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+.filterOptions {
+    display: flex;
+
+    align-items: center;
+    flex-wrap: wrap;
+
+    gap: 9px;
+}
+
+.filterOptions button {
+    display: inline-flex;
+
+    min-height: 34px;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 7px 14px;
+
+    border: 1px solid #34343d;
+    border-radius: 999px;
+
+    background: #141419;
+    color: #898994;
+
+    cursor: pointer;
+
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 750;
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.filterOptions button:hover {
+    border-color:
+        rgba(124, 108, 242, 0.7);
+
+    background:
+        rgba(108, 92, 231, 0.1);
+
+    color: #c4b5fd;
+
+    transform: translateY(-1px);
+}
+
+.filterOptions
+.activeFilter {
+    border-color:
+        rgba(124, 108, 242, 0.85);
+
+    background:
+        linear-gradient(
+            135deg,
+            #745cf2,
+            #5b4bd6
+        );
+
+    color: #ffffff;
+
+    box-shadow:
+        0 8px 20px
+        rgba(108, 92, 231, 0.23);
+}
+
+/* =========================================================
+   WELCOME
+   ========================================================= */
+
+.userWelcomeBanner {
+    position: relative;
+
+    display: flex;
+
+    width: 100%;
+    min-height: 150px;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 30px;
+
+    margin-bottom: 36px;
+    padding: 29px 31px;
+
+    overflow: hidden;
+
+    border:
+        1px solid
+        rgba(124, 108, 242, 0.44);
+
+    border-radius: 18px;
+
+    background:
+        radial-gradient(
+            circle at 10% 45%,
+            rgba(139, 92, 246, 0.22),
+            transparent 31%
+        ),
+        radial-gradient(
+            circle at 91% 20%,
+            rgba(108, 92, 231, 0.14),
+            transparent 35%
+        ),
+        linear-gradient(
+            135deg,
+            rgba(31, 27, 51, 0.98),
+            rgba(14, 14, 20, 0.98)
+        );
+
+    box-shadow:
+        0 24px 65px
+        rgba(0, 0, 0, 0.32),
+        inset 0 1px 0
+        rgba(255, 255, 255, 0.05);
+}
+
+.welcomeGradient {
+    position: absolute;
+
+    inset: 0;
+
+    pointer-events: none;
+
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent 0,
+            transparent 70px,
+            rgba(255, 255, 255, 0.018) 71px,
+            transparent 72px
+        );
+}
+
+.welcomeUser,
+.welcomeStats {
+    position: relative;
+    z-index: 1;
+}
+
+.welcomeUser {
+    min-width: 250px;
+}
+
+.welcomeUser > span {
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: #a78bfa;
+
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.welcomeUser h1 {
+    margin: 0;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ffffff,
+            #d8d5f5
+        );
+
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    font-size:
+        clamp(24px, 2.5vw, 34px);
+
+    font-weight: 900;
+    letter-spacing: -0.8px;
+}
+
+.welcomeUser p {
+    max-width: 490px;
+
+    margin: 10px 0 0;
+
+    color: #9292a1;
+
+    font-size: 12px;
+    line-height: 1.65;
+}
+
+.welcomeStats {
+    display: flex;
+
+    max-width: 650px;
+
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+
+    gap: 10px;
+}
+
+.welcomeStats span {
+    display: inline-flex;
+
+    min-height: 36px;
+
+    align-items: center;
+    gap: 5px;
+
+    padding: 8px 13px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.08);
+
+    border-radius: 999px;
+
+    background:
+        rgba(6, 6, 10, 0.38);
+
+    color: #90909b;
+
+    font-size: 10px;
+    font-weight: 650;
+
+    backdrop-filter: blur(8px);
+}
+
+.welcomeStats strong {
+    color: #f3f4f6;
+
+    font-size: 11px;
+    font-weight: 850;
+}
+
+/* =========================================================
+   FEED HEADER
+   ========================================================= */
+
+.dashboardFeedHeader {
+    display: flex;
+
+    width: 100%;
+
+    align-items: flex-end;
+    justify-content: space-between;
+
+    gap: 25px;
+
+    margin-bottom: 24px;
+}
+
+.dashboardFeedHeader > div:first-child > span {
+    display: inline-flex;
+
+    align-items: center;
+    gap: 8px;
+
+    margin-bottom: 8px;
+
+    color: #a78bfa;
+
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 1.3px;
+}
+
+.dashboardFeedHeader h2 {
+    margin: 0;
+
+    color: #f4f4f7;
+
+    font-size:
+        clamp(24px, 3vw, 34px);
+
+    font-weight: 900;
+    letter-spacing: -0.9px;
+}
+
+.dashboardFeedHeader p {
+    margin: 10px 0 0;
+
+    color: #7e7e8c;
+
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.dashboardFeedActions {
+    display: flex;
+
+    align-items: center;
+    gap: 10px;
+}
+
+.dashboardRefreshButton,
+.dashboardExploreButton {
+    display: inline-flex;
+
+    min-height: 42px;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    padding: 0 15px;
+
+    border-radius: 10px;
+
+    cursor: pointer;
+
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.dashboardRefreshButton {
+    border: 1px solid #34343d;
+
+    background: #141419;
+    color: #9b9baa;
+}
+
+.dashboardRefreshButton:hover {
+    border-color:
+        rgba(139, 124, 246, 0.5);
+
+    color: #c4b5fd;
+}
+
+.dashboardRefreshButton:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+.dashboardExploreButton {
+    border:
+        1px solid
+        rgba(124, 108, 242, 0.55);
+
+    background:
+        linear-gradient(
+            135deg,
+            #745cf2,
+            #5b4bd6
+        );
+
+    color: #ffffff;
+
+    box-shadow:
+        0 10px 25px
+        rgba(108, 92, 231, 0.22);
+}
+
+.dashboardRefreshingIcon {
+    animation:
+        dashboardRotate
+        0.75s linear infinite;
+}
+
+@keyframes dashboardRotate {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* =========================================================
+   MEDIUM SNIPPET FEED
+   ========================================================= */
+
+.dashboardSnippetGrid {
+    display: grid;
+
+    width: 100%;
+
+    grid-template-columns:
+        repeat(
+            auto-fill,
+            minmax(320px, 360px)
+        );
+
+    align-items: start;
+    justify-content: start;
+
+    gap: 22px;
+}
+
+.dashboardSnippetCardWrapper {
+    width: 100%;
+    min-width: 0;
+    max-width: 360px;
+}
+
+.dashboardSnippetCardWrapper
+.instagramSnippetCard {
+    width: 100%;
+    min-width: 0;
+
+    border-radius: 15px;
+}
+
+/* =========================================================
+   MEDIUM CARD HEADER
+   ========================================================= */
+
+.dashboardSnippetCardWrapper
+.instagramSnippetHeader {
+    min-height: 65px;
+
+    padding: 13px 14px;
+}
+
+.dashboardSnippetCardWrapper
+.instagramSnippetAvatar {
+    width: 42px;
+    height: 42px;
+}
+
+.dashboardSnippetCardWrapper
+.instagramSnippetIdentity {
+    gap: 11px;
+}
+
+.dashboardSnippetCardWrapper
+.instagramSnippetIdentity strong {
+    font-size: 0.84rem;
+}
+
+.dashboardSnippetCardWrapper
+.instagramSnippetIdentity div > span {
+    font-size: 0.66rem;
+}
+
+.dashboardSnippetCardWrapper
+.instagramSnippetVisibility {
+    padding: 5px 8px;
+
+    font-size: 0.57rem;
+}
+
+/* =========================================================
+   MEDIUM PREVIEW
+   ========================================================= */
+
+.dashboardSnippetCardWrapper
+.instagramSnippetPreview {
+    min-height: 220px;
+    max-height: 245px;
+
+    aspect-ratio: auto;
+}
+
+.dashboardSnippetCardWrapper
+.instagramSnippetPreview pre {
+    min-height: 220px;
+    max-height: 245px;
+
+    padding: 18px;
+
+    font-size: 0.72rem;
+    line-height: 1.6;
+}
+
+.dashboardSnippetCardWrapper
+.instagramSnippetCodeIcon {
+    top: 14px;
+    right: 14px;
+}
+
+/* =========================================================
+   MEDIUM ACTIONS
+   ========================================================= */
+
+.dashboardSnippetCardWrapper
+.instagramSnippetActions {
+    padding: 11px 13px 5px;
+}
+
+.dashboardSnippetCardWrapper
+.instagramSnippetActions button {
+    width: 34px;
+    height: 34px;
+
+    font-size: 0.96rem;
+}
+
+.dashboardSnippetCardWrapper
+.instagramSnippetCounts {
+    gap: 10px;
+
+    padding: 0 13px;
+
+    font-size: 0.61rem;
+}
+
+/* =========================================================
+   MEDIUM CONTENT
+   ========================================================= */
+
+.dashboardSnippetCardWrapper
+.instagramSnippetContent {
+    padding: 12px 14px 15px;
+}
+
+.dashboardSnippetCardWrapper
+.instagramSnippetDescription {
+    margin-top: 0;
+
+    font-size: 0.73rem;
+    line-height: 1.6;
+
+    -webkit-line-clamp: 2;
+}
+
+.dashboardSnippetCardWrapper
+.instagramSnippetTags {
+    gap: 6px;
+
+    margin-top: 9px;
+}
+
+.dashboardSnippetCardWrapper
+.instagramSnippetTags span {
+    font-size: 0.61rem;
+}
+
+.dashboardSnippetCardWrapper
+.instagramSnippetViewComments {
+    margin-top: 9px;
+
+    font-size: 0.64rem;
+}
+
+.dashboardSnippetCardWrapper
+.instagramSnippetFooter {
+    margin-top: 11px;
+    padding-top: 10px;
+
+    font-size: 0.61rem;
+}
+
+/* =========================================================
+   STATES
+   ========================================================= */
+
+.dashboardState,
+.dashboardLoadingState {
+    display: flex;
+
+    width: 100%;
+    min-height: 340px;
+
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+
+    gap: 13px;
+
+    padding: 40px 20px;
+
+    border:
+        1px dashed
+        rgba(124, 108, 242, 0.36);
+
+    border-radius: 17px;
+
+    background:
+        rgba(12, 12, 16, 0.82);
+
+    text-align: center;
+}
+
+.dashboardStateIcon {
+    color: #a78bfa;
+
+    font-size: 36px;
+}
+
+.dashboardState h2,
+.dashboardLoadingState h2 {
+    margin: 0;
+
+    color: #f3f4f6;
+
+    font-size: 24px;
+}
+
+.dashboardState p,
+.dashboardLoadingState p {
+    max-width: 500px;
+
+    margin: 0;
+
+    color: #7f7f8c;
+
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.dashboardState button {
+    min-height: 43px;
+
+    margin-top: 5px;
+    padding: 0 17px;
+
+    border:
+        1px solid
+        rgba(145, 115, 255, 0.38);
+
+    border-radius: 10px;
+
+    background:
+        rgba(108, 74, 224, 0.13);
+
+    color: #c3b6ff;
+
+    cursor: pointer;
+
+    font-family: inherit;
+    font-weight: 800;
+}
+
+.dashboardLoadingSpinner {
+    width: 39px;
+    height: 39px;
+
+    border:
+        3px solid
+        rgba(255, 255, 255, 0.14);
+
+    border-top-color: #8b7cf6;
+    border-radius: 50%;
+
+    animation:
+        dashboardRotate
+        0.75s linear infinite;
+}
+
+/* =========================================================
+   FOCUS
+   ========================================================= */
+
+.sidebarNavigation a:focus-visible,
+.filterOptions button:focus-visible,
+.dashboardRefreshButton:focus-visible,
+.dashboardExploreButton:focus-visible,
+.dashboardState button:focus-visible {
+    outline:
+        3px solid
+        rgba(139, 124, 246, 0.28);
+
+    outline-offset: 3px;
+}
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+
+body::-webkit-scrollbar {
+    width: 9px;
+}
+
+body::-webkit-scrollbar-track {
+    background: #09090b;
+}
+
+body::-webkit-scrollbar-thumb {
+    border: 2px solid #09090b;
+    border-radius: 999px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #806cff,
+            #5b4bd6
+        );
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1250px) {
+
+    .dashboardSnippetGrid {
+        grid-template-columns:
+            repeat(
+                auto-fill,
+                minmax(300px, 340px)
+            );
+    }
+
+    .dashboardSnippetCardWrapper {
+        max-width: 340px;
+    }
+}
+
+@media (max-width: 1050px) {
+
+    .userDashboardPage {
+        grid-template-columns:
+            190px minmax(0, 1fr);
+    }
+
+    .userDashboardContent {
+        padding:
+            28px 25px 90px;
+    }
+
+    .userWelcomeBanner {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .welcomeStats {
+        justify-content: flex-start;
+    }
+
+    .dashboardSnippetGrid {
+        grid-template-columns:
+            repeat(
+                auto-fill,
+                minmax(285px, 1fr)
+            );
+    }
+
+    .dashboardSnippetCardWrapper {
+        max-width: 350px;
+    }
+}
+
+@media (max-width: 800px) {
+
+    .userDashboardPage {
+        display: block;
+    }
+
+    .userSidebar {
+        position: relative;
+
+        display: none;
+    }
+
+    .userDashboardContent {
+        min-height: 100vh;
+
+        padding:
+            24px 18px 80px;
+    }
+
+    .filterRow {
+        align-items: flex-start;
+        flex-direction: column;
+
+        gap: 10px;
+    }
+
+    .filterLabel {
+        width: auto;
+        min-width: 0;
+    }
+
+    .dashboardFeedHeader {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .dashboardFeedActions {
+        width: 100%;
+    }
+
+    .dashboardRefreshButton,
+    .dashboardExploreButton {
+        flex: 1;
+    }
+
+    .dashboardSnippetGrid {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
+    }
+
+    .dashboardSnippetCardWrapper {
+        max-width: none;
+    }
+}
+
+@media (max-width: 620px) {
+
+    .dashboardSnippetGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboardSnippetCardWrapper {
+        width: 100%;
+        max-width: 430px;
+
+        margin-inline: auto;
+    }
+
+    .dashboardFilters {
+        padding: 16px;
+    }
+
+    .userWelcomeBanner {
+        padding: 24px 20px;
+    }
+
+    .welcomeStats {
+        display: grid;
+
+        width: 100%;
+
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
+    }
+
+    .welcomeStats span {
+        justify-content: center;
+    }
+
+    .dashboardFeedActions {
+        flex-direction: column;
+    }
+
+    .dashboardRefreshButton,
+    .dashboardExploreButton {
+        width: 100%;
+    }
+
+    .dashboardSnippetCardWrapper
+    .instagramSnippetPreview {
+        min-height: 235px;
+        max-height: 260px;
+    }
+
+    .dashboardSnippetCardWrapper
+    .instagramSnippetPreview pre {
+        min-height: 235px;
+        max-height: 260px;
+    }
+}
+
+@media (max-width: 420px) {
+
+    .welcomeStats {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboardSnippetCardWrapper {
+        max-width: 100%;
+    }
+}

@@ -1,0 +1,65 @@
+.profileAboutCard{
+
+    width:100%;
+
+    padding:32px;
+
+    border-radius:20px;
+
+    border:1px solid rgba(255,255,255,.08);
+
+    background:
+
+    linear-gradient(
+        180deg,
+        rgba(25,30,55,.95),
+        rgba(16,18,34,.95)
+    );
+
+    margin-bottom:32px;
+
+}
+
+.profileAboutBadge{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:8px 18px;
+
+    border-radius:999px;
+
+    background:
+
+    linear-gradient(
+        135deg,
+        #7B61FF,
+        #5C46E7
+    );
+
+    color:white;
+
+    font-size:.78rem;
+
+    font-weight:700;
+
+    letter-spacing:.08em;
+
+    margin-bottom:22px;
+
+}
+
+.profileAboutText{
+
+    color:#d3d8ea;
+
+    line-height:1.8;
+
+    font-size:1rem;
+
+    margin:0;
+
+}

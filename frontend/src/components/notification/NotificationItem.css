@@ -1,0 +1,175 @@
+.notificationItem {
+
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+
+    padding: 16px 18px;
+
+    border: 1px solid rgba(145,154,196,.14);
+    border-radius: 14px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(17,20,38,.98),
+            rgba(9,11,23,.99)
+        );
+
+    color: #f3f5fc;
+
+    box-shadow:
+        0 12px 35px
+        rgba(0,0,0,.22);
+
+    transition:
+        transform .2s ease,
+        border-color .2s ease,
+        box-shadow .2s ease;
+
+    cursor: pointer;
+
+    margin-bottom: 14px;
+
+}
+
+.notificationItem:hover{
+
+    transform:translateY(-3px);
+
+    border-color:
+        rgba(139,108,255,.35);
+
+    box-shadow:
+        0 20px 50px
+        rgba(0,0,0,.30);
+
+}
+
+.notificationUnread{
+
+    border-left:4px solid #8b6cff;
+
+}
+
+.notificationRead{
+
+    opacity:.72;
+
+}
+
+.notificationIcon{
+
+    width:46px;
+    height:46px;
+
+    flex-shrink:0;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    border-radius:50%;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(118,82,235,.28),
+            rgba(18,20,37,.42)
+        );
+
+    border:1px solid
+        rgba(143,112,255,.32);
+
+    color:#a78bfa;
+
+    font-size:18px;
+
+}
+
+.notificationContent{
+
+    flex:1;
+    min-width:0;
+
+}
+
+.notificationContent h4{
+
+    margin:0;
+
+    color:#f5f6fb;
+
+    font-size:.92rem;
+
+    font-weight:700;
+
+}
+
+.notificationContent p{
+
+    margin:8px 0;
+
+    color:#a4abbf;
+
+    font-size:.79rem;
+
+    line-height:1.6;
+
+}
+
+.notificationContent span{
+
+    color:#707891;
+
+    font-size:.68rem;
+
+    font-weight:700;
+
+}
+
+.notificationDelete{
+
+    width:32px;
+    height:32px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border:none;
+
+    border-radius:8px;
+
+    background:transparent;
+
+    color:#7d859d;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+}
+
+.notificationDelete:hover{
+
+    background:
+        rgba(255,255,255,.05);
+
+    color:#ff6b8a;
+
+}
+
+.notificationUnread .notificationContent h4{
+
+    color:white;
+
+}
+
+.notificationUnread .notificationIcon{
+
+    box-shadow:
+        0 0 20px
+        rgba(124,58,237,.28);
+
+}
